@@ -9,6 +9,7 @@ export const MainRoute = () => {
     <BrowserRouter>
       <Routes>
         <Route path="login" element={<LoginPage />} />
+
         <Route path="/" element={<RootLayout />} />
         <Route path="/error" element={<ErrorPage />} />
         <Route path="*" element={<NotFoundPage />} />
