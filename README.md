@@ -16,6 +16,11 @@ npm run dev
 npm run build
 ```
 
+### Naming rules:
+- PascalCase for .tsx file and components
+- camelCase for .ts files, functions, method, variables, component's props
+- PascalCase for interface, class, type
+- UPPER_CASE for constants
 
 ### Dependencies:
 - React hook form: for form handling
