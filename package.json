@@ -11,10 +11,15 @@
     "prepare": "husky"
   },
   "lint-staged": {
-    "**/*.{ts,tsx,js,jsx}": ["eslint --fix", "prettier --write"]
+    "**/*.{ts,tsx,js,jsx}": [
+      "eslint --fix",
+      "prettier --write"
+    ]
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.1",
+    "@radix-ui/react-avatar": "^1.1.1",
+    "@radix-ui/react-navigation-menu": "^1.2.1",
     "@radix-ui/react-slot": "^1.1.0",
     "axios": "^1.7.7",
     "class-variance-authority": "^0.7.0",

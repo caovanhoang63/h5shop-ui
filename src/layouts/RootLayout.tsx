@@ -3,6 +3,7 @@ import { Fragment } from "react";
 import { FullScreenLoading } from "@/components/ui/fullScreenLoading.tsx";
 import { useStore } from "@/stores/useStore.ts";
 import { Outlet } from "react-router-dom";
+import { TopBar } from "@/layouts/components/TopBar.tsx";
 
 export default function RootLayout() {
   const isLoading = useStore((state) => state.isLoading);
@@ -10,6 +11,7 @@ export default function RootLayout() {
     <Fragment>
       <FullScreenLoading isLoading={isLoading}></FullScreenLoading>
       <main>
+        <TopBar />
         <Outlet />
       </main>
       <Toaster
