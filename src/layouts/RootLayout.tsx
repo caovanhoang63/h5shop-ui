@@ -12,7 +12,9 @@ export default function RootLayout() {
       <FullScreenLoading isLoading={isLoading}></FullScreenLoading>
       <main>
         <TopBar />
-        <Outlet />
+        <div className="bg-background min-h-screen min-w-screen">
+          <Outlet />
+        </div>
       </main>
       <Toaster
         position="top-right"
