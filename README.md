@@ -14,6 +14,6 @@ npm run build
 - Shacdn + tailwind: UI
 - react-router-dom: router
 - zustand: for state management
-
+- lucie react: icons
 ### Figma:
 

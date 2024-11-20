@@ -1,17 +1,18 @@
 import './App.css'
 import RootLayout from "@/layout.tsx";
 import {Button} from "@/components/ui/button.tsx";
-import {toast} from "sonner";
+import {useStore} from "@/stores/useStore.ts";
 
 function App() {
-
-  return (
-    <RootLayout>
-        <div>
-            <Button onClick={() => toast.success("hello")}>Toast</Button>
-        </div>
-    </RootLayout>
-  )
+    const setLoading = useStore(state => state.setLoading);
+    const isLoading = useStore(state => state.isLoading);
+    return (
+        <RootLayout>
+            <div>
+                <Button onClick={() => setLoading(!isLoading)}>Toast</Button>
+            </div>
+        </RootLayout>
+    )
 }
 
 export default App
