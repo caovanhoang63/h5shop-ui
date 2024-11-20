@@ -19,6 +19,13 @@ jobs:
           cache: "npm"
       - name: Install dependencies
         run: npm ci
+
+      # Run Prettier to check formatting
+      - name: Check Prettier formatting
+        run: npx prettier --check "**/*.{js,ts,tsx,jsx,json,css,scss}"
+      # Run ESLint to check code quality
+      - name: Lint with ESLint
+        run: npx eslint "**/*.{js,ts,tsx,jsx}"
       - name: Build
         run: npm run build --if-present
       - name: Configure AWS Credentials
