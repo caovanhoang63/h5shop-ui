@@ -1,4 +1,3 @@
-
 export interface Spu {
-    id: number;
+  id: number;
 }
