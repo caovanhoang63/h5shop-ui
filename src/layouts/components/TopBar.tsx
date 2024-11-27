@@ -34,10 +34,10 @@ export const TopBar = () => {
           H5Shop
         </Button>
         <div className={"flex space-x-5 items-center"}>
-          <button className={"hover:bg-accent p-2 rounded-md"}>
+          <button className={"hover:bg-accent p-1 rounded-md"}>
             <Mail size={32} />
           </button>
-          <button className={"hover:bg-accent p-2  rounded-md"}>
+          <button className={"hover:bg-accent p-1  rounded-md"}>
             <Settings size={32} />
           </button>
           <div className={"content-center text-xl "}>0896374872</div>
@@ -105,7 +105,7 @@ const NavButton = ({
       <NavigationMenuItem className={`${className} `}>
         <Link to={"/"}>
           <NavigationMenuLink
-            className={`${navigationMenuTriggerStyle()} text-xl !py-8 bg-transparent flex items-center space-x-1 `}
+            className={`${navigationMenuTriggerStyle()} text-xl py-5 bg-transparent flex items-center space-x-1 `}
           >
             {children}
           </NavigationMenuLink>

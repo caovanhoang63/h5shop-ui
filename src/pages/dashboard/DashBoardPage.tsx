@@ -21,15 +21,16 @@ import {
 
 export const DashBoardPage = () => {
   return (
-    <div className="flex space-x-5 p-5">
+    <div className="flex space-x-5 p-5 relative">
       <div className={"space-y-5 flex-grow "}>
+        {/*Result today*/}
         <Card>
-          <CardHeader>
+          <CardHeader className={"py-5"}>
             <CardTitle className="uppercase">kết quả hôm này</CardTitle>
           </CardHeader>
           <CardContent className={"flex space-x-5 items-center "}>
             <img
-              className={"size-16"}
+              className={"size-14"}
               src={"/icons/BlueCircleDollar.svg"}
               alt={"Dollar Icon"}
             />
@@ -40,7 +41,7 @@ export const DashBoardPage = () => {
             </div>
             <Separator orientation="vertical" />
             <img
-              className={"size-16"}
+              className={"size-14"}
               src={"/icons/YellowReturn.svg"}
               alt={"Dollar Icon"}
             />
@@ -51,7 +52,7 @@ export const DashBoardPage = () => {
             </div>
             <Separator orientation="vertical" />
             <img
-              className={"size-16"}
+              className={"size-14"}
               src={"/icons/RedDown.svg"}
               alt={"Dollar Icon"}
             />
@@ -62,9 +63,9 @@ export const DashBoardPage = () => {
             </div>
           </CardContent>
         </Card>
-
+        {/*Monthly profit*/}
         <Card>
-          <CardHeader>
+          <CardHeader className={"py-5"}>
             <CardTitle className="uppercase flex justify-between">
               <div className={" flex items-center space-x-2"}>
                 <p className={"content-center"}>Doanh thu thuần tháng này</p>
@@ -90,9 +91,9 @@ export const DashBoardPage = () => {
           </CardHeader>
           <CardContent>
             <div>
-              <p className={"py-3"}>Theo ngày</p>
+              <p className={"py-1"}>Theo ngày</p>
               <div>
-                <ChartContainer className={"h-96"} config={chartConfig}>
+                <ChartContainer className={"h-80 w-full"} config={chartConfig}>
                   <BarChart accessibilityLayer data={chartData}>
                     <CartesianGrid vertical={false} />
                     <XAxis
@@ -114,7 +115,7 @@ export const DashBoardPage = () => {
             </div>
           </CardContent>
         </Card>
-
+        {/*Top seller*/}
         <Card>
           <CardHeader>
             <CardTitle className="uppercase">
@@ -162,7 +163,7 @@ export const DashBoardPage = () => {
           </CardHeader>
           <CardContent>
             <div>
-              <ChartContainer className={"h-96"} config={chartConfig}>
+              <ChartContainer className={"h-96 w-full"} config={chartConfig}>
                 <BarChart
                   accessibilityLayer
                   data={chartData}
@@ -189,12 +190,18 @@ export const DashBoardPage = () => {
           </CardContent>
         </Card>
       </div>
-      <Card className={""}>
+      {/*Audit log0*/}
+      <Card className={"max-w-80 sticky top-0 right-0 max-h-screen"}>
         <CardHeader>
           <CardTitle className="uppercase">Các hoạt đông gần đây</CardTitle>
         </CardHeader>
         <Separator />
         <CardContent>
+          <ActionCard />
+          <ActionCard />
+          <ActionCard />
+          <ActionCard />
+          <ActionCard />
           <ActionCard />
           <ActionCard />
           <ActionCard />
