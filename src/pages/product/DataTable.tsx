@@ -60,7 +60,7 @@ function generateMockSpus(count: number = 10): Spu[] {
 }
 
 // Example usage
-const data = generateMockSpus(5);
+const data = generateMockSpus(25);
 
 export const columns: ColumnDef<Spu>[] = [
   {
@@ -185,6 +185,11 @@ export function DataTableDemo() {
   const [rowSelection, setRowSelection] = React.useState({});
 
   const table = useReactTable({
+    initialState: {
+      pagination: {
+        pageSize: 15,
+      },
+    },
     data,
     columns,
     onSortingChange: setSorting,
