@@ -19,16 +19,7 @@ import {
 import { CheckBoxWithText } from "@/components/CheckBoxWithText.tsx";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group.tsx";
 import { Label } from "@/components/ui/label.tsx";
-import {
-  Table,
-  TableBody,
-  TableCaption,
-  TableCell,
-  TableFooter,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { DataTableDemo } from "@/pages/product/DataTable.tsx";
 
 export default function ProductPage() {
   return (
@@ -137,27 +128,7 @@ export default function ProductPage() {
         </Card>
       </div>
       <div className={"col-span-4"}>
-        <Table>
-          <TableCaption>A list of your recent invoices.</TableCaption>
-          <TableHeader>
-            <TableRow>
-              <TableHeader className={"h-full items-center flex"}>
-                <CheckBoxWithText id={"normal"}></CheckBoxWithText>
-              </TableHeader>
-              <TableHead className="w-[100px]">Invoice</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Method</TableHead>
-              <TableHead className="text-right">Amount</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody></TableBody>
-          <TableFooter>
-            <TableRow>
-              <TableCell colSpan={3}>Total</TableCell>
-              <TableCell className="text-right">$2,500.00</TableCell>
-            </TableRow>
-          </TableFooter>
-        </Table>
+        <DataTableDemo></DataTableDemo>
       </div>
     </Container>
   );
