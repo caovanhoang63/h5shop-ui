@@ -28,8 +28,8 @@ import { Link } from "react-router-dom";
 
 export const TopBar = () => {
   return (
-    <div className="">
-      <div className="flex justify-between items-center px-5 ">
+    <div className="sticky top-0 z-50">
+      <div className="flex justify-between items-center px-5 bg-background">
         <Button variant={"ghost"} className={"text-2xl font-bold"}>
           H5Shop
         </Button>

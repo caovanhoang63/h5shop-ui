@@ -21,7 +21,7 @@ import {
 
 export const DashBoardPage = () => {
   return (
-    <div className="flex space-x-5 p-5 relative">
+    <div className="flex space-x-5 p-5">
       <div className={"space-y-5 flex-grow "}>
         {/*Result today*/}
         <Card>
@@ -191,7 +191,11 @@ export const DashBoardPage = () => {
         </Card>
       </div>
       {/*Audit log0*/}
-      <Card className={"max-w-80 sticky top-0 right-0 max-h-screen"}>
+      <Card
+        className={
+          "max-w-80 max-h-screen sticky top-0 h-screen overflow-y-auto"
+        }
+      >
         <CardHeader>
           <CardTitle className="uppercase">Các hoạt đông gần đây</CardTitle>
         </CardHeader>
