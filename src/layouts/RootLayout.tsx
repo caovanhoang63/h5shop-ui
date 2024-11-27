@@ -10,9 +10,9 @@ export default function RootLayout() {
   return (
     <Fragment>
       <FullScreenLoading isLoading={isLoading}></FullScreenLoading>
-      <main>
+      <main className={`min-h-screen flex flex-col`}>
         <TopBar />
-        <div className="bg-background min-h-screen min-w-screen">
+        <div className="grow bg-background min-w-screen">
           <Outlet />
         </div>
       </main>

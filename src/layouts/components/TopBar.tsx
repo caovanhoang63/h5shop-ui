@@ -54,7 +54,7 @@ export const TopBar = () => {
               <EyeIcon size={20} />
               <p>Tổng quan</p>
             </NavButton>
-            <NavButton>
+            <NavButton link={"product"}>
               <Package2 size={20} />
               <p>Hàng hóa</p>
             </NavButton>
@@ -96,14 +96,16 @@ export const TopBar = () => {
 const NavButton = ({
   children,
   className = " ",
+  link = "/",
 }: {
   children: React.ReactNode;
   className?: string;
+  link?: string;
 }) => {
   return (
     <Fragment>
       <NavigationMenuItem className={`${className} `}>
-        <Link to={"/"}>
+        <Link to={link}>
           <NavigationMenuLink
             className={`${navigationMenuTriggerStyle()} text-xl py-5 bg-transparent flex items-center space-x-1 `}
           >
