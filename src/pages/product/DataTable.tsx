@@ -58,6 +58,28 @@ function generateMockSpus(count: number = 10): Spu[] {
     status: faker.helpers.arrayElement([0, 1, 2]),
     createdAt: faker.date.past(),
     updatedAt: faker.date.recent(),
+    images: [
+      {
+        url: "https://images.pexels.com/photos/90946/pexels-photo-90946.jpeg?cs=srgb&dl=pexels-madebymath-90946.jpg",
+        extension: "jpg",
+      },
+      {
+        url: "https://images.pexels.com/photos/90946/pexels-photo-90946.jpeg?cs=srgb&dl=pexels-madebymath-90946.jpg",
+        extension: "jpg",
+      },
+      {
+        url: "https://images.pexels.com/photos/90946/pexels-photo-90946.jpeg?cs=srgb&dl=pexels-madebymath-90946.jpg",
+        extension: "jpg",
+      },
+      {
+        url: "https://img.freepik.com/free-photo/organic-cosmetic-product-with-dreamy-aesthetic-fresh-background_23-2151382816.jpg",
+        extension: "jpg",
+      },
+      {
+        url: "https://img.freepik.com/free-photo/organic-cosmetic-product-with-dreamy-aesthetic-fresh-background_23-2151382816.jpg",
+        extension: "jpg",
+      },
+    ] as Image[],
   }));
 }
 
@@ -93,15 +115,15 @@ export const columns: ColumnDef<Spu>[] = [
     cell: ({ row }) => <div className="capitalize">{row.getValue("id")}</div>,
   },
   {
-    id: "image",
+    id: "images",
     enableHiding: false,
     cell: ({ row }) => {
-      const image: Image = row.getValue("image");
+      const images = row.original.images;
       return (
         <img
           className={"w-8"}
           alt={"ảnh sản phẩm"}
-          src={image ? image.url : "image-placeholder.png"}
+          src={images?.[0].url || "image-placeholder.png"}
         ></img>
       );
     },
@@ -149,7 +171,6 @@ export const columns: ColumnDef<Spu>[] = [
     enableHiding: false,
     cell: ({ row }) => {
       const payment = row.original;
-
       return (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -182,6 +203,7 @@ export function DataTableDemo() {
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     [],
   );
+  // console.log(data?.[0].images?.[0].url);
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>({});
   const [rowSelection, setRowSelection] = React.useState({});
@@ -191,7 +213,7 @@ export function DataTableDemo() {
   const table = useReactTable({
     initialState: {
       pagination: {
-        pageSize: 15,
+        pageSize: 10,
       },
     },
     data,

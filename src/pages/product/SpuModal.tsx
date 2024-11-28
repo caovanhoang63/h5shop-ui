@@ -23,7 +23,8 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card.tsx";
-import InputWithBotBorder from "@/components/InputWithBotBorder.tsx";
+import { useState } from "react";
+import { ScrollArea } from "@/components/ui/scroll-area.tsx";
 
 interface ISpuModalProps {
   isOpen: boolean;
@@ -36,27 +37,47 @@ export default function SpuModal({
   spu,
   onOpenChange,
 }: ISpuModalProps) {
+  const [imgIndex, setImgIndex] = useState<number>(0);
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="">
+      <DialogContent className="max-w-screen-xl min-h-[calc(100vh-10%)] flex flex-col">
         <DialogHeader>
           <DialogTitle>Chi tiết sản phẩm</DialogTitle>
         </DialogHeader>
-        <Tabs defaultValue="info" className="w-[400px]">
+        <Tabs defaultValue="info" className="grow">
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="info">Thông tin</TabsTrigger>
             <TabsTrigger value="password">Password</TabsTrigger>
           </TabsList>
-          <TabsContent value="info" className="flex">
-            <div className={"space-y-4"}>
+          <TabsContent value="info" className="space-y-2">
+            <div>
               <h2 className={"text-xl text-primary"}>{spu?.name}</h2>
-              <img
-                src={spu?.image?.url || "image-placeholder.png"}
-                alt={"Hình sản phẩm"}
-              />
             </div>
-            <div className={"space-y-4"}>
-              <InputWithBotBorder></InputWithBotBorder>
+            <div className={"flex space-x-5"}>
+              <div className={"flex space-x-2"}>
+                <img
+                  className={"size-80 border-gray-400 border-2"}
+                  src={spu?.images?.[imgIndex].url || "image-placeholder.png"}
+                  alt={"Hình sản phẩm"}
+                />
+                <ScrollArea className="max-h-80 pr-4">
+                  <ul className={"space-y-1 "}>
+                    {spu?.images?.map((image, index) => {
+                      return (
+                        <li
+                          className={`hover:opacity-50 border-gray-400 border-2 cursor-pointer ${index == imgIndex ? "opacity-50" : ""} `}
+                          onClick={() => setImgIndex(index)}
+                        >
+                          <img className={"size-20"} src={image.url} alt="" />
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </ScrollArea>
+              </div>
+              <div className={"space-y-4"}>
+                <Input></Input>
+              </div>
             </div>
           </TabsContent>
           <TabsContent value="password">
@@ -83,7 +104,7 @@ export default function SpuModal({
             </Card>
           </TabsContent>
         </Tabs>
-        <DialogFooter>
+        <DialogFooter className="">
           <Button type="submit">Save changes</Button>
         </DialogFooter>
       </DialogContent>

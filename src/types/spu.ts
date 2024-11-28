@@ -6,7 +6,7 @@ export interface Spu {
   description: string;
   metadata: unknown;
   categoryId: number;
-  image?: Image;
+  images?: Image[];
   outOfStock: boolean;
   stock: number;
   status: number;
