@@ -25,6 +25,7 @@ import {
 } from "@/components/ui/card.tsx";
 import { useState } from "react";
 import { ScrollArea } from "@/components/ui/scroll-area.tsx";
+import InputWithBotBorder from "@/components/InputWithBotBorder.tsx";
 
 interface ISpuModalProps {
   isOpen: boolean;
@@ -58,7 +59,7 @@ export default function SpuModal({
                 <img
                   className={"size-80 border-gray-400 border-2"}
                   src={spu?.images?.[imgIndex].url || "image-placeholder.png"}
-                  alt={"Hình sản phẩm"}
+                  alt={"Hình sản phẩm "}
                 />
                 <ScrollArea className="max-h-80 pr-4">
                   <ul className={"space-y-1 "}>
@@ -76,7 +77,39 @@ export default function SpuModal({
                 </ScrollArea>
               </div>
               <div className={"space-y-4"}>
-                <Input></Input>
+                <form>
+                  <div>
+                    <InputWithBotBorder
+                      readonly={true}
+                      className={"font-bold"}
+                      label={"Mã:"}
+                      value={spu?.id.toString() || ""}
+                    />
+                    <InputWithBotBorder label={"Mã vạch:"} value={"21232124"} />
+                    <InputWithBotBorder
+                      label={"Loại hàng:"}
+                      value={"Máy ảnh"}
+                    />
+                    <InputWithBotBorder
+                      label={"Thương hiệu:"}
+                      value={"Canon"}
+                    />
+                    <InputWithBotBorder
+                      label={"Nhà cung cấp:"}
+                      value={"Cty TNHH Một Mình Tao "}
+                    />
+                    <InputWithBotBorder
+                      label={"Trọng lượng:"}
+                      value={"1.5kg"}
+                    />
+                  </div>
+                  <div>
+                    <InputWithBotBorder
+                      label={"Trọng lượng:"}
+                      value={"1.5kg"}
+                    />
+                  </div>
+                </form>
               </div>
             </div>
           </TabsContent>
