@@ -62,7 +62,7 @@ export const TopBar = () => {
               <ArrowRightLeft size={20} />
               <p>Giao dịch</p>
             </NavButton>
-            <NavButton>
+            <NavButton link={"partner"}>
               <Handshake size={20} />
               <p>Đối tác</p>
             </NavButton>
