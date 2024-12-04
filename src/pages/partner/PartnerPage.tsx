@@ -28,6 +28,7 @@ import {
 } from "@/components/ui/popover.tsx";
 import { TimeDropdown } from "@/pages/partner/components/TimeDropdown.tsx";
 import { useState } from "react";
+import PartnerDataTable from "@/pages/partner/components/PartnerDataTable.tsx";
 
 export default function PartnerPage() {
   const [selectedTime, setSelectedTime] = useState("Toàn thời gian");
@@ -214,7 +215,7 @@ export default function PartnerPage() {
         </Card>
       </div>
       <div className={"col-span-4"}>
-        <DataTableDemo></DataTableDemo>
+        <PartnerDataTable></PartnerDataTable>
       </div>
     </Container>
   );
