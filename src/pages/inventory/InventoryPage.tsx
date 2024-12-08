@@ -14,6 +14,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group.tsx";
 import { Label } from "@/components/ui/label.tsx";
 import Container from "@/layouts/components/Container.tsx";
 import { InventoryTable } from "./InventoryTable.tsx";
+import { Link } from "react-router-dom";
 
 export const InventoryPage = () => {
   return (
@@ -27,10 +28,12 @@ export const InventoryPage = () => {
           <Input className={"pl-9"} placeholder={"Theo mã, tên hàng"} />
         </div>
         <div className={"flex space-x-2"}>
-          <Button className={"bg-green-500"}>
-            <Plus />
-            Kiểm kho
-          </Button>
+          <Link to={"/stock-takes"}>
+            <Button className={"bg-green-500"}>
+              <Plus />
+              Kiểm kho
+            </Button>
+          </Link>
           <Button className={"bg-green-500"}>
             <FileOutputIcon />
             Xuất file

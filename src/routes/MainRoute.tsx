@@ -6,6 +6,7 @@ import { ErrorPage } from "@/pages/ErrorPage.tsx";
 import { DashBoardPage } from "@/pages/dashboard/DashBoardPage.tsx";
 import ProductPage from "@/pages/product/ProductPage.tsx";
 import { InventoryPage } from "@/pages/inventory/InventoryPage.tsx";
+import InventoryCheckPage from "@/pages/inventory/stockTakes/StockTakesPage.tsx";
 
 export const MainRoute = () => {
   return (
@@ -15,7 +16,8 @@ export const MainRoute = () => {
         <Route path="/" element={<RootLayout />}>
           <Route index element={<DashBoardPage />} />
           <Route path={"product"} element={<ProductPage />} />
-          <Route path={"stock-takes"} element={<InventoryPage />} />
+          <Route path={"inventory"} element={<InventoryPage />} />
+          <Route path={"stock-takes"} element={<InventoryCheckPage />} />
         </Route>
         <Route path="/error" element={<ErrorPage />} />
         <Route path="*" element={<NotFoundPage />} />
