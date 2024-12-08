@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { Input } from "@/components/ui/input.tsx";
 import { ScrollArea } from "@/components/ui/scroll-area.tsx";
+import CategoryModal from "@/pages/product/CategoryModal.tsx";
 
 export interface CategoryFilter {
   id: number;
@@ -140,6 +141,8 @@ export const CardCategoryFilter = () => {
     useState<CategoryFilter[]>(categories);
   const [idCategorySelected, setIdCategorySelected] = useState<number>();
   const [searchText, setSearchText] = useState<string>("");
+  const [isOpenModalAdd, setIsOpenModalAdd] = useState<boolean>(false);
+  const [isOpenModalUpdate, setIsOpenModalUpdate] = useState<boolean>(false);
 
   const handleClickCategory = (id: number) => {
     setCategoryState((prevState) => {
@@ -161,7 +164,6 @@ export const CardCategoryFilter = () => {
       .replace(/Đ/g, "D") // Thay thế 'Đ' thành 'D' (nếu có).
       .toLowerCase(); // Chuyển tất cả thành chữ thường.
   };
-
   const filterCategories = (
     categories: CategoryFilter[],
     searchText: string,
@@ -189,11 +191,27 @@ export const CardCategoryFilter = () => {
       })
       .filter((category) => category !== null) as CategoryFilter[];
   };
-
   const filteredCategories = filterCategories(categoryState, searchText);
+
+  const handleClickEditItem = (item: CategoryFilter) => {
+    console.log(item);
+    setIsOpenModalUpdate(true);
+  };
 
   return (
     <Card>
+      {/*Modal add*/}
+      <CategoryModal
+        isOpen={isOpenModalAdd}
+        onOpenChange={setIsOpenModalAdd}
+        isAdd={true}
+      />
+      {/*Modal update*/}
+      <CategoryModal
+        isOpen={isOpenModalUpdate}
+        onOpenChange={setIsOpenModalUpdate}
+        isAdd={false}
+      />
       <CardContent>
         <Accordion type="single" collapsible>
           <AccordionItem value="item-1">
@@ -211,6 +229,7 @@ export const CardCategoryFilter = () => {
                     borderRadius: "10px",
                     marginRight: "6px",
                   }}
+                  onClick={() => setIsOpenModalAdd(true)}
                 >
                   <CirclePlus className="w-5 h-5" />
                 </button>
@@ -256,6 +275,7 @@ export const CardCategoryFilter = () => {
                     idSelected={idCategorySelected}
                     onClick={handleClickCategory}
                     searchText={searchText}
+                    onClickEdit={handleClickEditItem}
                   />
                 ))}
               </ScrollArea>
@@ -273,11 +293,13 @@ export const CardCategoryFilterItem = ({
   idSelected,
   onClick,
   searchText,
+  onClickEdit,
 }: {
   category: CategoryFilter;
   idSelected?: number;
   onClick?: (id: number) => void;
   searchText: string;
+  onClickEdit: (item: CategoryFilter) => void;
 }) => {
   // State để quản lý việc đóng/mở item con
   const [isOpen, setIsOpen] = useState(false);
@@ -340,7 +362,7 @@ export const CardCategoryFilterItem = ({
           style={{ width: "30px", height: "30px", borderRadius: "15px" }}
           onClick={(e) => {
             e.stopPropagation();
-            alert("Edit");
+            onClickEdit(category);
           }}
         >
           ✎
@@ -356,6 +378,7 @@ export const CardCategoryFilterItem = ({
             idSelected={idSelected}
             onClick={onClick}
             searchText={searchText}
+            onClickEdit={onClickEdit}
           />
         ))}
       </div>
