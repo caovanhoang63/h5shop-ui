@@ -10,7 +10,6 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion.tsx";
-import { CheckBoxWithText } from "@/components/CheckBoxWithText.tsx";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group.tsx";
 import { Label } from "@/components/ui/label.tsx";
 import { DataTableDemo } from "@/pages/product/DataTable.tsx";
@@ -19,6 +18,7 @@ import {
   MenuVisibilityColumnTable,
 } from "@/components/ButtonVisibilityColumnTable.tsx";
 import { useState } from "react";
+import { CardCategoryFilter } from "@/pages/product/CardCategoryFilter.tsx";
 
 export default function ProductPage() {
   const [fields, setFields] = useState<MenuVisibilityColumnTable[]>([
@@ -69,29 +69,7 @@ export default function ProductPage() {
         </div>
       </div>
       <div className={"col-span-1 space-y-4"}>
-        <Card>
-          <CardContent>
-            <Accordion type="single" collapsible>
-              <AccordionItem value="item-1">
-                <AccordionTrigger className={"hover:no-underline"}>
-                  Phân loại
-                </AccordionTrigger>
-                <AccordionContent className={"space-y-2"}>
-                  <CheckBoxWithText id={"normal"}>
-                    Hàng hóa thường
-                  </CheckBoxWithText>
-                  <CheckBoxWithText id={"serial"}>
-                    Hàng hóa - Serial/IMEI
-                  </CheckBoxWithText>
-                  <CheckBoxWithText id={"service"}>Dịch vụ</CheckBoxWithText>
-                  <CheckBoxWithText id={"combo"}>
-                    Combo - Đóng gói
-                  </CheckBoxWithText>
-                </AccordionContent>
-              </AccordionItem>
-            </Accordion>
-          </CardContent>
-        </Card>
+        <CardCategoryFilter />
         <Card>
           <CardContent>
             <Accordion type="single" collapsible>
