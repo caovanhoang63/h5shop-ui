@@ -20,7 +20,7 @@ export function CheckBoxWithText({
         checked={checked}
         onCheckedChange={onCheckChange}
         className={
-          "border-gray-400 data-[state=checked]:bg-green-500 data-[state=checked]:text-white data-[state=checked]:border-green-500"
+          "border-gray-400 data-[state=checked]:bg-blue-600 data-[state=checked]:text-white data-[state=checked]:border-blue-600"
         }
       />
       <label

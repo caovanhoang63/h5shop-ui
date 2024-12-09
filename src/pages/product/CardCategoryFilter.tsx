@@ -263,9 +263,11 @@ export const CardCategoryFilter = () => {
               {/*Dịch qua trái 12px*/}
               <ScrollArea
                 style={{
-                  transform: "translateX(-20px)",
-                  height: "200px",
-                  width: "calc(100% + 20px)",
+                  transform: "translateX(-16px)",
+                  height: "150px", // Chiều cao cố định
+                  maxHeight: "150px", // Chiều cao tối đa (nếu cần)
+                  width: "calc(100% + 16px)",
+                  overflow: "auto", // Tự động cuộn khi nội dung vượt quá chiều cao
                 }}
               >
                 {filteredCategories.map((category) => (
@@ -348,9 +350,7 @@ export const CardCategoryFilterItem = ({
         )}
         <div className={"flex-1 ml-1"}>
           {idSelected === category.id ? (
-            <label className={"font-bold text-green-500"}>
-              {category.name}
-            </label>
+            <label className={"font-bold text-blue-600"}>{category.name}</label>
           ) : (
             <label>{category.name}</label>
           )}
@@ -359,7 +359,7 @@ export const CardCategoryFilterItem = ({
         <button
           className="hidden group-hover:flex items-center justify-center rounded-md hover:bg-gray-200"
           title="Edit"
-          style={{ width: "30px", height: "30px", borderRadius: "15px" }}
+          style={{ width: "24px", height: "24px", borderRadius: "12px" }}
           onClick={(e) => {
             e.stopPropagation();
             onClickEdit(category);

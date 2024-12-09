@@ -19,6 +19,7 @@ import {
 } from "@/components/ButtonVisibilityColumnTable.tsx";
 import { useState } from "react";
 import { CardCategoryFilter } from "@/pages/product/CardCategoryFilter.tsx";
+import { CardBrandFilter } from "@/pages/product/CardBrandFilter.tsx";
 
 export default function ProductPage() {
   const [fields, setFields] = useState<MenuVisibilityColumnTable[]>([
@@ -29,6 +30,14 @@ export default function ProductPage() {
     { label: "Trạng thái", key: "status", visible: true },
     { label: "Action", key: "actions", visible: true },
   ]);
+
+  const [brandSelected, setBrandSelected] = useState<string>("0");
+
+  const handleChangedBrand = (brandId: string) => {
+    console.log(brandSelected);
+    console.log(brandId);
+    setBrandSelected(brandId);
+  };
 
   const handleCheckField = (key: string, visible: boolean) => {
     setFields((prevFields) =>
@@ -70,23 +79,7 @@ export default function ProductPage() {
       </div>
       <div className={"col-span-1 space-y-4"}>
         <CardCategoryFilter />
-        <Card>
-          <CardContent>
-            <Accordion type="single" collapsible>
-              <AccordionItem value="item-1">
-                <AccordionTrigger className={"hover:no-underline"}>
-                  Phân loại
-                </AccordionTrigger>
-                <AccordionContent className={"pb-0"}>
-                  <Input
-                    className={"focus-visible:ring-0 border-0 shadow-none"}
-                    placeholder={"Chọn nhà cung cấp "}
-                  />
-                </AccordionContent>
-              </AccordionItem>
-            </Accordion>
-          </CardContent>
-        </Card>
+        <CardBrandFilter onChange={handleChangedBrand} />
         <Card>
           <CardContent>
             <Accordion type="single" collapsible>
@@ -94,7 +87,7 @@ export default function ProductPage() {
                 <AccordionTrigger className={"hover:no-underline"}>
                   Bảo hành
                 </AccordionTrigger>
-                <AccordionContent className={"pb-0"}>
+                <AccordionContent className={""}>
                   <RadioGroup defaultValue="option-one">
                     <div className="flex items-center space-x-2">
                       <RadioGroupItem value="option-one" id="option-one" />

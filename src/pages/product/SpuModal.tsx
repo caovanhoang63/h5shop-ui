@@ -46,9 +46,10 @@ export default function SpuModal({
           <DialogTitle>Chi tiết sản phẩm</DialogTitle>
         </DialogHeader>
         <Tabs defaultValue="info" className="grow">
-          <TabsList className="grid w-full grid-cols-2">
+          <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="info">Thông tin</TabsTrigger>
             <TabsTrigger value="password">Password</TabsTrigger>
+            <TabsTrigger value="hello">jello</TabsTrigger>
           </TabsList>
           <TabsContent value="info" className="space-y-2">
             <div>
@@ -114,6 +115,29 @@ export default function SpuModal({
             </div>
           </TabsContent>
           <TabsContent value="password">
+            <Card>
+              <CardHeader>
+                <CardTitle>Password</CardTitle>
+                <CardDescription>
+                  Change your password here. After saving, you'll be logged out.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                <div className="space-y-1">
+                  <Label htmlFor="current">Current password</Label>
+                  <Input id="current" type="password" />
+                </div>
+                <div className="space-y-1">
+                  <Label htmlFor="new">New password</Label>
+                  <Input id="new" type="password" />
+                </div>
+              </CardContent>
+              <CardFooter>
+                <Button>Save password</Button>
+              </CardFooter>
+            </Card>
+          </TabsContent>
+          <TabsContent value="hello">
             <Card>
               <CardHeader>
                 <CardTitle>Password</CardTitle>
