@@ -35,6 +35,7 @@ export const CardBrandFilter = ({ onChange }: ICatalogProductProps) => {
   const [brandSelected, setBrandSelected] = useState<string>("0");
   const [isOpenModalAdd, setIsOpenModalAdd] = useState<boolean>(false);
   const [isOpenModalUpdate, setIsOpenModalUpdate] = useState<boolean>(false);
+  const [brandEdit, setBrandEdit] = useState<BrandDTO>(new BrandDTO(0, ""));
 
   const handleSelectedBrand = (brandId: string) => {
     console.log(brandId);
@@ -66,6 +67,7 @@ export const CardBrandFilter = ({ onChange }: ICatalogProductProps) => {
         isOpen={isOpenModalUpdate}
         onOpenChange={handleCloseModal}
         isAdd={false}
+        brandUpdate={brandEdit}
       />
       <CardContent>
         <Accordion type="single" collapsible>
@@ -125,6 +127,7 @@ export const CardBrandFilter = ({ onChange }: ICatalogProductProps) => {
                         onClick={(e) => {
                           e.stopPropagation();
                           handleOpenModalUpdate();
+                          setBrandEdit(brand);
                         }}
                       >
                         ✎
