@@ -265,7 +265,7 @@ export const CardCategoryFilter = () => {
                 style={{
                   transform: "translateX(-16px)",
                   height: "150px", // Chiều cao cố định
-                  maxHeight: "150px", // Chiều cao tối đa (nếu cần)
+                  maxHeight: "200px", // Chiều cao tối đa (nếu cần)
                   width: "calc(100% + 16px)",
                   overflow: "auto", // Tự động cuộn khi nội dung vượt quá chiều cao
                 }}
