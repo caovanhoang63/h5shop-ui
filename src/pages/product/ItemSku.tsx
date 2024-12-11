@@ -17,6 +17,7 @@ import {
 import { useState } from "react";
 import { Button } from "@/components/ui/button.tsx";
 import { FileInput, Trash2Icon } from "lucide-react";
+import { InputUploadImage } from "@/components/InputUploadImage.tsx";
 
 interface Attribute {
   id: number;
@@ -54,13 +55,10 @@ export const ItemSku = () => {
 
   return (
     <div className={"flex flex-row space-x-10"}>
-      <img
-        className="size-40"
-        src={
-          "https://cdn2.cellphones.com.vn/insecure/rs:fill:0:358/q:90/plain/https://cellphones.com.vn/media/catalog/product/i/p/iphone-16-pro-max-2.png"
-        }
-        alt="Hinh anh chung"
-      />
+      <div>
+        {/* Upload Image */}
+        <InputUploadImage />
+      </div>
       <div className={"flex flex-1 flex-col space-y-4"}>
         <div className={"flex flex-row space-x-20"}>
           <div className={"flex flex-col flex-1 space-y-3"}>
