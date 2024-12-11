@@ -36,6 +36,7 @@ import {
   SelectValue,
 } from "@/components/ui/select.tsx";
 import { CardCategorySelect } from "@/pages/product/CategorySelect.tsx";
+import { InputUploadImage } from "@/components/InputUploadImage.tsx";
 
 interface ISpuModalProps {
   isOpen: boolean;
@@ -150,13 +151,7 @@ export default function SpuModal({
             <Card>
               <CardContent className="space-y-2 space-x-12 flex flex-row mt-6">
                 <div>
-                  <img
-                    className="size-80"
-                    src={
-                      "https://cdn2.cellphones.com.vn/insecure/rs:fill:0:358/q:90/plain/https://cellphones.com.vn/media/catalog/product/i/p/iphone-16-pro-max-2.png"
-                    }
-                    alt="Hinh anh chung"
-                  />
+                  <InputUploadImage height={"320px"} width={"320px"} />
                 </div>
                 <div className={"flex flex-row flex-1 space-x-12"}>
                   <div className={"flex flex-col flex-1 space-y-5"}>

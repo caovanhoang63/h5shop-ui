@@ -2,7 +2,13 @@ import { Input } from "@/components/ui/input.tsx";
 import { useRef, useState } from "react";
 import { CircleX } from "lucide-react";
 
-export const InputUploadImage = () => {
+export function InputUploadImage({
+  width = "192px",
+  height = "192px",
+}: {
+  width?: string;
+  height?: string;
+}) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [image, setImage] = useState<string | ArrayBuffer | null>();
 
@@ -27,9 +33,11 @@ export const InputUploadImage = () => {
   return (
     <div className={"flex flex-col items-center"}>
       <div
-        className={
-          "w-48 h-48 border-2 border-gray-300 rounded-lg relative group"
-        }
+        className={"border-2 border-gray-300 rounded-lg relative group"}
+        style={{
+          width: width,
+          height: height,
+        }}
       >
         <img
           src={
@@ -67,4 +75,4 @@ export const InputUploadImage = () => {
       </div>
     </div>
   );
-};
+}
