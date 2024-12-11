@@ -28,6 +28,14 @@ import InputWithBotBorder from "@/components/InputWithBotBorder.tsx";
 import { BanIcon, FileInput, Plus, Trash2Icon } from "lucide-react";
 import { ItemAttrSku } from "@/pages/product/ItemAttrSku.tsx";
 import { ItemSku } from "@/pages/product/ItemSku.tsx";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select.tsx";
+import { CardCategorySelect } from "@/pages/product/CategorySelect.tsx";
 
 interface ISpuModalProps {
   isOpen: boolean;
@@ -56,6 +64,7 @@ export default function SpuModal({
   const handleAddSku = () => {
     setSkus((prev) => [...prev, ""]);
   };
+
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-screen-xl min-h-[calc(100vh-30%)] flex flex-col">
@@ -155,31 +164,44 @@ export default function SpuModal({
                       <Label className={"w-5/12"} htmlFor="name">
                         Mã vạch
                       </Label>
-                      <Input id="name" className={"h-8"} />
+                      <Input id="name" />
                     </div>
                     <div className={"flex flex-row items-center"}>
                       <Label className={"w-5/12"} htmlFor="name">
                         Tên sản phẩm
                       </Label>
-                      <Input id="name" className={"h-8"} />
+                      <Input id="name" />
                     </div>
                     <div className={"flex flex-row items-center"}>
                       <Label className={"w-5/12"} htmlFor="name">
                         Thương hiệu
                       </Label>
-                      <Input id="name" className={"h-8"} />
+                      <Select
+                        onValueChange={(value) => {
+                          console.log(value);
+                        }}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder={"Chọn thương hiệu"} />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value={"1"}>Apple</SelectItem>
+                          <SelectItem value={"2"}>Samsung</SelectItem>
+                          <SelectItem value={"3"}>Xiaomi</SelectItem>
+                        </SelectContent>
+                      </Select>
                     </div>
                     <div className={"flex flex-row items-center"}>
                       <Label className={"w-5/12"} htmlFor="name">
                         Nhóm hàng
                       </Label>
-                      <Input id="name" className={"h-8"} />
+                      <CardCategorySelect />
                     </div>
                     <div className={"flex flex-row items-center"}>
                       <Label className={"w-5/12"} htmlFor="name">
                         Vị trí
                       </Label>
-                      <Input id="name" className={"h-8"} />
+                      <Input id="name" />
                     </div>
                   </div>
                   <div className={"flex flex-col flex-1 space-y-5"}>
@@ -187,25 +209,25 @@ export default function SpuModal({
                       <Label className={"w-6/12"} htmlFor="name">
                         Giá vốn (VND)
                       </Label>
-                      <Input id="name" className={"h-8"} />
+                      <Input id="name" />
                     </div>
                     <div className={"flex flex-row items-center"}>
                       <Label className={"w-6/12"} htmlFor="name">
                         Giá bán (VND)
                       </Label>
-                      <Input id="name" className={"h-8"} />
+                      <Input id="name" />
                     </div>
                     <div className={"flex flex-row items-center"}>
                       <Label className={"w-6/12"} htmlFor="name">
                         Tổng mức tồn kho
                       </Label>
-                      <Input id="name" className={"h-8"} />
+                      <Input id="name" />
                     </div>
                     <div className={"flex flex-row items-center"}>
                       <Label className={"w-6/12"} htmlFor="name">
                         Mô tả
                       </Label>
-                      <Input id="name" className={"h-8"} />
+                      <Input id="name" />
                     </div>
                   </div>
                 </div>
