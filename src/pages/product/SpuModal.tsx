@@ -18,7 +18,6 @@ import {
 import {
   Card,
   CardContent,
-  CardDescription,
   CardFooter,
   CardHeader,
   CardTitle,
@@ -28,6 +27,7 @@ import { ScrollArea } from "@/components/ui/scroll-area.tsx";
 import InputWithBotBorder from "@/components/InputWithBotBorder.tsx";
 import { BanIcon, FileInput, Plus, Trash2Icon } from "lucide-react";
 import { ItemAttrSku } from "@/pages/product/ItemAttrSku.tsx";
+import { ItemSku } from "@/pages/product/ItemSku.tsx";
 
 interface ISpuModalProps {
   isOpen: boolean;
@@ -43,6 +43,7 @@ export default function SpuModal({
   const off: boolean = false;
   const [imgIndex, setImgIndex] = useState<number>(0);
   const [attrs, setAttrs] = useState<string[]>([]);
+  const [skus, setSkus] = useState<string[]>([""]);
 
   const handleAddAttr = () => {
     setAttrs((prev) => [...prev, ""]);
@@ -50,6 +51,10 @@ export default function SpuModal({
 
   const handleDeleteAttr = (index: number) => {
     setAttrs((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const handleAddSku = () => {
+    setSkus((prev) => [...prev, ""]);
   };
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
@@ -133,14 +138,8 @@ export default function SpuModal({
             </TabsContent>
           )}
           <TabsContent value="spu">
-            <Card
-              style={{
-                border: "none",
-                boxShadow: "none",
-                marginTop: "20px",
-              }}
-            >
-              <CardContent className="space-y-2 space-x-12 flex flex-row p-0">
+            <Card>
+              <CardContent className="space-y-2 space-x-12 flex flex-row mt-6">
                 <div>
                   <img
                     className="size-80"
@@ -152,16 +151,6 @@ export default function SpuModal({
                 </div>
                 <div className={"flex flex-row flex-1 space-x-12"}>
                   <div className={"flex flex-col flex-1 space-y-5"}>
-                    <div className={"flex flex-row items-center"}>
-                      <Label className={"w-5/12"} htmlFor="name">
-                        Mã sản phẩm
-                      </Label>
-                      <Input
-                        id="name"
-                        placeholder={"Mã tự động"}
-                        className={"h-8"}
-                      />
-                    </div>
                     <div className={"flex flex-row items-center"}>
                       <Label className={"w-5/12"} htmlFor="name">
                         Mã vạch
@@ -224,12 +213,7 @@ export default function SpuModal({
             </Card>
           </TabsContent>
           <TabsContent value="attr">
-            <Card
-              style={{
-                border: "none",
-                boxShadow: "none",
-              }}
-            >
+            <Card>
               <CardHeader>
                 <Label style={{ fontSize: "16px" }}>Danh sách thuộc tính</Label>
               </CardHeader>
@@ -255,23 +239,25 @@ export default function SpuModal({
           <TabsContent value="sku">
             <Card>
               <CardHeader>
-                <CardTitle>Password</CardTitle>
-                <CardDescription>
-                  Change your password here. After saving, you'll be logged out.
-                </CardDescription>
+                <CardTitle>Danh sách sản phẩm</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-2">
-                <div className="space-y-1">
-                  <Label htmlFor="current">Current password</Label>
-                  <Input id="current" type="password" />
-                </div>
-                <div className="space-y-1">
-                  <Label htmlFor="new">New password</Label>
-                  <Input id="new" type="password" />
-                </div>
+              <CardContent className="space-y-20">
+                <ScrollArea style={{ height: "360px" }}>
+                  <div className={"flex flex-col p-4 space-y-20"}>
+                    {skus.map((_, index) => (
+                      <ItemSku key={index} />
+                    ))}
+                  </div>
+                </ScrollArea>
               </CardContent>
               <CardFooter>
-                <Button>Save password</Button>
+                <Button
+                  className={"bg-green-500 hover:bg-green-600"}
+                  onClick={() => handleAddSku()}
+                >
+                  <Plus />
+                  Thêm sản phẩm
+                </Button>
               </CardFooter>
             </Card>
           </TabsContent>
