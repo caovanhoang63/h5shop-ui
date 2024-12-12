@@ -16,8 +16,9 @@ import {
 } from "@/components/ui/select.tsx";
 import { useState } from "react";
 import { Button } from "@/components/ui/button.tsx";
-import { FileInput, Trash2Icon } from "lucide-react";
+import { FileInput, Plus, Trash2Icon } from "lucide-react";
 import { InputUploadImage } from "@/components/InputUploadImage.tsx";
+import { ItemWholeSalePrice } from "@/pages/product/ItemWholeSalePrice.tsx";
 
 interface Attribute {
   id: number;
@@ -43,14 +44,31 @@ const dataTestAttribute: Attribute[] = [
   },
 ];
 
+export interface ItemWholeSalePriceProps {
+  min: number;
+  value: number;
+}
+
 export const ItemSku = () => {
   const [attrSelected, setAttrSelected] = useState<string[]>(
     new Array(dataTestAttribute.length).fill(""),
   );
 
+  const [wholeSalePrice, setWholeSalePrice] = useState<
+    ItemWholeSalePriceProps[]
+  >([]);
+
   const handleSelectAttr = (index: number, value: string) => {
     console.log("hello");
     setAttrSelected((prev) => prev.map((v, i) => (i === index ? value : v)));
+  };
+
+  const handleAddWholeSalePrice = () => {
+    setWholeSalePrice((prev) => [...prev, { min: 0, value: 0 }]);
+  };
+
+  const handleDeleteWholeSalePrice = (index: number) => {
+    setWholeSalePrice((prev) => prev.filter((_, i) => i !== index));
   };
 
   return (
@@ -60,92 +78,141 @@ export const ItemSku = () => {
         <InputUploadImage />
       </div>
       <div className={"flex flex-1 flex-col space-y-4"}>
-        <div className={"flex flex-row space-x-20"}>
-          <div className={"flex flex-col flex-1 space-y-3"}>
+        <div className={"flex flex-row space-x-12"}>
+          <div className={"flex flex-col flex-1 space-y-4"}>
             <div className={"flex flex-row items-center"}>
               <Label className={"w-5/12"} htmlFor="name">
                 Mã vạch
               </Label>
-              <Input id="name" className={"h-7"} />
+              <Input id="name" className={"h-8"} />
             </div>
             <div className={"flex flex-row items-center"}>
               <Label className={"w-5/12"} htmlFor="name">
                 Tên sản phẩm
               </Label>
-              <Input id="name" className={"h-7"} />
+              <Input id="name" className={"h-8"} />
             </div>
             <div className={"flex flex-row items-center"}>
               <Label className={"w-5/12"} htmlFor="name">
                 Vị trí
               </Label>
-              <Input id="name" className={"h-7"} />
+              <Input id="name" className={"h-8"} />
             </div>
+            <Card>
+              <CardContent className={"pb-0"}>
+                <Accordion type="single" collapsible>
+                  <AccordionItem value="item-1">
+                    <AccordionTrigger className={"hover:no-underline"}>
+                      <div className={"flex flex-row"}>
+                        <Label htmlFor="name">Thuộc tính</Label>
+                        <Label className={"ml-8"} htmlFor="name">
+                          {attrSelected
+                            .filter((item) => item !== "")
+                            .join(" - ")}
+                        </Label>
+                      </div>
+                    </AccordionTrigger>
+                    <AccordionContent className={"p-1 space-y-2 pb-4"}>
+                      {dataTestAttribute.map((item, index) => (
+                        <div
+                          key={index}
+                          className={"flex flex-row justify-start items-center"}
+                        >
+                          <Label className={"w-3/12"} htmlFor="name">
+                            {item.name}
+                          </Label>
+                          <Select
+                            onValueChange={(value) =>
+                              handleSelectAttr(index, value)
+                            }
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder={"Chọn thuộc tính"} />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {item.value.map((value, index) => (
+                                <SelectItem
+                                  key={index}
+                                  value={value.toString()}
+                                >
+                                  {value}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      ))}
+                    </AccordionContent>
+                  </AccordionItem>
+                </Accordion>
+              </CardContent>
+            </Card>
           </div>
-          <div className={"flex flex-col flex-1 space-y-3"}>
+          <div className={"flex flex-col flex-1 space-y-4"}>
             <div className={"flex flex-row items-center"}>
               <Label className={"w-5/12"} htmlFor="name">
                 Giá vốn (VND)
               </Label>
-              <Input id="name" className={"h-7"} />
+              <Input id="name" className={"h-8"} />
             </div>
             <div className={"flex flex-row items-center"}>
               <Label className={"w-5/12"} htmlFor="name">
                 Giá bán (VND)
               </Label>
-              <Input id="name" className={"h-7"} />
+              <Input id="name" className={"h-8"} />
             </div>
             <div className={"flex flex-row items-center"}>
               <Label className={"w-5/12"} htmlFor="name">
                 Tồn kho
               </Label>
-              <Input id="name" className={"h-7"} />
+              <Input id="name" className={"h-8"} />
             </div>
+            <Card>
+              <CardContent className={"pb-0"}>
+                <Accordion type="single" collapsible>
+                  <AccordionItem value="item-1">
+                    <AccordionTrigger className={"hover:no-underline"}>
+                      <div className={"flex flex-row"}>
+                        <Label htmlFor="name">Thiết lập giá bán sỉ</Label>
+                        <Label className={"ml-8"} htmlFor="name">
+                          {attrSelected
+                            .filter((item) => item !== "")
+                            .join(" - ")}
+                        </Label>
+                      </div>
+                    </AccordionTrigger>
+                    <AccordionContent className={"p-1 space-y-2 pb-4"}>
+                      <div className={"flex flex-row items-center"}>
+                        <Label className={"w-4/12"} htmlFor="name">
+                          Số lượng min
+                        </Label>
+                        <Label className={"w-3/12"} htmlFor="name">
+                          Giá
+                        </Label>
+                      </div>
+                      {wholeSalePrice.map((item, index) => (
+                        <ItemWholeSalePrice
+                          key={index}
+                          onDeleted={() => {
+                            handleDeleteWholeSalePrice(index);
+                          }}
+                          wholeSalePrice={item}
+                        />
+                      ))}
+                      <Button
+                        className={"bg-green-500 hover:bg-green-600 h-8"}
+                        onClick={handleAddWholeSalePrice}
+                      >
+                        <Plus />
+                        Thêm giá sỉ
+                      </Button>
+                    </AccordionContent>
+                  </AccordionItem>
+                </Accordion>
+              </CardContent>
+            </Card>
           </div>
         </div>
-        <Card>
-          <CardContent className={"pb-0"}>
-            <Accordion type="single" collapsible>
-              <AccordionItem value="item-1">
-                <AccordionTrigger className={"hover:no-underline"}>
-                  <div className={"flex flex-row"}>
-                    <Label htmlFor="name">Thuộc tính</Label>
-                    <Label className={"ml-8"} htmlFor="name">
-                      {attrSelected.filter((item) => item !== "").join(" - ")}
-                    </Label>
-                  </div>
-                </AccordionTrigger>
-                <AccordionContent className={"p-1 space-y-2 pb-4"}>
-                  {dataTestAttribute.map((item, index) => (
-                    <div
-                      key={index}
-                      className={"flex flex-row justify-start items-center"}
-                    >
-                      <Label className={"w-3/12"} htmlFor="name">
-                        {item.name}
-                      </Label>
-                      <Select
-                        onValueChange={(value) =>
-                          handleSelectAttr(index, value)
-                        }
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder={"Chọn thuộc tính"} />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {item.value.map((value, index) => (
-                            <SelectItem key={index} value={value.toString()}>
-                              {value}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  ))}
-                </AccordionContent>
-              </AccordionItem>
-            </Accordion>
-          </CardContent>
-        </Card>
         {/* button */}
         <div className={"flex flex-row space-x-2 justify-end"}>
           <Button className={"bg-green-500 hover:bg-green-600"}>
