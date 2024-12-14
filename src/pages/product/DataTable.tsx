@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   ColumnDef,
   ColumnFiltersState,
@@ -39,6 +39,7 @@ import { faker } from "@faker-js/faker/locale/en";
 import StatusRow from "@/components/StatusRow.tsx";
 import { Image } from "@/types/image.ts";
 import SpuModal from "@/pages/product/SpuModal.tsx";
+import { MenuVisibilityColumnTable } from "@/components/ButtonVisibilityColumnTable.tsx";
 
 function generateMockSpus(count: number = 10): Spu[] {
   return Array.from({ length: count }, (_, index) => ({
@@ -198,14 +199,25 @@ export const columns: ColumnDef<Spu>[] = [
   },
 ];
 
-export function DataTableDemo() {
+interface DataTableDemoProps {
+  columnVisible: MenuVisibilityColumnTable[];
+}
+
+export const DataTableDemo: React.FC<DataTableDemoProps> = ({
+  columnVisible,
+}) => {
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     [],
   );
   // console.log(data?.[0].images?.[0].url);
   const [columnVisibility, setColumnVisibility] =
-    React.useState<VisibilityState>({});
+    React.useState<VisibilityState>(
+      columnVisible.reduce((acc, col) => {
+        acc[col.key] = col.visible;
+        return acc;
+      }, {} as VisibilityState),
+    );
   const [rowSelection, setRowSelection] = React.useState({});
   const [isOpenSpuModal, setIsOpenSpuModal] = useState(false);
 
@@ -233,6 +245,15 @@ export function DataTableDemo() {
       rowSelection,
     },
   });
+
+  useEffect(() => {
+    setColumnVisibility(
+      columnVisible.reduce((acc, col) => {
+        acc[col.key] = col.visible;
+        return acc;
+      }, {} as VisibilityState),
+    );
+  }, [columnVisible]);
 
   return (
     <div className="w-full">
@@ -325,4 +346,4 @@ export function DataTableDemo() {
       </div>
     </div>
   );
-}
+};
