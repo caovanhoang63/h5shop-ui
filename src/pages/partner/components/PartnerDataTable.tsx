@@ -1,7 +1,6 @@
-"use client";
-
+import { Partner } from "@/types/partner.ts";
+import { faker } from "@faker-js/faker/locale/en";
 import * as React from "react";
-import { useEffect, useState } from "react";
 import {
   ColumnDef,
   ColumnFiltersState,
@@ -14,18 +13,6 @@ import {
   useReactTable,
   VisibilityState,
 } from "@tanstack/react-table";
-import { ArrowUpDown, MoreHorizontal } from "lucide-react";
-
-import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import {
   Table,
   TableBody,
@@ -33,61 +20,34 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table";
-import { Spu } from "@/types/spu.ts";
-import { faker } from "@faker-js/faker/locale/en";
+} from "@/components/ui/table.tsx";
+import { Button } from "@/components/ui/button.tsx";
+import { Checkbox } from "@/components/ui/checkbox.tsx";
+import { ArrowUpDown, MoreHorizontal } from "lucide-react";
 import StatusRow from "@/components/StatusRow.tsx";
-import { Image } from "@/types/image.ts";
-import SpuModal from "@/pages/product/SpuModal.tsx";
-import { MenuVisibilityColumnTable } from "@/components/ButtonVisibilityColumnTable.tsx";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu.tsx";
 
-function generateMockSpus(count: number = 10): Spu[] {
+function generatePartnerMockData(count: number = 10): Partner[] {
   return Array.from({ length: count }, (_, index) => ({
     id: index + 1,
-    name: faker.commerce.productName(),
-    description: faker.commerce.productDescription(),
-    metadata:
-      Math.random() > 0.5
-        ? {
-            color: faker.color.human(),
-            size: faker.helpers.arrayElement(["S", "M", "L", "XL"]),
-          }
-        : undefined,
-    stock: faker.number.int({ min: 0, max: 100 }),
-    categoryId: faker.number.int({ min: 1, max: 10 }),
-    outOfStock: faker.datatype.boolean(),
+    name: faker.company.name(),
+    address: faker.address.streetAddress(),
+    email: faker.internet.email(),
+    phoneNumber: faker.phone.number(),
     status: faker.helpers.arrayElement([0, 1, 2]),
     createdAt: faker.date.past(),
     updatedAt: faker.date.recent(),
-    images: [
-      {
-        url: "https://images.pexels.com/photos/90946/pexels-photo-90946.jpeg?cs=srgb&dl=pexels-madebymath-90946.jpg",
-        extension: "jpg",
-      },
-      {
-        url: "https://images.pexels.com/photos/90946/pexels-photo-90946.jpeg?cs=srgb&dl=pexels-madebymath-90946.jpg",
-        extension: "jpg",
-      },
-      {
-        url: "https://images.pexels.com/photos/90946/pexels-photo-90946.jpeg?cs=srgb&dl=pexels-madebymath-90946.jpg",
-        extension: "jpg",
-      },
-      {
-        url: "https://img.freepik.com/free-photo/organic-cosmetic-product-with-dreamy-aesthetic-fresh-background_23-2151382816.jpg",
-        extension: "jpg",
-      },
-      {
-        url: "https://img.freepik.com/free-photo/organic-cosmetic-product-with-dreamy-aesthetic-fresh-background_23-2151382816.jpg",
-        extension: "jpg",
-      },
-    ] as Image[],
   }));
 }
-
-// Example usage
-const data = generateMockSpus(25);
-
-export const columns: ColumnDef<Spu>[] = [
+const data = generatePartnerMockData(25);
+export const columns: ColumnDef<Partner>[] = [
   {
     id: "select",
     header: ({ table }) => (
@@ -112,22 +72,20 @@ export const columns: ColumnDef<Spu>[] = [
   },
   {
     accessorKey: "id",
-    header: "Mã",
-    cell: ({ row }) => <div className="capitalize">{row.getValue("id")}</div>,
-  },
-  {
-    id: "images",
-    enableHiding: false,
-    cell: ({ row }) => {
-      const images = row.original.images;
+    /*header: "Mã",*/
+    header: ({ column }) => {
       return (
-        <img
-          className={"w-8"}
-          alt={"ảnh sản phẩm"}
-          src={images?.[0].url || "image-placeholder.png"}
-        ></img>
+        <Button
+          className={"p-0"}
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Mã nhà cung cấp
+          <ArrowUpDown />
+        </Button>
       );
     },
+    cell: ({ row }) => <div className="capitalize">{row.getValue("id")}</div>,
   },
   {
     accessorKey: "name",
@@ -138,7 +96,7 @@ export const columns: ColumnDef<Spu>[] = [
           variant="ghost"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
-          Tên sản phẩm
+          Tên nhà cung cấp
           <ArrowUpDown />
         </Button>
       );
@@ -146,7 +104,7 @@ export const columns: ColumnDef<Spu>[] = [
     cell: ({ row }) => <div className="lowercase">{row.getValue("name")}</div>,
   },
   {
-    accessorKey: "stock",
+    accessorKey: "phoneNumber",
     header: ({ column }) => {
       return (
         <Button
@@ -154,12 +112,30 @@ export const columns: ColumnDef<Spu>[] = [
           variant="ghost"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
-          Tồn kho
+          Số điện thoại
           <ArrowUpDown />
         </Button>
       );
     },
-    cell: ({ row }) => <div className="lowercase">{row.getValue("stock")}</div>,
+    cell: ({ row }) => (
+      <div className="lowercase">{row.getValue("phoneNumber")}</div>
+    ),
+  },
+  {
+    accessorKey: "email",
+    header: ({ column }) => {
+      return (
+        <Button
+          className="p-0"
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Email
+          <ArrowUpDown />
+        </Button>
+      );
+    },
+    cell: ({ row }) => <div className="lowercase">{row.getValue("email")}</div>,
   },
   {
     accessorKey: "status",
@@ -198,30 +174,15 @@ export const columns: ColumnDef<Spu>[] = [
     },
   },
 ];
-
-interface DataTableDemoProps {
-  columnVisible: MenuVisibilityColumnTable[];
-}
-
-export const DataTableDemo: React.FC<DataTableDemoProps> = ({
-  columnVisible,
-}) => {
+export default function PartnerDataTable() {
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     [],
   );
   // console.log(data?.[0].images?.[0].url);
   const [columnVisibility, setColumnVisibility] =
-    React.useState<VisibilityState>(
-      columnVisible.reduce((acc, col) => {
-        acc[col.key] = col.visible;
-        return acc;
-      }, {} as VisibilityState),
-    );
+    React.useState<VisibilityState>({});
   const [rowSelection, setRowSelection] = React.useState({});
-  const [isOpenSpuModal, setIsOpenSpuModal] = useState(false);
-
-  const [selectedSpu, setSelectedSpu] = useState<Spu | undefined>(undefined);
   const table = useReactTable({
     initialState: {
       pagination: {
@@ -245,23 +206,13 @@ export const DataTableDemo: React.FC<DataTableDemoProps> = ({
       rowSelection,
     },
   });
-
-  useEffect(() => {
-    setColumnVisibility(
-      columnVisible.reduce((acc, col) => {
-        acc[col.key] = col.visible;
-        return acc;
-      }, {} as VisibilityState),
-    );
-  }, [columnVisible]);
-
   return (
     <div className="w-full">
-      <SpuModal
+      {/*<SpuModal
         isOpen={isOpenSpuModal}
         onOpenChange={setIsOpenSpuModal}
         spu={selectedSpu}
-      ></SpuModal>
+      ></SpuModal>*/}
       <div className="rounded-md border">
         <Table>
           <TableHeader>
@@ -287,13 +238,13 @@ export const DataTableDemo: React.FC<DataTableDemoProps> = ({
               table.getRowModel().rows.map((row) => (
                 <TableRow
                   className="cursor-pointer"
-                  onClick={(event) => {
+                  /*onClick={(event) => {
                     event.preventDefault();
                     event.stopPropagation();
                     setIsOpenSpuModal(true);
                     setSelectedSpu(row.original);
                     console.log("Open");
-                  }}
+                  }}*/
                   key={row.id}
                   data-state={row.getIsSelected() && "selected"}
                 >
@@ -346,4 +297,4 @@ export const DataTableDemo: React.FC<DataTableDemoProps> = ({
       </div>
     </div>
   );
-};
+}

@@ -62,7 +62,7 @@ export const TopBar = () => {
               <ArrowRightLeft size={20} />
               <p>Giao dịch</p>
             </NavButton>
-            <NavButton>
+            <NavButton link={"partner"}>
               <Handshake size={20} />
               <p>Đối tác</p>
             </NavButton>
@@ -82,7 +82,7 @@ export const TopBar = () => {
         </NavigationMenu>
         <NavigationMenu>
           <NavigationMenuList>
-            <NavButton>
+            <NavButton link={"/sale"}>
               <ShoppingBasket size={20} />
               <p>Bán hàng</p>
             </NavButton>
