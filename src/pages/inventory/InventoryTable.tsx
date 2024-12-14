@@ -80,7 +80,7 @@ function StatusInventoryRow({ status }: { status: number }) {
   return <div className={` ${colorMap[status]}`}>{statusMap[status]}</div>;
 }
 
-const columns: ColumnDef<InventoryReport, never>[] = [
+const columns: ColumnDef<InventoryReport>[] = [
   {
     id: "select",
     header: ({ table }) => (
