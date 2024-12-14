@@ -82,7 +82,7 @@ export const TopBar = () => {
         </NavigationMenu>
         <NavigationMenu>
           <NavigationMenuList>
-            <NavButton>
+            <NavButton link={"/sale"}>
               <ShoppingBasket size={20} />
               <p>Bán hàng</p>
             </NavButton>
