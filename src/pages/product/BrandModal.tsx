@@ -8,7 +8,7 @@ import {
 import { Button } from "@/components/ui/button.tsx";
 import { BanIcon, FileInput, Plus, Trash2Icon } from "lucide-react";
 import { Input } from "@/components/ui/input.tsx";
-import { BrandDTO } from "@/dto/brand/BrandDTO.ts";
+import { BrandDTO } from "@/types/brand/BrandDTO.ts";
 import { useEffect, useState } from "react";
 
 interface IBrandModalProps {
