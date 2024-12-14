@@ -5,6 +5,7 @@ import { NotFoundPage } from "@/pages/NotFoundPage.tsx";
 import { ErrorPage } from "@/pages/ErrorPage.tsx";
 import { DashBoardPage } from "@/pages/dashboard/DashBoardPage.tsx";
 import ProductPage from "@/pages/product/ProductPage.tsx";
+import SalePage from "@/pages/sale/SalePage.tsx";
 
 export const MainRoute = () => {
   return (
@@ -15,6 +16,7 @@ export const MainRoute = () => {
           <Route index element={<DashBoardPage />} />
           <Route path={"product"} element={<ProductPage />} />
         </Route>
+        <Route path="/sale" element={<SalePage />} />
         <Route path="/error" element={<ErrorPage />} />
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
