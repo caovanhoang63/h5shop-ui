@@ -16,10 +16,8 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion.tsx";
-import { CheckBoxWithText } from "@/components/CheckBoxWithText.tsx";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group.tsx";
 import { Label } from "@/components/ui/label.tsx";
-import { DataTableDemo } from "@/pages/product/DataTable.tsx";
 import { DatePickerWithRange } from "@/components/DatePickerWithRange.tsx";
 import {
   Popover,
