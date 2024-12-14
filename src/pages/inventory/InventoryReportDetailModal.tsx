@@ -17,7 +17,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog.tsx";
-import { InventoryReport } from "@/types/inventoryReport.ts";
+import { InventoryReportDetails } from "@/types/inventoryReport.ts";
 import { ScrollArea } from "@/components/ui/scroll-area.tsx";
 
 interface InventoryItem {
@@ -31,11 +31,12 @@ interface InventoryItem {
 interface IInventoryReportDetailModalProps {
   isOpen: boolean;
   onOpenChange: (isOpen: boolean) => void;
-  inventoryItem?: InventoryReport;
+  inventoryItem?: InventoryReportDetails;
 }
 export default function InventoryReportDetailModal({
   isOpen,
   onOpenChange,
+  inventoryItem,
 }: IInventoryReportDetailModalProps) {
   const [items] = React.useState<InventoryItem[]>([
     {
@@ -47,7 +48,7 @@ export default function InventoryReportDetailModal({
       varianceValue: 0,
     },
     {
-      id: "PK000014",
+      id: "PK000015",
       name: "Chuột không dây Logitech M331",
       stockQuantity: 92,
       actualQuantity: 90,
@@ -55,7 +56,7 @@ export default function InventoryReportDetailModal({
       varianceValue: 0,
     },
     {
-      id: "PK000014",
+      id: "PK000017",
       name: "Chuột không dây Logitech M331",
       stockQuantity: 92,
       actualQuantity: 90,
@@ -63,7 +64,7 @@ export default function InventoryReportDetailModal({
       varianceValue: 0,
     },
     {
-      id: "PK000014",
+      id: "PK0000156",
       name: "Chuột không dây Logitech M331",
       stockQuantity: 92,
       actualQuantity: 90,
@@ -71,7 +72,7 @@ export default function InventoryReportDetailModal({
       varianceValue: 0,
     },
     {
-      id: "PK000014",
+      id: "PK0000164",
       name: "Chuột không dây Logitech M331",
       stockQuantity: 92,
       actualQuantity: 90,
@@ -79,7 +80,7 @@ export default function InventoryReportDetailModal({
       varianceValue: 0,
     },
     {
-      id: "PK000014",
+      id: "PK0000144",
       name: "Chuột không dây Logitech M331",
       stockQuantity: 92,
       actualQuantity: 90,
@@ -87,7 +88,7 @@ export default function InventoryReportDetailModal({
       varianceValue: 0,
     },
     {
-      id: "PK000014",
+      id: "PK00001344",
       name: "Chuột không dây Logitech M331",
       stockQuantity: 92,
       actualQuantity: 90,
@@ -95,7 +96,7 @@ export default function InventoryReportDetailModal({
       varianceValue: 0,
     },
     {
-      id: "PK000014",
+      id: "PK0000134",
       name: "Chuột không dây Logitech M331",
       stockQuantity: 92,
       actualQuantity: 90,
@@ -103,7 +104,7 @@ export default function InventoryReportDetailModal({
       varianceValue: 0,
     },
     {
-      id: "PK000014",
+      id: "PK00001434",
       name: "Chuột không dây Logitech M331",
       stockQuantity: 92,
       actualQuantity: 90,
@@ -111,7 +112,7 @@ export default function InventoryReportDetailModal({
       varianceValue: 0,
     },
     {
-      id: "PK000014",
+      id: "PK000013464",
       name: "Chuột không dây Logitech M331",
       stockQuantity: 92,
       actualQuantity: 90,
@@ -126,37 +127,38 @@ export default function InventoryReportDetailModal({
           <DialogTitle>Chi tiết phiếu kiểm kho</DialogTitle>
         </DialogHeader>
         <div className="w-full mx-auto space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-4">
-              <div className="flex justify-between">
-                <span className="font-medium">Mã kiểm kho:</span>
-                <span>KK000003</span>
+          {inventoryItem && (
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-4">
+                <div className="flex justify-between">
+                  <span className="font-medium">Mã kiểm kho:</span>
+                  <span>{inventoryItem.inventoryReportId}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="font-medium">Thời gian:</span>
+                  <span>{inventoryItem.createdAt?.toString()}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="font-medium">Ngày cân bằng:</span>
+                  <span>{inventoryItem.updatedAt?.toString()}</span>
+                </div>
               </div>
-              <div className="flex justify-between">
-                <span className="font-medium">Thời gian:</span>
-                <span>10/10/2024 00:38</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="font-medium">Ngày cân bằng:</span>
-                <span>10/10/2024 00:38</span>
+              <div className="space-y-4">
+                <div className="flex justify-between">
+                  <span className="font-medium">Trạng thái:</span>
+                  <span>{inventoryItem.status}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="font-medium">Người tạo:</span>
+                  <span>{inventoryItem.warehouseName}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="font-medium">Người cân bằng:</span>
+                  <span>{inventoryItem.warehouseName}</span>
+                </div>
               </div>
             </div>
-            <div className="space-y-4">
-              <div className="flex justify-between">
-                <span className="font-medium">Trạng thái:</span>
-                <span>Đã cân bằng kho</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="font-medium">Người tạo:</span>
-                <span>Nguyễn Huỳnh Duy Hiếu</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="font-medium">Người cân bằng:</span>
-                <span>Nguyễn Huỳnh Duy Hiếu</span>
-              </div>
-            </div>
-          </div>
-
+          )}
           <div className="space-y-4">
             <div className="flex gap-4 mb-4">
               <Input placeholder="Tìm mã hàng" className="max-w-[200px]" />

@@ -15,8 +15,40 @@ import { Label } from "@/components/ui/label.tsx";
 import Container from "@/layouts/components/Container.tsx";
 import { InventoryTable } from "./InventoryTable.tsx";
 import { Link } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { InventoryReport } from "@/types/inventoryReport.ts";
+import { getInventoryReports } from "@/pages/inventory/api/reportApi.ts";
 
 export const InventoryPage = () => {
+  const [inventoryReports, setInventoryReports] = useState<InventoryReport[]>(
+    [],
+  );
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+  const getInventoryReportTable = async () => {
+    try {
+      const response = await getInventoryReports();
+      console.log("api", response.data);
+      setInventoryReports(response.data);
+      setLoading(false);
+    } catch (error) {
+      setError("Failed to fetch inventory reports.");
+      setLoading(false);
+      console.log(error);
+    }
+  };
+  useEffect(() => {
+    getInventoryReportTable();
+  }, []);
+
+  if (loading) {
+    return <div>Loading...</div>;
+  }
+
+  if (error) {
+    return <div>{error}</div>;
+  }
+
   return (
     <Container className={"grid grid-cols-5 gap-4 grid-flow-row"}>
       <div className={"text-2xl col-span-1 font-bold"}>
@@ -109,7 +141,7 @@ export const InventoryPage = () => {
         </Card>
       </div>
       <div className={"col-span-4"}>
-        <InventoryTable></InventoryTable>
+        <InventoryTable dataInventory={inventoryReports}></InventoryTable>
       </div>
     </Container>
   );

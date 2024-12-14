@@ -20,25 +20,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Link } from "react-router-dom";
-
-interface InventoryItem {
-  id: number;
-  code: string;
-  name: string;
-  unit: string;
-  stockQuantity: number;
-  actualQuantity: number;
-  variance: number;
-  varianceValue: number;
-}
+import { InventoryItemStockTake } from "@/types/inventoryItemStockTake.ts";
 
 export default function InventoryCheckPage() {
-  const [items] = React.useState<InventoryItem[]>([
+  const [items] = React.useState<InventoryItemStockTake[]>([
     {
       id: 1,
       code: "PK000014",
       name: "Chuột không dây Logitech M331",
-      unit: "",
       stockQuantity: 90,
       actualQuantity: 56,
       variance: -34,
@@ -48,7 +37,6 @@ export default function InventoryCheckPage() {
       id: 1,
       code: "PK000014",
       name: "Chuột không dây Logitech M331",
-      unit: "",
       stockQuantity: 90,
       actualQuantity: 56,
       variance: -34,
@@ -58,7 +46,6 @@ export default function InventoryCheckPage() {
       id: 1,
       code: "PK000014",
       name: "Chuột không dây Logitech M331",
-      unit: "",
       stockQuantity: 90,
       actualQuantity: 56,
       variance: -34,
@@ -68,7 +55,6 @@ export default function InventoryCheckPage() {
       id: 1,
       code: "PK000014",
       name: "Chuột không dây Logitech M331",
-      unit: "",
       stockQuantity: 90,
       actualQuantity: 56,
       variance: -34,
@@ -86,11 +72,7 @@ export default function InventoryCheckPage() {
           </Link>
           <h1 className="text-xl font-semibold">Kiểm kho</h1>
           <div className="flex items-center gap-2 bg-white rounded-lg px-3 py-2 flex-1">
-            <Input
-              type="search"
-              placeholder="Thêm sản phẩm"
-              className="border-none shadow-none"
-            />
+            <Input type="search" placeholder="Thêm sản phẩm" className="" />
             <Plus className="h-5 w-5 text-gray-500" />
           </div>
         </div>
@@ -117,7 +99,6 @@ export default function InventoryCheckPage() {
                 <TableHead className="w-[50px]">STT</TableHead>
                 <TableHead>Mã hàng</TableHead>
                 <TableHead>Tên hàng</TableHead>
-                <TableHead>DVT</TableHead>
                 <TableHead className="text-center">Tồn kho</TableHead>
                 <TableHead className="text-center">Thực tế</TableHead>
                 <TableHead className="text-center">SL lệch</TableHead>
@@ -133,7 +114,6 @@ export default function InventoryCheckPage() {
                   <TableCell>{item.id}</TableCell>
                   <TableCell className="text-blue-600">{item.code}</TableCell>
                   <TableCell>{item.name}</TableCell>
-                  <TableCell>{item.unit}</TableCell>
                   <TableCell className="text-center">
                     {item.stockQuantity}
                   </TableCell>

@@ -1,5 +1,6 @@
 import * as React from "react";
 import { useState } from "react";
+
 import {
   ColumnDef,
   ColumnFiltersState,
@@ -32,26 +33,28 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { faker } from "@faker-js/faker/locale/en";
-import { InventoryReport } from "@/types/inventoryReport.ts";
+import {
+  InventoryReport,
+  InventoryReportDetails,
+} from "@/types/inventoryReport.ts";
 import InventoryReportDetailModal from "@/pages/inventory/InventoryReportDetailModal.tsx";
+import { getInventoryReportDetailById } from "@/pages/inventory/api/reportApi.ts";
 
-function generateMockSpus(count: number = 10): InventoryReport[] {
+/*function generateMockSpus(count: number = 10): InventoryReport[] {
   return Array.from({ length: count }, (_, index) => ({
     id: index + 1,
     amount: faker.number.int({ min: 0, max: 100 }),
     warehouseMan: faker.number.int({ min: 0, max: 100 }),
-    dif: faker.number.int({ min: 0, max: 100 }),
-    totalPrice: parseFloat(faker.commerce.price()),
+    inventoryDif: faker.number.int({ min: 0, max: 100 }),
     status: faker.helpers.arrayElement([0, 1, 2]),
     note: faker.lorem.sentence(),
     createdAt: faker.date.past(),
     updatedAt: faker.date.recent(),
   }));
-}
+}*/
 
 // Example usage
-const data = generateMockSpus(25);
+//const data = generateMockSpus(25);
 
 interface IColorMap {
   [key: number]: string;
@@ -77,7 +80,7 @@ function StatusInventoryRow({ status }: { status: number }) {
   return <div className={` ${colorMap[status]}`}>{statusMap[status]}</div>;
 }
 
-const columns: ColumnDef<InventoryReport>[] = [
+const columns: ColumnDef<InventoryReport, never>[] = [
   {
     id: "select",
     header: ({ table }) => (
@@ -121,12 +124,8 @@ const columns: ColumnDef<InventoryReport>[] = [
         </Button>
       );
     },
-    cell: () => (
-      <div>
-        {/*
-        {format(new Date(row.getValue("updateAt")), "dd/MM/yyyy HH:mm")}
-*/}
-      </div>
+    cell: ({ row }) => (
+      <div>{new Date(row.getValue("updateAt")).toLocaleDateString()}</div>
     ),
   },
   {
@@ -148,25 +147,7 @@ const columns: ColumnDef<InventoryReport>[] = [
     ),
   },
   {
-    accessorKey: "totalPrice",
-    header: ({ column }) => {
-      return (
-        <Button
-          className={"p-0 font-bold"}
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          Tổng thực tế
-          <ArrowUpDown />
-        </Button>
-      );
-    },
-    cell: ({ row }) => (
-      <div className="lowercase ml-4">{row.getValue("totalPrice")}</div>
-    ),
-  },
-  {
-    accessorKey: "dif",
+    accessorKey: "inventoryDif",
     header: ({ column }) => {
       return (
         <Button
@@ -180,7 +161,7 @@ const columns: ColumnDef<InventoryReport>[] = [
       );
     },
     cell: ({ row }) => (
-      <div className="lowercase ml-4">{row.getValue("dif")}</div>
+      <div className="lowercase ml-4">{row.getValue("inventoryDif")}</div>
     ),
   },
   {
@@ -233,13 +214,15 @@ const columns: ColumnDef<InventoryReport>[] = [
     },
   },
 ];
-
-export function InventoryTable() {
+interface InventoryTableProps {
+  dataInventory: InventoryReport[];
+}
+export function InventoryTable({ dataInventory }: InventoryTableProps) {
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     [],
   );
-  // console.log(data?.[0].images?.[0].url);
+  console.log("hrhr", dataInventory);
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>({});
   const [rowSelection, setRowSelection] = React.useState({});
@@ -248,13 +231,25 @@ export function InventoryTable() {
   const [selectedInventoryReport, setSelectedInventoryReport] = useState<
     InventoryReport | undefined
   >(undefined);
-  const table = useReactTable({
+  const [inventoryReportDetails, setInventoryReportDetails] = useState<
+    InventoryReportDetails | undefined
+  >(undefined);
+
+  const getInventoryReportDetails = async (id: number) => {
+    try {
+      const response = await getInventoryReportDetailById(id);
+      setInventoryReportDetails(response.data);
+    } catch (error) {
+      console.error("Error fetching inventory report details:", error);
+    }
+  };
+  const table = useReactTable<InventoryReport>({
     initialState: {
       pagination: {
         pageSize: 10,
       },
     },
-    data,
+    data: dataInventory,
     columns,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
@@ -277,7 +272,7 @@ export function InventoryTable() {
       <InventoryReportDetailModal
         isOpen={isOpenStockTakesModal}
         onOpenChange={setIsOpenStockTakesModal}
-        inventoryItem={selectedInventoryReport}
+        inventoryItem={inventoryReportDetails}
       ></InventoryReportDetailModal>
       <div className="rounded-md border">
         <Table>
@@ -304,11 +299,14 @@ export function InventoryTable() {
               table.getRowModel().rows.map((row) => (
                 <TableRow
                   className="cursor-pointer"
-                  onClick={(event) => {
+                  onClick={async (event) => {
                     event.preventDefault();
                     event.stopPropagation();
+                    const selectedReport = row.original;
                     setIsOpenStockTakesModal(true);
-                    setSelectedInventoryReport(row.original);
+                    setSelectedInventoryReport(selectedReport);
+                    console.log(selectedInventoryReport);
+                    await getInventoryReportDetails(selectedReport.id);
                     console.log("Open");
                   }}
                   key={row.id}
