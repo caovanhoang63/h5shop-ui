@@ -2,7 +2,7 @@ import axios from "axios";
 
 // Create an Axios instance
 const axiosInstance = axios.create({
-  baseURL: "http://localhost:3000",
+  baseURL: "https://api.h5shop.shop",
   timeout: 5000,
   headers: {
     "Content-Type": "application/json",
