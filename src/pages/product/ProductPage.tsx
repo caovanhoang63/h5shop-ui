@@ -24,6 +24,7 @@ import { getBrands } from "@/pages/product/api/brandApi.ts";
 import { Brand } from "@/types/brand/brand.ts";
 import { getCategories } from "@/pages/product/api/categoryApi.ts";
 import { Category } from "@/types/category/category.ts";
+import SpuModal from "@/pages/product/SpuModal.tsx";
 
 export default function ProductPage() {
   const [fields, setFields] = useState<MenuVisibilityColumnTable[]>([
@@ -38,6 +39,7 @@ export default function ProductPage() {
   const [brandSelected, setBrandSelected] = useState<string>("0");
   const [listBrands, setListBrands] = useState<Brand[]>([]);
   const [listCategories, setListCategories] = useState<Category[]>([]);
+  const [isOpenModalSpu, setIsOpenModalSpu] = useState<boolean>(false);
 
   useEffect(() => {
     fetchBrands();
@@ -75,6 +77,10 @@ export default function ProductPage() {
         field.key === key ? { ...field, visible } : field,
       ),
     );
+  };
+
+  const handleCloseModalSpu = () => {
+    setIsOpenModalSpu(false);
   };
 
   return (
@@ -150,6 +156,11 @@ export default function ProductPage() {
       <div className={"col-span-4"}>
         <DataTableDemo columnVisible={fields}></DataTableDemo>
       </div>
+      <SpuModal
+        isOpen={isOpenModalSpu}
+        onOpenChange={handleCloseModalSpu}
+        listCategories={listCategories}
+      />
     </Container>
   );
 }

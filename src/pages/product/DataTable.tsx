@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import {
   ColumnDef,
   ColumnFiltersState,
@@ -38,7 +38,6 @@ import { Spu } from "@/types/spu.ts";
 import { faker } from "@faker-js/faker/locale/en";
 import StatusRow from "@/components/StatusRow.tsx";
 import { Image } from "@/types/image.ts";
-import SpuModal from "@/pages/product/SpuModal.tsx";
 import { MenuVisibilityColumnTable } from "@/components/ButtonVisibilityColumnTable.tsx";
 
 function generateMockSpus(count: number = 10): Spu[] {
@@ -219,9 +218,7 @@ export const DataTableDemo: React.FC<DataTableDemoProps> = ({
       }, {} as VisibilityState),
     );
   const [rowSelection, setRowSelection] = React.useState({});
-  const [isOpenSpuModal, setIsOpenSpuModal] = useState(false);
 
-  const [selectedSpu, setSelectedSpu] = useState<Spu | undefined>(undefined);
   const table = useReactTable({
     initialState: {
       pagination: {
@@ -257,11 +254,6 @@ export const DataTableDemo: React.FC<DataTableDemoProps> = ({
 
   return (
     <div className="w-full">
-      <SpuModal
-        isOpen={isOpenSpuModal}
-        onOpenChange={setIsOpenSpuModal}
-        spu={selectedSpu}
-      ></SpuModal>
       <div className="rounded-md border">
         <Table>
           <TableHeader>
@@ -290,8 +282,6 @@ export const DataTableDemo: React.FC<DataTableDemoProps> = ({
                   onClick={(event) => {
                     event.preventDefault();
                     event.stopPropagation();
-                    setIsOpenSpuModal(true);
-                    setSelectedSpu(row.original);
                     console.log("Open");
                   }}
                   key={row.id}

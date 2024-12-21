@@ -8,17 +8,21 @@ import {
 import { Button } from "@/components/ui/button.tsx";
 import { BanIcon, FileInput, Plus, Trash2Icon } from "lucide-react";
 import { Input } from "@/components/ui/input.tsx";
+import { CardCategorySelect } from "@/pages/product/CategorySelect.tsx";
+import { Category } from "@/types/category/category.ts";
 
 interface ICategoryModalProps {
   isOpen: boolean;
   onOpenChange: (isOpen: boolean) => void;
   isAdd: boolean;
+  listCategories: Category[];
 }
 
 export default function CategoryModal({
   isOpen,
   onOpenChange,
   isAdd,
+  listCategories,
 }: ICategoryModalProps) {
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
@@ -37,7 +41,7 @@ export default function CategoryModal({
           </div>
           <div className={"flex flex-row space-x-4"}>
             <label className={"w-4/12 font-semibold"}>Nhóm cha</label>
-            <Input className={""} placeholder={""} />
+            <CardCategorySelect listCategories={listCategories} />
           </div>
         </div>
         <DialogFooter className="">

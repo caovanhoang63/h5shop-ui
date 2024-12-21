@@ -82,12 +82,14 @@ export const CardCategoryFilter = ({
         isOpen={isOpenModalAdd}
         onOpenChange={setIsOpenModalAdd}
         isAdd={true}
+        listCategories={listCategories}
       />
       {/*Modal update*/}
       <CategoryModal
         isOpen={isOpenModalUpdate}
         onOpenChange={setIsOpenModalUpdate}
         isAdd={false}
+        listCategories={listCategories}
       />
       <CardContent>
         <Accordion type="single" collapsible>
@@ -130,7 +132,7 @@ export const CardCategoryFilter = ({
                 }}
               >
                 {idCategorySelected === 0 ? (
-                  <label className={"font-bold text-green-500 ml-6"}>
+                  <label className={"font-bold text-blue-500 ml-6"}>
                     Tất cả
                   </label>
                 ) : (

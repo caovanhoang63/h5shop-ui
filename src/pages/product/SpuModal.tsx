@@ -37,17 +37,20 @@ import {
 } from "@/components/ui/select.tsx";
 import { CardCategorySelect } from "@/pages/product/CategorySelect.tsx";
 import { InputUploadImage } from "@/components/InputUploadImage.tsx";
+import { Category } from "@/types/category/category.ts";
 
 interface ISpuModalProps {
   isOpen: boolean;
   onOpenChange: (isOpen: boolean) => void;
   spu?: Spu;
+  listCategories: Category[];
 }
 
 export default function SpuModal({
   isOpen,
   spu,
   onOpenChange,
+  listCategories,
 }: ISpuModalProps) {
   const off: boolean = false;
   const [imgIndex, setImgIndex] = useState<number>(0);
@@ -190,7 +193,7 @@ export default function SpuModal({
                       <Label className={"w-5/12"} htmlFor="name">
                         Nhóm hàng
                       </Label>
-                      <CardCategorySelect />
+                      <CardCategorySelect listCategories={listCategories} />
                     </div>
                     <div className={"flex flex-row items-center"}>
                       <Label className={"w-5/12"} htmlFor="name">
