@@ -22,6 +22,8 @@ import { CardCategoryFilter } from "@/pages/product/CardCategoryFilter.tsx";
 import { CardBrandFilter } from "@/pages/product/CardBrandFilter.tsx";
 import { getBrands } from "@/pages/product/api/brandApi.ts";
 import { Brand } from "@/types/brand/brand.ts";
+import { getCategories } from "@/pages/product/api/categoryApi.ts";
+import { Category } from "@/types/category/category.ts";
 
 export default function ProductPage() {
   const [fields, setFields] = useState<MenuVisibilityColumnTable[]>([
@@ -35,16 +37,27 @@ export default function ProductPage() {
 
   const [brandSelected, setBrandSelected] = useState<string>("0");
   const [listBrands, setListBrands] = useState<Brand[]>([]);
+  const [listCategories, setListCategories] = useState<Category[]>([]);
 
   useEffect(() => {
     fetchBrands();
+    fetchCategories();
   }, []);
 
   const fetchBrands = async () => {
     try {
       const response = await getBrands();
-      console.log(response);
       setListBrands(response.data);
+    } catch (error) {
+      console.error("Fetch error:", error);
+    }
+  };
+
+  const fetchCategories = async () => {
+    try {
+      const response = await getCategories();
+      console.log(response);
+      setListCategories(response.data);
     } catch (error) {
       console.error("Fetch error:", error);
     }
@@ -95,7 +108,7 @@ export default function ProductPage() {
         </div>
       </div>
       <div className={"col-span-1 space-y-4"}>
-        <CardCategoryFilter />
+        <CardCategoryFilter listCategories={listCategories} />
         <CardBrandFilter
           onChange={handleChangedBrand}
           listBrands={listBrands}
