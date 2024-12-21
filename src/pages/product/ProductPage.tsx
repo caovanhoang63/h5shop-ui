@@ -17,9 +17,11 @@ import {
   ButtonVisibilityColumnTable,
   MenuVisibilityColumnTable,
 } from "@/components/ButtonVisibilityColumnTable.tsx";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { CardCategoryFilter } from "@/pages/product/CardCategoryFilter.tsx";
 import { CardBrandFilter } from "@/pages/product/CardBrandFilter.tsx";
+import { getBrands } from "@/pages/product/api/brandApi.ts";
+import { Brand } from "@/types/brand/brand.ts";
 
 export default function ProductPage() {
   const [fields, setFields] = useState<MenuVisibilityColumnTable[]>([
@@ -32,6 +34,21 @@ export default function ProductPage() {
   ]);
 
   const [brandSelected, setBrandSelected] = useState<string>("0");
+  const [listBrands, setListBrands] = useState<Brand[]>([]);
+
+  useEffect(() => {
+    fetchBrands();
+  }, []);
+
+  const fetchBrands = async () => {
+    try {
+      const response = await getBrands();
+      console.log(response);
+      setListBrands(response.data);
+    } catch (error) {
+      console.error("Fetch error:", error);
+    }
+  };
 
   const handleChangedBrand = (brandId: string) => {
     console.log(brandSelected);
@@ -79,7 +96,10 @@ export default function ProductPage() {
       </div>
       <div className={"col-span-1 space-y-4"}>
         <CardCategoryFilter />
-        <CardBrandFilter onChange={handleChangedBrand} />
+        <CardBrandFilter
+          onChange={handleChangedBrand}
+          listBrands={listBrands}
+        />
         <Card>
           <CardContent>
             <Accordion type="single" collapsible>

@@ -8,14 +8,14 @@ import {
 import { Button } from "@/components/ui/button.tsx";
 import { BanIcon, FileInput, Plus, Trash2Icon } from "lucide-react";
 import { Input } from "@/components/ui/input.tsx";
-import { BrandDTO } from "@/types/brand/BrandDTO.ts";
+import { Brand } from "@/types/brand/brand.ts";
 import { useEffect, useState } from "react";
 
 interface IBrandModalProps {
   isOpen: boolean;
   onOpenChange: (isOpen: boolean) => void;
   isAdd: boolean;
-  brandUpdate?: BrandDTO;
+  brandUpdate?: Brand;
 }
 
 export default function BrandModal({
@@ -24,7 +24,7 @@ export default function BrandModal({
   isAdd,
   brandUpdate,
 }: IBrandModalProps) {
-  const [brand, setBrand] = useState<BrandDTO>(new BrandDTO(0, ""));
+  const [brand, setBrand] = useState<Brand>({ name: "", id: 0 });
   useEffect(() => {
     if (brandUpdate) {
       setBrand(brandUpdate);
