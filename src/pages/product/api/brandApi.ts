@@ -37,3 +37,12 @@ export async function updateBrand(brand: Brand): Promise<void> {
     throw error;
   }
 }
+
+export async function deleteBrand(brandId: number): Promise<void> {
+  try {
+    await axiosInstance.delete(`/v1/brand/${brandId}`);
+  } catch (error) {
+    console.error("Fetch error:", error);
+    throw error;
+  }
+}

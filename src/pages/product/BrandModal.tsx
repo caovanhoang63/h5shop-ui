@@ -10,7 +10,11 @@ import { BanIcon, FileInput, Plus, Trash2Icon } from "lucide-react";
 import { Input } from "@/components/ui/input.tsx";
 import { Brand, brandConverter, BrandCreate } from "@/types/brand/brand.ts";
 import { useEffect, useState } from "react";
-import { createBrand, updateBrand } from "@/pages/product/api/brandApi.ts";
+import {
+  createBrand,
+  deleteBrand,
+  updateBrand,
+} from "@/pages/product/api/brandApi.ts";
 
 interface IBrandModalProps {
   isOpen: boolean;
@@ -48,6 +52,14 @@ export default function BrandModal({
     }
   };
 
+  const CallApiDeleteBrand = async (brandId: number) => {
+    try {
+      await deleteBrand(brandId);
+    } catch (error) {
+      console.error("Fetch error:", error);
+    }
+  };
+
   const handleClickBtnAdd = () => {
     CallApiAddBrand(brandConverter.convertBrandToBrandCreate(brand))
       .then(() => {
@@ -74,8 +86,15 @@ export default function BrandModal({
     setBrand((prev) => ({ ...prev, name }));
   };
 
-  const handleDeleteBrand = () => {
-    alert(`Delete brand: ${brand.name}`);
+  const handleClickBtnDelete = () => {
+    CallApiDeleteBrand(brand.id)
+      .then(() => {
+        onOpenChange(false);
+        alert("Xóa thương hiệu thành công");
+      })
+      .catch((error) => {
+        console.error("Fetch error:", error);
+      });
   };
 
   return (
@@ -123,7 +142,7 @@ export default function BrandModal({
           {!isAdd && (
             <Button
               className={"bg-red-500 hover:bg-red-600"}
-              onClick={() => handleDeleteBrand()}
+              onClick={() => handleClickBtnDelete()}
             >
               <Trash2Icon />
               Xóa
