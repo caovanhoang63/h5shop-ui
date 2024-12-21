@@ -1,4 +1,4 @@
-import { Brand, BrandCreate, BrandUpdate } from "@/types/brand/brand.ts";
+import { Brand, brandConverter, BrandCreate } from "@/types/brand/brand.ts";
 import axiosInstance from "@/axiosSetup.ts";
 
 export interface ResponseBrand {
@@ -26,9 +26,12 @@ export async function createBrand(brand: BrandCreate): Promise<void> {
   }
 }
 
-export async function updateBrand(brand: BrandUpdate): Promise<void> {
+export async function updateBrand(brand: Brand): Promise<void> {
   try {
-    await axiosInstance.put(`/brand/${brand.id}`, brand);
+    await axiosInstance.patch(
+      `/v1/brand/${brand.id}`,
+      brandConverter.convertBrandToBrandUpdate(brand),
+    );
   } catch (error) {
     console.error("Fetch error:", error);
     throw error;

@@ -8,12 +8,17 @@ export interface BrandCreate {
 }
 
 export interface BrandUpdate {
-  id: number;
   name: string;
 }
 
 export class brandConverter {
   static convertBrandToBrandCreate(brand: Brand): BrandCreate {
+    return {
+      name: brand.name,
+    };
+  }
+
+  static convertBrandToBrandUpdate(brand: Brand): BrandUpdate {
     return {
       name: brand.name,
     };
