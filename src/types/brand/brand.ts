@@ -12,11 +12,10 @@ export interface BrandUpdate {
   name: string;
 }
 
-export class ConvertDataForBrand {
-  public convertBrandToBrandUpdate = (brand: Brand): BrandUpdate => {
+export class brandConverter {
+  static convertBrandToBrandCreate(brand: Brand): BrandCreate {
     return {
-      id: brand.id,
       name: brand.name,
     };
-  };
+  }
 }

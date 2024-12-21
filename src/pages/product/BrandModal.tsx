@@ -8,8 +8,9 @@ import {
 import { Button } from "@/components/ui/button.tsx";
 import { BanIcon, FileInput, Plus, Trash2Icon } from "lucide-react";
 import { Input } from "@/components/ui/input.tsx";
-import { Brand } from "@/types/brand/brand.ts";
+import { Brand, brandConverter, BrandCreate } from "@/types/brand/brand.ts";
 import { useEffect, useState } from "react";
+import { createBrand } from "@/pages/product/api/brandApi.ts";
 
 interface IBrandModalProps {
   isOpen: boolean;
@@ -31,12 +32,27 @@ export default function BrandModal({
     }
   }, [brandUpdate]);
 
-  const handleSetNameBrand = (name: string) => {
-    setBrand((prev) => ({ ...prev, name }));
+  const CallApiAddBrand = async (brand: BrandCreate) => {
+    try {
+      await createBrand(brand);
+    } catch (error) {
+      console.error("Fetch error:", error);
+    }
   };
 
-  const handleCreateBrand = () => {
-    alert(`Create brand: ${brand.name}`);
+  const handleClickBtnAdd = () => {
+    CallApiAddBrand(brandConverter.convertBrandToBrandCreate(brand))
+      .then(() => {
+        onOpenChange(false);
+        alert("Thêm mới thương hiệu thành công");
+      })
+      .catch((error) => {
+        console.error("Fetch error:", error);
+      });
+  };
+
+  const handleSetNameBrand = (name: string) => {
+    setBrand((prev) => ({ ...prev, name }));
   };
 
   const handleUpdateBrand = () => {
@@ -74,7 +90,7 @@ export default function BrandModal({
           {isAdd && (
             <Button
               className={"bg-green-500 hover:bg-green-600"}
-              onClick={() => handleCreateBrand()}
+              onClick={() => handleClickBtnAdd()}
             >
               <Plus />
               Thêm mới

@@ -19,7 +19,7 @@ export async function getBrands(): Promise<ResponseBrand> {
 
 export async function createBrand(brand: BrandCreate): Promise<void> {
   try {
-    await axiosInstance.post("/brand", brand);
+    await axiosInstance.post("/v1/brand", brand);
   } catch (error) {
     console.error("Fetch error:", error);
     throw error;
