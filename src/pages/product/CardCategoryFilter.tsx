@@ -19,10 +19,12 @@ import { Category } from "@/types/category/category.ts";
 
 export interface ICardCategoryFilterProps {
   listCategories: Category[];
+  setCategorySelected: (id: number) => void;
 }
 
 export const CardCategoryFilter = ({
   listCategories,
+  setCategorySelected,
 }: ICardCategoryFilterProps) => {
   const [idCategorySelected, setIdCategorySelected] = useState<number>();
   const [searchText, setSearchText] = useState<string>("");
@@ -31,6 +33,7 @@ export const CardCategoryFilter = ({
 
   const handleClickCategory = (id: number) => {
     setIdCategorySelected(id);
+    setCategorySelected(id);
   };
 
   const normalizeText = (text: string): string => {

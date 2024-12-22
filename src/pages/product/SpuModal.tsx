@@ -38,12 +38,14 @@ import {
 import { CardCategorySelect } from "@/pages/product/CategorySelect.tsx";
 import { InputUploadImage } from "@/components/InputUploadImage.tsx";
 import { Category } from "@/types/category/category.ts";
+import { Brand } from "@/types/brand/brand.ts";
 
 interface ISpuModalProps {
   isOpen: boolean;
   onOpenChange: (isOpen: boolean) => void;
   spu?: Spu;
   listCategories: Category[];
+  listBrands: Brand[];
 }
 
 export default function SpuModal({
@@ -51,6 +53,7 @@ export default function SpuModal({
   spu,
   onOpenChange,
   listCategories,
+  listBrands,
 }: ISpuModalProps) {
   const off: boolean = false;
   const [imgIndex, setImgIndex] = useState<number>(0);
@@ -183,9 +186,11 @@ export default function SpuModal({
                           <SelectValue placeholder={"Chọn thương hiệu"} />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value={"1"}>Apple</SelectItem>
-                          <SelectItem value={"2"}>Samsung</SelectItem>
-                          <SelectItem value={"3"}>Xiaomi</SelectItem>
+                          {listBrands.map((brand) => (
+                            <SelectItem value={brand.id.toString()}>
+                              {brand.name}
+                            </SelectItem>
+                          ))}
                         </SelectContent>
                       </Select>
                     </div>

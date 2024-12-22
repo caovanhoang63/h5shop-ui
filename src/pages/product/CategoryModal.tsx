@@ -9,7 +9,9 @@ import { Button } from "@/components/ui/button.tsx";
 import { BanIcon, FileInput, Plus, Trash2Icon } from "lucide-react";
 import { Input } from "@/components/ui/input.tsx";
 import { CardCategorySelect } from "@/pages/product/CategorySelect.tsx";
-import { Category } from "@/types/category/category.ts";
+import { Category, CategoryCreate } from "@/types/category/category.ts";
+import { createCategory } from "@/pages/product/api/categoryApi.ts";
+import { useState } from "react";
 
 interface ICategoryModalProps {
   isOpen: boolean;
@@ -24,6 +26,28 @@ export default function CategoryModal({
   isAdd,
   listCategories,
 }: ICategoryModalProps) {
+  const [parentId, setParentId] = useState<number | null>(null);
+  const [name, setName] = useState<string>("");
+
+  const CallApiAddCategory = async (category: CategoryCreate) => {
+    try {
+      await createCategory(category);
+    } catch (error) {
+      console.error("Fetch error:", error);
+    }
+  };
+
+  const handleChooseParent = (id: number) => {
+    setParentId(id);
+  };
+
+  const handleClickBtnAdd = () => {
+    CallApiAddCategory({
+      name: name,
+      parentId: parentId,
+    } as CategoryCreate);
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="flex flex-col space-y-2">
@@ -37,16 +61,27 @@ export default function CategoryModal({
         <div className={"flex flex-col space-y-6"}>
           <div className={"flex flex-row space-x-4"}>
             <label className={"w-4/12 font-semibold"}>Tên nhóm</label>
-            <Input className={""} placeholder={""} />
+            <Input
+              className={""}
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder={""}
+            />
           </div>
           <div className={"flex flex-row space-x-4"}>
             <label className={"w-4/12 font-semibold"}>Nhóm cha</label>
-            <CardCategorySelect listCategories={listCategories} />
+            <CardCategorySelect
+              listCategories={listCategories}
+              setParentId={handleChooseParent}
+            />
           </div>
         </div>
         <DialogFooter className="">
           {isAdd && (
-            <Button className={"bg-green-500 hover:bg-green-600"}>
+            <Button
+              className={"bg-green-500 hover:bg-green-600"}
+              onClick={() => handleClickBtnAdd()}
+            >
               <Plus />
               Thêm mới
             </Button>

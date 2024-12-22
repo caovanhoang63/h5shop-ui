@@ -38,6 +38,7 @@ export default function ProductPage() {
 
   const [brandSelected, setBrandSelected] = useState<string>("0");
   const [listBrands, setListBrands] = useState<Brand[]>([]);
+  const [categorySelected, setCategorySelected] = useState<number>();
   const [listCategories, setListCategories] = useState<Category[]>([]);
   const [isOpenModalSpu, setIsOpenModalSpu] = useState<boolean>(false);
 
@@ -83,6 +84,11 @@ export default function ProductPage() {
     setIsOpenModalSpu(false);
   };
 
+  const handleChangeCategory = (categoryId: number) => {
+    console.log(categorySelected);
+    setCategorySelected(categoryId);
+  };
+
   return (
     <Container className={"grid grid-cols-5 gap-4 grid-flow-row"}>
       <div className={"text-2xl col-span-1 font-bold"}>
@@ -94,7 +100,10 @@ export default function ProductPage() {
           <Input className={"pl-9"} placeholder={"Theo mã, tên hàng"} />
         </div>
         <div className={"flex space-x-2"}>
-          <Button className={"bg-green-500"}>
+          <Button
+            className={"bg-green-500"}
+            onClick={() => setIsOpenModalSpu(true)}
+          >
             <Plus />
             Thêm mới
             <TriangleDown />
@@ -114,7 +123,10 @@ export default function ProductPage() {
         </div>
       </div>
       <div className={"col-span-1 space-y-4"}>
-        <CardCategoryFilter listCategories={listCategories} />
+        <CardCategoryFilter
+          listCategories={listCategories}
+          setCategorySelected={(categoryId) => handleChangeCategory(categoryId)}
+        />
         <CardBrandFilter
           onChange={handleChangedBrand}
           listBrands={listBrands}
@@ -160,6 +172,7 @@ export default function ProductPage() {
         isOpen={isOpenModalSpu}
         onOpenChange={handleCloseModalSpu}
         listCategories={listCategories}
+        listBrands={listBrands}
       />
     </Container>
   );

@@ -12,10 +12,12 @@ import { Category } from "@/types/category/category.ts";
 
 export interface ICardCategorySelectProps {
   listCategories: Category[];
+  setParentId?: (id: number) => void;
 }
 
 export const CardCategorySelect = ({
   listCategories,
+  setParentId,
 }: ICardCategorySelectProps) => {
   const [idCategorySelected, setIdCategorySelected] = useState<number>(0);
   const [searchText, setSearchText] = useState<string>("");
@@ -26,6 +28,7 @@ export const CardCategorySelect = ({
     setCategoryName(name);
     setIdCategorySelected(id);
     setIsOpen(false);
+    if (setParentId) setParentId(id);
   };
 
   const normalizeText = (text: string): string => {
