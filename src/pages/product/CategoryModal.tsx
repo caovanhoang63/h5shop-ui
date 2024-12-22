@@ -10,14 +10,18 @@ import { BanIcon, FileInput, Plus, Trash2Icon } from "lucide-react";
 import { Input } from "@/components/ui/input.tsx";
 import { CardCategorySelect } from "@/pages/product/CategorySelect.tsx";
 import { Category, CategoryCreate } from "@/types/category/category.ts";
-import { createCategory } from "@/pages/product/api/categoryApi.ts";
-import { useState } from "react";
+import {
+  createCategory,
+  updateCategory,
+} from "@/pages/product/api/categoryApi.ts";
+import { useEffect, useState } from "react";
 
 interface ICategoryModalProps {
   isOpen: boolean;
   onOpenChange: (isOpen: boolean) => void;
   isAdd: boolean;
   listCategories: Category[];
+  category?: Category;
 }
 
 export default function CategoryModal({
@@ -25,9 +29,17 @@ export default function CategoryModal({
   onOpenChange,
   isAdd,
   listCategories,
+  category,
 }: ICategoryModalProps) {
   const [parentId, setParentId] = useState<number | null>(null);
   const [name, setName] = useState<string>("");
+
+  useEffect(() => {
+    if (category) {
+      setName(category.name);
+      setParentId(category.parentId);
+    }
+  }, [category]);
 
   const CallApiAddCategory = async (category: CategoryCreate) => {
     try {
@@ -37,7 +49,15 @@ export default function CategoryModal({
     }
   };
 
-  const handleChooseParent = (id: number) => {
+  const CallApiUpdateCategory = async (category: Category) => {
+    try {
+      await updateCategory(category);
+    } catch (error) {
+      console.error("Fetch error:", error);
+    }
+  };
+
+  const handleChooseParent = (id: number | null) => {
     setParentId(id);
   };
 
@@ -45,7 +65,29 @@ export default function CategoryModal({
     CallApiAddCategory({
       name: name,
       parentId: parentId,
-    } as CategoryCreate);
+    } as CategoryCreate)
+      .then(() => {
+        onOpenChange(false);
+        alert("Thêm mới thành công");
+      })
+      .catch((error) => {
+        console.error("Fetch error:", error);
+      });
+  };
+
+  const handleClickBtnUpdate = () => {
+    CallApiUpdateCategory({
+      id: category?.id,
+      name: name,
+      parentId: parentId,
+    } as Category)
+      .then(() => {
+        onOpenChange(false);
+        alert("Chỉnh sửa thành công");
+      })
+      .catch((error) => {
+        console.error("Fetch error:", error);
+      });
   };
 
   return (
@@ -73,6 +115,7 @@ export default function CategoryModal({
             <CardCategorySelect
               listCategories={listCategories}
               setParentId={handleChooseParent}
+              parentIdSelected={parentId}
             />
           </div>
         </div>
@@ -87,7 +130,10 @@ export default function CategoryModal({
             </Button>
           )}
           {!isAdd && (
-            <Button className={"bg-green-500 hover:bg-green-600"}>
+            <Button
+              className={"bg-green-500 hover:bg-green-600"}
+              onClick={() => handleClickBtnUpdate()}
+            >
               <FileInput />
               Lưu
             </Button>

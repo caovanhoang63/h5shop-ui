@@ -12,23 +12,76 @@ import { Category } from "@/types/category/category.ts";
 
 export interface ICardCategorySelectProps {
   listCategories: Category[];
-  setParentId?: (id: number) => void;
+  setParentId?: (id: number | null) => void;
+  parentIdSelected?: number | null;
 }
 
 export const CardCategorySelect = ({
   listCategories,
   setParentId,
+  parentIdSelected,
 }: ICardCategorySelectProps) => {
   const [idCategorySelected, setIdCategorySelected] = useState<number>(0);
   const [searchText, setSearchText] = useState<string>("");
   const [isOpen, setIsOpen] = useState(false);
   const [categoryName, setCategoryName] = useState<string>("");
+  const [listCate, setListCate] = useState<Category[]>([
+    {
+      id: 0,
+      name: "Không chọn cha",
+      parentId: null,
+      children: [],
+    },
+  ]);
+
+  useEffect(() => {
+    setListCate((prev) => [...prev, ...listCategories]);
+  }, [listCategories]);
+
+  useEffect(() => {
+    if (parentIdSelected === null) {
+      setIdCategorySelected(0);
+      setCategoryName("Không chọn cha");
+    } else {
+      setIdCategorySelected(parentIdSelected as number);
+
+      const category = findCategoryById(
+        listCategories,
+        parentIdSelected as number,
+      );
+      if (category) {
+        setCategoryName(category.name);
+      }
+    }
+  }, [parentIdSelected]);
+
+  // Đệ quy tìm kiếm category bằng id
+  const findCategoryById = (
+    categories: Category[],
+    id: number,
+  ): Category | null => {
+    for (let i = 0; i < categories.length; i++) {
+      if (categories[i].id === id) {
+        return categories[i];
+      } else {
+        const found = findCategoryById(categories[i].children, id);
+        if (found) return found;
+      }
+    }
+    return null;
+  };
 
   const handleClickCategory = (id: number, name: string) => {
     setCategoryName(name);
     setIdCategorySelected(id);
     setIsOpen(false);
-    if (setParentId) setParentId(id);
+    if (setParentId) {
+      if (id === 0) {
+        setParentId(null);
+      } else {
+        setParentId(id);
+      }
+    }
   };
 
   const normalizeText = (text: string): string => {
@@ -66,13 +119,13 @@ export const CardCategorySelect = ({
       })
       .filter((category) => category !== null) as Category[];
   };
-  const filteredCategories = filterCategories(listCategories, searchText);
+  const filteredCategories = filterCategories(listCate, searchText);
 
   return (
-    <Select open={isOpen} onOpenChange={setIsOpen} value={"1"}>
+    <Select open={isOpen} onOpenChange={setIsOpen} value={"0"}>
       <SelectTrigger>
-        <SelectValue placeholder={"Chọn nhóm hàng"}>
-          {categoryName ? categoryName : "Chọn nhóm hàng"}
+        <SelectValue placeholder={"--Lựa chọn--"}>
+          {categoryName ? categoryName : "--Lựa chọn--"}
         </SelectValue>
       </SelectTrigger>
       <SelectContent>

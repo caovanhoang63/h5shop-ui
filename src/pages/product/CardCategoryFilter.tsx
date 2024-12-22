@@ -30,6 +30,7 @@ export const CardCategoryFilter = ({
   const [searchText, setSearchText] = useState<string>("");
   const [isOpenModalAdd, setIsOpenModalAdd] = useState<boolean>(false);
   const [isOpenModalUpdate, setIsOpenModalUpdate] = useState<boolean>(false);
+  const [categoryUpdate, setCategoryUpdate] = useState<Category>();
 
   const handleClickCategory = (id: number) => {
     setIdCategorySelected(id);
@@ -75,6 +76,7 @@ export const CardCategoryFilter = ({
 
   const handleClickEditItem = (item: Category) => {
     console.log(item);
+    setCategoryUpdate(item);
     setIsOpenModalUpdate(true);
   };
 
@@ -93,6 +95,7 @@ export const CardCategoryFilter = ({
         onOpenChange={setIsOpenModalUpdate}
         isAdd={false}
         listCategories={listCategories}
+        category={categoryUpdate}
       />
       <CardContent>
         <Accordion type="single" collapsible>
@@ -111,7 +114,10 @@ export const CardCategoryFilter = ({
                     borderRadius: "10px",
                     marginRight: "6px",
                   }}
-                  onClick={() => setIsOpenModalAdd(true)}
+                  onClick={(e) => {
+                    setIsOpenModalAdd(true);
+                    e.preventDefault();
+                  }}
                 >
                   <CirclePlus className="w-5 h-5" />
                 </button>
