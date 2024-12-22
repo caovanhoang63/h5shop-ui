@@ -1,7 +1,6 @@
 import * as React from "react";
 import {
   ArrowLeft,
-  Plus,
   Printer,
   Eye,
   AlertCircle,
@@ -24,40 +23,7 @@ import { InventoryItemStockTake } from "@/types/inventoryItemStockTake.ts";
 import { useState } from "react";
 
 export default function InventoryCheckPage() {
-  const rawData = [
-    {
-      id: 1,
-      code: "PK000014",
-      name: "Chuột không dây Logitech M331",
-      stockQuantity: 90,
-      variance: -34,
-      varianceValue: 0,
-    },
-    {
-      id: 2,
-      code: "PK000014",
-      name: "Chuột không dây Logitech M331",
-      stockQuantity: 90,
-      variance: -34,
-      varianceValue: 0,
-    },
-    {
-      id: 3,
-      code: "PK000084",
-      name: "Chuột không dây Logitech M331",
-      stockQuantity: 90,
-      variance: -34,
-      varianceValue: 0,
-    },
-    {
-      id: 4,
-      code: "PK000019",
-      name: "Chuột không dây Logitech M331",
-      stockQuantity: 90,
-      variance: -34,
-      varianceValue: 0,
-    },
-  ];
+  const rawData: InventoryItemStockTake[] = [];
   const searchData = [
     {
       id: 5,
@@ -80,7 +46,7 @@ export default function InventoryCheckPage() {
       varianceValue: 0,
     })),
   );
-  const [searchQuery, setSearchQuery] = useState(""); // Quản lý đầu vào tìm kiếm
+  const [searchQuery, setSearchQuery] = useState("");
   const [filteredProducts, setFilteredProducts] = useState(searchData);
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const query = e.target.value;
@@ -113,6 +79,9 @@ export default function InventoryCheckPage() {
       ];
     });
   };
+  const handleRemoveItem = (id: number) => {
+    setItems((prevItems) => prevItems.filter((item) => item.id !== id));
+  };
   const handleActualQuantityChange = (id: number, actualQuantity: number) => {
     setItems((prevItems) =>
       prevItems.map((item) =>
@@ -120,31 +89,38 @@ export default function InventoryCheckPage() {
           ? {
               ...item,
               actualQuantity,
-              variance: actualQuantity - item.stockQuantity, // Tính lại SL lệch
-              varianceValue: (actualQuantity - item.stockQuantity) * 10, // Ví dụ: tính giá trị lệch là 10
+              variance: actualQuantity - item.stockQuantity,
+              varianceValue: (actualQuantity - item.stockQuantity) * 10,
             }
           : item,
       ),
     );
   };
+  const calculateTotalActualQuantity = () => {
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-expect-error
+    return items.reduce((total, item) => total + item.actualQuantity, 0);
+  };
   return (
     <div className=" mx-auto p-4">
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-4 ">
           <Link to="/inventory" className="hover:opacity-80">
             <ArrowLeft className="h-6 w-6" />
           </Link>
           <h1 className="text-xl font-semibold">Kiểm kho</h1>
-          <div className="relative flex items-center gap-2 bg-white rounded-lg px-3 py-2 flex-1">
+          <div className="relative flex items-center gap-2 bg-white rounded-lg px-3 py-2 flex-1 w-[300px]">
             <Input
               type="search"
-              placeholder="Thêm sản phẩm"
-              className=""
+              placeholder="Tìm hàng hóa theo tên sản phẩm"
+              className="w-full "
               value={searchQuery}
               onChange={handleSearchChange}
             />
+            {/*
             <Plus className="h-5 w-5 text-gray-500" />
+*/}
             {filteredProducts.length > 0 && searchQuery.trim() !== "" && (
               <div className="absolute top-full mt-2 left-0 w-full bg-white border rounded-lg shadow-md z-50 max-h-60 overflow-y-auto">
                 {filteredProducts.map((product) => (
@@ -194,7 +170,10 @@ export default function InventoryCheckPage() {
               {items.map((item) => (
                 <TableRow key={item.id}>
                   <TableCell>
-                    <Trash2 className="h-4 w-4 text-gray-500 cursor-pointer hover:text-red-500" />
+                    <Trash2
+                      className="h-4 w-4 text-gray-500 cursor-pointer hover:text-red-500"
+                      onClick={() => handleRemoveItem(item.id)}
+                    />
                   </TableCell>
                   <TableCell>{item.id}</TableCell>
                   <TableCell className="text-blue-600">{item.code}</TableCell>
@@ -206,7 +185,7 @@ export default function InventoryCheckPage() {
                     <Input
                       type="number"
                       placeholder="SL"
-                      className="shadow-none w-[60px] text-center"
+                      className="shadow-none w-fit p-0 text-center"
                       value={item.actualQuantity}
                       onChange={(e) =>
                         handleActualQuantityChange(
@@ -247,14 +226,13 @@ export default function InventoryCheckPage() {
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-gray-500">Tổng SL thực tế</span>
-                <span>56</span>
+                <span>{calculateTotalActualQuantity()}</span>
               </div>
             </div>
 
             <div className="pt-4">
               <Input placeholder="Ghi chú" />
             </div>
-
             <Button className="w-full bg-green-500 hover:bg-green-600">
               Hoàn thành
             </Button>

@@ -124,9 +124,7 @@ const columns: ColumnDef<InventoryReport, never>[] = [
         </Button>
       );
     },
-    cell: ({ row }) => (
-      <div>{new Date(row.getValue("updateAt")).toLocaleDateString()}</div>
-    ),
+    cell: ({ row }) => <div>{row.getValue("updateAt")}</div>,
   },
   {
     accessorKey: "amount",

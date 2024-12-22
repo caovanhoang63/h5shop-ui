@@ -1,4 +1,3 @@
-import * as React from "react";
 import {
   Table,
   TableBody,
@@ -20,14 +19,6 @@ import {
 import { InventoryReportDetails } from "@/types/inventoryReport.ts";
 import { ScrollArea } from "@/components/ui/scroll-area.tsx";
 
-interface InventoryItem {
-  id: string;
-  name: string;
-  stockQuantity: number;
-  actualQuantity: number;
-  variance: number;
-  varianceValue: number;
-}
 interface IInventoryReportDetailModalProps {
   isOpen: boolean;
   onOpenChange: (isOpen: boolean) => void;
@@ -38,88 +29,6 @@ export default function InventoryReportDetailModal({
   onOpenChange,
   inventoryItem,
 }: IInventoryReportDetailModalProps) {
-  const [items] = React.useState<InventoryItem[]>([
-    {
-      id: "PK000014",
-      name: "Chuột không dây Logitech M331",
-      stockQuantity: 92,
-      actualQuantity: 90,
-      variance: -2,
-      varianceValue: 0,
-    },
-    {
-      id: "PK000015",
-      name: "Chuột không dây Logitech M331",
-      stockQuantity: 92,
-      actualQuantity: 90,
-      variance: -2,
-      varianceValue: 0,
-    },
-    {
-      id: "PK000017",
-      name: "Chuột không dây Logitech M331",
-      stockQuantity: 92,
-      actualQuantity: 90,
-      variance: -2,
-      varianceValue: 0,
-    },
-    {
-      id: "PK0000156",
-      name: "Chuột không dây Logitech M331",
-      stockQuantity: 92,
-      actualQuantity: 90,
-      variance: -2,
-      varianceValue: 0,
-    },
-    {
-      id: "PK0000164",
-      name: "Chuột không dây Logitech M331",
-      stockQuantity: 92,
-      actualQuantity: 90,
-      variance: -2,
-      varianceValue: 0,
-    },
-    {
-      id: "PK0000144",
-      name: "Chuột không dây Logitech M331",
-      stockQuantity: 92,
-      actualQuantity: 90,
-      variance: -2,
-      varianceValue: 0,
-    },
-    {
-      id: "PK00001344",
-      name: "Chuột không dây Logitech M331",
-      stockQuantity: 92,
-      actualQuantity: 90,
-      variance: -2,
-      varianceValue: 0,
-    },
-    {
-      id: "PK0000134",
-      name: "Chuột không dây Logitech M331",
-      stockQuantity: 92,
-      actualQuantity: 90,
-      variance: -2,
-      varianceValue: 0,
-    },
-    {
-      id: "PK00001434",
-      name: "Chuột không dây Logitech M331",
-      stockQuantity: 92,
-      actualQuantity: 90,
-      variance: -2,
-      varianceValue: 0,
-    },
-    {
-      id: "PK000013464",
-      name: "Chuột không dây Logitech M331",
-      stockQuantity: 92,
-      actualQuantity: 90,
-      variance: -2,
-      varianceValue: 0,
-    },
-  ]);
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-screen-xl min-h-[calc(100vh-10%)] flex flex-col">
@@ -177,21 +86,23 @@ export default function InventoryReportDetailModal({
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {items.map((item) => (
-                    <TableRow key={item.id}>
-                      <TableCell className="text-blue-600">{item.id}</TableCell>
+                  {inventoryItem?.items.map((item) => (
+                    <TableRow key={item.skuId}>
+                      <TableCell className="text-blue-600">
+                        {item.skuId}
+                      </TableCell>
                       <TableCell>{item.name}</TableCell>
                       <TableCell className="text-right">
-                        {item.stockQuantity}
+                        {item.amount}
                       </TableCell>
                       <TableCell className="text-right">
-                        {item.actualQuantity}
+                        {item.amount - item.inventoryDif}
                       </TableCell>
                       <TableCell className="text-right">
-                        {item.variance}
+                        {item.inventoryDif}
                       </TableCell>
                       <TableCell className="text-right">
-                        {item.varianceValue}
+                        {item.amount - item.inventoryDif}
                       </TableCell>
                     </TableRow>
                   ))}
