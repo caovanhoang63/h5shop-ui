@@ -114,6 +114,7 @@ export default function CategoryModal({
             <label className={"w-4/12 font-semibold"}>Nhóm cha</label>
             <CardCategorySelect
               listCategories={listCategories}
+              isAdd={false}
               setParentId={handleChooseParent}
               parentIdSelected={parentId}
             />

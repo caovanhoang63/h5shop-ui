@@ -198,7 +198,10 @@ export default function SpuModal({
                       <Label className={"w-5/12"} htmlFor="name">
                         Nhóm hàng
                       </Label>
-                      <CardCategorySelect listCategories={listCategories} />
+                      <CardCategorySelect
+                        listCategories={listCategories}
+                        isAdd={true}
+                      />
                     </div>
                     <div className={"flex flex-row items-center"}>
                       <Label className={"w-5/12"} htmlFor="name">

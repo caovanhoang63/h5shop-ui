@@ -12,12 +12,14 @@ import { Category } from "@/types/category/category.ts";
 
 export interface ICardCategorySelectProps {
   listCategories: Category[];
+  isAdd: boolean;
   setParentId?: (id: number | null) => void;
   parentIdSelected?: number | null;
 }
 
 export const CardCategorySelect = ({
   listCategories,
+  isAdd,
   setParentId,
   parentIdSelected,
 }: ICardCategorySelectProps) => {
@@ -35,7 +37,11 @@ export const CardCategorySelect = ({
   ]);
 
   useEffect(() => {
-    setListCate((prev) => [...prev, ...listCategories]);
+    if (isAdd) {
+      setListCate(listCategories);
+    } else {
+      setListCate((prev) => [...prev, ...listCategories]);
+    }
   }, [listCategories]);
 
   useEffect(() => {
