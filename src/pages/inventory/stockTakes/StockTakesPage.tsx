@@ -18,12 +18,16 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { InventoryItemStockTake } from "@/types/inventoryItemStockTake.ts";
 import { useState } from "react";
+import { createInventoryReport } from "@/pages/inventory/api/reportApi.ts";
+import { InventoryReportCreate } from "@/types/inventoryReport.ts";
 
 export default function InventoryCheckPage() {
   const rawData: InventoryItemStockTake[] = [];
+  const [note, setNote] = useState("");
+  const navigate = useNavigate();
   const searchData = [
     {
       id: 5,
@@ -100,6 +104,28 @@ export default function InventoryCheckPage() {
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-expect-error
     return items.reduce((total, item) => total + item.actualQuantity, 0);
+  };
+
+  const handleComplete = async () => {
+    const report: InventoryReportCreate = {
+      warehouseMan1: 8,
+      note: note,
+      items: items.map((item) => ({
+        skuId: item.id,
+        amount: item.stockQuantity,
+        inventoryDif: item.variance ?? 0,
+      })),
+    };
+
+    try {
+      const response = await createInventoryReport(report);
+      console.log("Báo cáo kiểm kho đã được tạo:", response);
+      navigate("/inventory");
+      // Xử lý khi tạo báo cáo thành công, ví dụ: điều hướng đến trang khác
+    } catch (error) {
+      console.error("Lỗi khi tạo báo cáo kiểm kho:", error);
+      // Xử lý lỗi, ví dụ: hiển thị thông báo lỗi cho người dùng
+    }
   };
   return (
     <div className=" mx-auto p-4">
@@ -231,9 +257,16 @@ export default function InventoryCheckPage() {
             </div>
 
             <div className="pt-4">
-              <Input placeholder="Ghi chú" />
+              <Input
+                placeholder="Ghi chú"
+                value={note}
+                onChange={(e) => setNote(e.target.value)}
+              />
             </div>
-            <Button className="w-full bg-green-500 hover:bg-green-600">
+            <Button
+              onClick={handleComplete}
+              className="w-full bg-green-500 hover:bg-green-600"
+            >
               Hoàn thành
             </Button>
           </CardContent>

@@ -32,7 +32,6 @@ export interface InventoryReportCreate {
   warehouseMan1: number;
   warehouseMan2?: number;
   warehouseMan3?: number;
-  status: number;
   note?: string;
   items: InventoryReportDetailCreate[];
 }

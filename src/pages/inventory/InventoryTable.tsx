@@ -1,5 +1,5 @@
 import * as React from "react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import {
   ColumnDef,
@@ -39,6 +39,7 @@ import {
 } from "@/types/inventoryReport.ts";
 import InventoryReportDetailModal from "@/pages/inventory/InventoryReportDetailModal.tsx";
 import { getInventoryReportDetailById } from "@/pages/inventory/api/reportApi.ts";
+import { MenuVisibilityColumnTable } from "@/components/ButtonVisibilityColumnTable.tsx";
 
 /*function generateMockSpus(count: number = 10): InventoryReport[] {
   return Array.from({ length: count }, (_, index) => ({
@@ -80,7 +81,7 @@ function StatusInventoryRow({ status }: { status: number }) {
   return <div className={` ${colorMap[status]}`}>{statusMap[status]}</div>;
 }
 
-const columns: ColumnDef<InventoryReport, never>[] = [
+const columnsInventory: ColumnDef<InventoryReport>[] = [
   {
     id: "select",
     header: ({ table }) => (
@@ -124,7 +125,11 @@ const columns: ColumnDef<InventoryReport, never>[] = [
         </Button>
       );
     },
-    cell: ({ row }) => <div>{row.getValue("updateAt")}</div>,
+    cell: ({ row }) => (
+      <div className="ml-4">
+        {new Date(row.getValue("updatedAt")).toLocaleDateString()}
+      </div>
+    ),
   },
   {
     accessorKey: "amount",
@@ -214,15 +219,23 @@ const columns: ColumnDef<InventoryReport, never>[] = [
 ];
 interface InventoryTableProps {
   dataInventory: InventoryReport[];
+  columnVisible: MenuVisibilityColumnTable[];
 }
-export function InventoryTable({ dataInventory }: InventoryTableProps) {
+export function InventoryTable({
+  dataInventory,
+  columnVisible,
+}: InventoryTableProps) {
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     [],
   );
-  console.log("hrhr", dataInventory);
   const [columnVisibility, setColumnVisibility] =
-    React.useState<VisibilityState>({});
+    React.useState<VisibilityState>(
+      columnVisible.reduce((acc, col) => {
+        acc[col.key] = col.visible;
+        return acc;
+      }, {} as VisibilityState),
+    );
   const [rowSelection, setRowSelection] = React.useState({});
   const [isOpenStockTakesModal, setIsOpenStockTakesModal] = useState(false);
 
@@ -248,7 +261,7 @@ export function InventoryTable({ dataInventory }: InventoryTableProps) {
       },
     },
     data: dataInventory,
-    columns,
+    columns: columnsInventory,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
     getCoreRowModel: getCoreRowModel(),
@@ -264,7 +277,14 @@ export function InventoryTable({ dataInventory }: InventoryTableProps) {
       rowSelection,
     },
   });
-
+  useEffect(() => {
+    setColumnVisibility(
+      columnVisible.reduce((acc, col) => {
+        acc[col.key] = col.visible;
+        return acc;
+      }, {} as VisibilityState),
+    );
+  }, [columnVisible]);
   return (
     <div className="w-full">
       <InventoryReportDetailModal
@@ -323,7 +343,7 @@ export function InventoryTable({ dataInventory }: InventoryTableProps) {
             ) : (
               <TableRow>
                 <TableCell
-                  colSpan={columns.length}
+                  colSpan={columnsInventory.length}
                   className="h-24 text-center"
                 >
                   No results.

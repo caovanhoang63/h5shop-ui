@@ -1,7 +1,6 @@
-import { FileOutputIcon, MenuIcon, Plus, Search } from "lucide-react";
+import { FileOutputIcon, Plus, Search } from "lucide-react";
 import { Input } from "@/components/ui/input.tsx";
 import { Button } from "@/components/ui/button.tsx";
-import TriangleDown from "@/components/icons/TriangleDown.tsx";
 import { Card, CardContent } from "@/components/ui/card.tsx";
 import {
   Accordion,
@@ -18,6 +17,10 @@ import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { InventoryReport } from "@/types/inventoryReport.ts";
 import { getInventoryReports } from "@/pages/inventory/api/reportApi.ts";
+import {
+  ButtonVisibilityColumnTable,
+  MenuVisibilityColumnTable,
+} from "@/components/ButtonVisibilityColumnTable.tsx";
 
 export const InventoryPage = () => {
   const [inventoryReports, setInventoryReports] = useState<InventoryReport[]>(
@@ -34,13 +37,30 @@ export const InventoryPage = () => {
     } catch (error) {
       setError("Failed to fetch inventory reports.");
       setLoading(false);
-      console.log(error);
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-expect-error
+      console.log(error.response.data.message);
     }
   };
   useEffect(() => {
     getInventoryReportTable();
   }, []);
-
+  const [fields, setFields] = useState<MenuVisibilityColumnTable[]>([
+    { label: "Mã kiểm kho", key: "id", visible: true },
+    { label: "Thời gian cân bằng", key: "updatedAt", visible: true },
+    { label: "SL thực tế", key: "amount", visible: true },
+    { label: "Tổng chênh lệch", key: "inventoryDif", visible: true },
+    { label: "Ghi chú", key: "note", visible: true },
+    { label: "Trạng thái", key: "status", visible: true },
+    /*{ label: "Action", key: "actions", visible: true },*/
+  ]);
+  const handleCheckField = (key: string, visible: boolean) => {
+    setFields((prevFields) =>
+      prevFields.map((field) =>
+        field.key === key ? { ...field, visible } : field,
+      ),
+    );
+  };
   if (loading) {
     return <div>Loading...</div>;
   }
@@ -70,10 +90,10 @@ export const InventoryPage = () => {
             <FileOutputIcon />
             Xuất file
           </Button>
-          <Button className={"bg-green-500"}>
-            <MenuIcon />
-            <TriangleDown />
-          </Button>
+          <ButtonVisibilityColumnTable
+            menus={fields}
+            onCheckChange={handleCheckField}
+          />
         </div>
       </div>
       <div className={"col-span-1 space-y-4"}>
@@ -141,7 +161,10 @@ export const InventoryPage = () => {
         </Card>
       </div>
       <div className={"col-span-4"}>
-        <InventoryTable dataInventory={inventoryReports}></InventoryTable>
+        <InventoryTable
+          columnVisible={fields}
+          dataInventory={inventoryReports}
+        ></InventoryTable>
       </div>
     </Container>
   );
