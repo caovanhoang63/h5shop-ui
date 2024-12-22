@@ -18,7 +18,7 @@ export interface ResponseInventoryReportDetail {
 export async function getInventoryReports(): Promise<ResponseInventoryReport> {
   try {
     const response =
-      await axiosInstance.get<ResponseInventoryReport>("/inventory/table");
+      await axiosInstance.get<ResponseInventoryReport>("v1/inventory/table");
     return response.data;
   } catch (error) {
     console.error("Fetch error:", error);
@@ -31,7 +31,7 @@ export async function getInventoryReportDetailById(
 ): Promise<ResponseInventoryReportDetail> {
   try {
     const response = await axiosInstance.get<ResponseInventoryReportDetail>(
-      `/inventory/${reportId}/details`,
+      `v1/inventory/${reportId}/details`,
     );
     return response.data;
   } catch (error) {

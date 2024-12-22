@@ -3,7 +3,7 @@ export interface InventoryItemStockTake {
   code: string;
   name: string;
   stockQuantity: number;
-  actualQuantity: number;
-  variance: number;
-  varianceValue: number;
+  actualQuantity?: number;
+  variance?: number;
+  varianceValue?: number;
 }

@@ -21,47 +21,112 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Link } from "react-router-dom";
 import { InventoryItemStockTake } from "@/types/inventoryItemStockTake.ts";
+import { useState } from "react";
 
 export default function InventoryCheckPage() {
-  const [items] = React.useState<InventoryItemStockTake[]>([
+  const rawData = [
     {
       id: 1,
       code: "PK000014",
       name: "Chuột không dây Logitech M331",
       stockQuantity: 90,
-      actualQuantity: 56,
       variance: -34,
       varianceValue: 0,
     },
     {
-      id: 1,
+      id: 2,
       code: "PK000014",
       name: "Chuột không dây Logitech M331",
       stockQuantity: 90,
-      actualQuantity: 56,
       variance: -34,
       varianceValue: 0,
     },
     {
-      id: 1,
-      code: "PK000014",
+      id: 3,
+      code: "PK000084",
       name: "Chuột không dây Logitech M331",
       stockQuantity: 90,
-      actualQuantity: 56,
       variance: -34,
       varianceValue: 0,
     },
     {
-      id: 1,
-      code: "PK000014",
+      id: 4,
+      code: "PK000019",
       name: "Chuột không dây Logitech M331",
       stockQuantity: 90,
-      actualQuantity: 56,
       variance: -34,
       varianceValue: 0,
     },
-  ]);
+  ];
+  const searchData = [
+    {
+      id: 5,
+      code: "PK000016",
+      name: "Tai nghe Bluetooth Sony",
+      stockQuantity: 100,
+    },
+    {
+      id: 6,
+      code: "PK000017",
+      name: "Cáp sạc Lightning Apple",
+      stockQuantity: 200,
+    },
+  ];
+  const [items, setItems] = React.useState<InventoryItemStockTake[]>(
+    rawData.map((item) => ({
+      ...item,
+      actualQuantity: 0,
+      variance: 0,
+      varianceValue: 0,
+    })),
+  );
+  const [searchQuery, setSearchQuery] = useState(""); // Quản lý đầu vào tìm kiếm
+  const [filteredProducts, setFilteredProducts] = useState(searchData);
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const query = e.target.value;
+    setSearchQuery(query);
 
+    if (query.trim() === "") {
+      setFilteredProducts(searchData);
+    } else {
+      const filtered = searchData.filter((product) =>
+        product.name.toLowerCase().includes(query.toLowerCase()),
+      );
+      setFilteredProducts(filtered);
+    }
+  };
+  const handleAddItem = (product: InventoryItemStockTake) => {
+    setItems((prevItems) => {
+      setSearchQuery("");
+      const exists = prevItems.some((item) => item.id === product.id);
+
+      if (exists) return prevItems;
+
+      return [
+        ...prevItems,
+        {
+          ...product,
+          actualQuantity: 0,
+          variance: 0,
+          varianceValue: 0,
+        },
+      ];
+    });
+  };
+  const handleActualQuantityChange = (id: number, actualQuantity: number) => {
+    setItems((prevItems) =>
+      prevItems.map((item) =>
+        item.id === id
+          ? {
+              ...item,
+              actualQuantity,
+              variance: actualQuantity - item.stockQuantity, // Tính lại SL lệch
+              varianceValue: (actualQuantity - item.stockQuantity) * 10, // Ví dụ: tính giá trị lệch là 10
+            }
+          : item,
+      ),
+    );
+  };
   return (
     <div className=" mx-auto p-4">
       {/* Header */}
@@ -71,9 +136,29 @@ export default function InventoryCheckPage() {
             <ArrowLeft className="h-6 w-6" />
           </Link>
           <h1 className="text-xl font-semibold">Kiểm kho</h1>
-          <div className="flex items-center gap-2 bg-white rounded-lg px-3 py-2 flex-1">
-            <Input type="search" placeholder="Thêm sản phẩm" className="" />
+          <div className="relative flex items-center gap-2 bg-white rounded-lg px-3 py-2 flex-1">
+            <Input
+              type="search"
+              placeholder="Thêm sản phẩm"
+              className=""
+              value={searchQuery}
+              onChange={handleSearchChange}
+            />
             <Plus className="h-5 w-5 text-gray-500" />
+            {filteredProducts.length > 0 && searchQuery.trim() !== "" && (
+              <div className="absolute top-full mt-2 left-0 w-full bg-white border rounded-lg shadow-md z-50 max-h-60 overflow-y-auto">
+                {filteredProducts.map((product) => (
+                  <div
+                    key={product.id}
+                    className="p-2 hover:bg-gray-100 cursor-pointer"
+                    onClick={() => handleAddItem(product)}
+                  >
+                    <span className="font-medium">{product.name}</span> -{" "}
+                    <span className="text-gray-500">{product.code}</span>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
         <div className="flex items-center gap-2">
@@ -119,11 +204,17 @@ export default function InventoryCheckPage() {
                   </TableCell>
                   <TableCell className="text-center items-center flex justify-center">
                     <Input
-                      type="text"
-                      placeholder="Thêm sản phẩm"
-                      className=" shadow-none w-[40px] text-center"
+                      type="number"
+                      placeholder="SL"
+                      className="shadow-none w-[60px] text-center"
                       value={item.actualQuantity}
-                    ></Input>
+                      onChange={(e) =>
+                        handleActualQuantityChange(
+                          item.id,
+                          Number(e.target.value),
+                        )
+                      }
+                    />
                   </TableCell>
                   <TableCell className="text-center text-red-500">
                     {item.variance}
