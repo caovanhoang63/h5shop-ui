@@ -163,11 +163,9 @@ export const columns: ColumnDef<Partner>[] = [
                 navigator.clipboard.writeText(payment.id.toString())
               }
             >
-              Copy payment ID
+              Sao chép Mã nhà cung cấp
             </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem>View customer</DropdownMenuItem>
-            <DropdownMenuItem>View payment details</DropdownMenuItem>
+            <DropdownMenuItem>Xem nhà cung cấp</DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       );

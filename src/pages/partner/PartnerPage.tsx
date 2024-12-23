@@ -16,10 +16,8 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion.tsx";
-import { CheckBoxWithText } from "@/components/CheckBoxWithText.tsx";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group.tsx";
 import { Label } from "@/components/ui/label.tsx";
-import { DataTableDemo } from "@/pages/product/DataTable.tsx";
 import { DatePickerWithRange } from "@/components/DatePickerWithRange.tsx";
 import {
   Popover,
@@ -29,6 +27,10 @@ import {
 import { TimeDropdown } from "@/pages/partner/components/TimeDropdown.tsx";
 import { useState } from "react";
 import PartnerDataTable from "@/pages/partner/components/PartnerDataTable.tsx";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu.tsx";
 
 export default function PartnerPage() {
   const [selectedTime, setSelectedTime] = useState("Toàn thời gian");
@@ -75,16 +77,16 @@ export default function PartnerPage() {
                   Nhóm NCC
                 </AccordionTrigger>
                 <AccordionContent className={"pb-0"}>
-                  <Popover>
-                    <PopoverTrigger asChild>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
                       <Button
                         variant="outline"
                         className="w-full font-normal flex justify-start "
                       >
                         Chọn nhóm
                       </Button>
-                    </PopoverTrigger>
-                  </Popover>
+                    </DropdownMenuTrigger>
+                  </DropdownMenu>
                 </AccordionContent>
               </AccordionItem>
             </Accordion>
@@ -102,19 +104,27 @@ export default function PartnerPage() {
                   <div className={"space-y-1"}>
                     <div className="grid grid-cols-4 items-center gap-2">
                       <Label htmlFor="maxWidth">Từ</Label>
-                      <Input
-                        id="from"
-                        placeholder="Giá trị"
-                        className="col-span-3 bg-background"
-                      />{" "}
+                      <div
+                        className={"border-b-[1px] col-span-3 bg-background"}
+                      >
+                        <Input
+                          id="from"
+                          placeholder="Giá trị"
+                          className="border-0 focus-visible:ring-0  rounded-none shadow-none col-span-3 bg-background"
+                        />
+                      </div>
                     </div>
                     <div className="grid grid-cols-4 items-center gap-2">
                       <Label htmlFor="maxWidth">Đến</Label>
-                      <Input
-                        id="from"
-                        placeholder="Giá trị"
-                        className="col-span-3 bg-background"
-                      />{" "}
+                      <div
+                        className={"border-b-[1px] col-span-3 bg-background"}
+                      >
+                        <Input
+                          id="from"
+                          placeholder="Giá trị"
+                          className="border-0 focus-visible:ring-0  rounded-none shadow-none col-span-3 bg-background"
+                        />
+                      </div>
                     </div>
                   </div>
                   <RadioGroup defaultValue="option-one">
@@ -160,19 +170,27 @@ export default function PartnerPage() {
                   <div className={"space-y-1"}>
                     <div className="grid grid-cols-4 items-center gap-2">
                       <Label htmlFor="maxWidth">Từ</Label>
-                      <Input
-                        id="from"
-                        placeholder="Giá trị"
-                        className="col-span-3 bg-background"
-                      />{" "}
+                      <div
+                        className={"border-b-[1px] col-span-3 bg-background"}
+                      >
+                        <Input
+                          id="from"
+                          placeholder="Giá trị"
+                          className="border-0 focus-visible:ring-0  rounded-none shadow-none col-span-3 bg-background"
+                        />
+                      </div>
                     </div>
                     <div className="grid grid-cols-4 items-center gap-2">
                       <Label htmlFor="maxWidth">Đến</Label>
-                      <Input
-                        id="from"
-                        placeholder="Giá trị"
-                        className="col-span-3 bg-background"
-                      />{" "}
+                      <div
+                        className={"border-b-[1px] col-span-3 bg-background"}
+                      >
+                        <Input
+                          id="from"
+                          placeholder="Giá trị"
+                          className="border-0 focus-visible:ring-0  rounded-none shadow-none col-span-3 bg-background"
+                        />
+                      </div>
                     </div>
                   </div>
                 </AccordionContent>
@@ -187,7 +205,7 @@ export default function PartnerPage() {
                 <AccordionTrigger className={"hover:no-underline"}>
                   Trạng thái
                 </AccordionTrigger>
-                <AccordionContent className={"pb-0"}>
+                <AccordionContent className={"pb-2"}>
                   <RadioGroup defaultValue="option-one">
                     <div className="flex items-center space-x-2">
                       <RadioGroupItem value="option-one" id="option-one" />
