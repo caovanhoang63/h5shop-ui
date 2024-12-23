@@ -42,7 +42,8 @@ function generatePartnerMockData(count: number = 10): Partner[] {
     address: faker.address.streetAddress(),
     email: faker.internet.email(),
     phoneNumber: faker.phone.number(),
-    status: faker.helpers.arrayElement([0, 1, 2]),
+    debt: faker.number.int({ min: 1000000, max: 10000000 }),
+    status: faker.helpers.arrayElement([0, 1]),
     createdAt: faker.date.past(),
     updatedAt: faker.date.recent(),
   }));

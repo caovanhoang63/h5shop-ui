@@ -27,7 +27,7 @@ export default function PartnerModal({
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-screen-xl min-h-[calc(100vh-30%)] flex flex-col">
         <DialogHeader>
-          <DialogTitle>Chi tiết sản phẩm {partner?.name}</DialogTitle>
+          <DialogTitle>Chi tiết nhà cung cấp</DialogTitle>
         </DialogHeader>
         <div className="grow">
           <div className="space-y-2 space-x-12 flex flex-row mt-6">
@@ -38,59 +38,70 @@ export default function PartnerModal({
               <div className={"flex flex-col flex-1 space-y-5"}>
                 <div className={"flex flex-row items-center"}>
                   <Label className={"w-5/12"} htmlFor="barcode">
-                    Mã vạch
+                    Mã nhà cung cấp
                   </Label>
-                  <Input id="barcode" />
+                  <Input
+                    id="id"
+                    value={partner?.id || ""}
+                    onChange={(e) => {
+                      const newValue = e.target.value;
+                      console.log("Giá trị mới:", newValue);
+                    }}
+                  ></Input>
                 </div>
                 <div className={"flex flex-row items-center"}>
                   <Label className={"w-5/12"} htmlFor="name">
-                    Tên sản phẩm
+                    Tên nhà cung cấp
                   </Label>
-                  <Input id="name" />
+                  <Input
+                    id="name"
+                    value={partner?.name || ""}
+                    onChange={(e) => {
+                      const newValue = e.target.value;
+                      console.log("Giá trị mới:", newValue);
+                    }}
+                  />
                 </div>
                 <div className={"flex flex-row items-center"}>
                   <Label className={"w-5/12"} htmlFor="brand">
-                    Thương hiệu
+                    Địa chỉ
                   </Label>
-                  <Input id="brand" />
-                </div>
-                <div className={"flex flex-row items-center"}>
-                  <Label className={"w-5/12"} htmlFor="category">
-                    Nhóm hàng
-                  </Label>
-                  <Input id="category" />
-                </div>
-                <div className={"flex flex-row items-center"}>
-                  <Label className={"w-5/12"} htmlFor="location">
-                    Vị trí
-                  </Label>
-                  <Input id="location" />
+                  <Input
+                    id="address"
+                    value={partner?.address || ""}
+                    onChange={(e) => {
+                      const newValue = e.target.value;
+                      console.log("Giá trị mới:", newValue);
+                    }}
+                  />
                 </div>
               </div>
               <div className={"flex flex-col flex-1 space-y-5"}>
                 <div className={"flex flex-row items-center"}>
                   <Label className={"w-6/12"} htmlFor="costPrice">
-                    Giá vốn (VND)
+                    Số điện thoại
                   </Label>
-                  <Input id="costPrice" />
+                  <Input
+                    id="phone_number"
+                    value={partner?.phoneNumber || ""}
+                    onChange={(e) => {
+                      const newValue = e.target.value;
+                      console.log("Giá trị mới:", newValue);
+                    }}
+                  />
                 </div>
                 <div className={"flex flex-row items-center"}>
                   <Label className={"w-6/12"} htmlFor="salePrice">
-                    Giá bán (VND)
+                    Số nợ
                   </Label>
-                  <Input id="salePrice" />
-                </div>
-                <div className={"flex flex-row items-center"}>
-                  <Label className={"w-6/12"} htmlFor="inventory">
-                    Tổng mức tồn kho
-                  </Label>
-                  <Input id="inventory" />
-                </div>
-                <div className={"flex flex-row items-center"}>
-                  <Label className={"w-6/12"} htmlFor="description">
-                    Mô tả
-                  </Label>
-                  <Input id="description" />
+                  <Input
+                    id="debt"
+                    value={partner?.debt || ""}
+                    onChange={(e) => {
+                      const newValue = e.target.value;
+                      console.log("Giá trị mới:", newValue);
+                    }}
+                  />
                 </div>
               </div>
             </div>

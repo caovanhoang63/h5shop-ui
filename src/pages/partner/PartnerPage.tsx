@@ -27,10 +27,6 @@ import {
 import { TimeDropdown } from "@/pages/partner/components/TimeDropdown.tsx";
 import { useState } from "react";
 import PartnerDataTable from "@/pages/partner/components/PartnerDataTable.tsx";
-import {
-  DropdownMenu,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu.tsx";
 
 export default function PartnerPage() {
   const [selectedTime, setSelectedTime] = useState("Toàn thời gian");
@@ -69,30 +65,6 @@ export default function PartnerPage() {
         </div>
       </div>
       <div className={"col-span-1 space-y-4"}>
-        <Card>
-          <CardContent>
-            <Accordion type="single" collapsible>
-              <AccordionItem value="item-1">
-                <AccordionTrigger className={"hover:no-underline"}>
-                  Nhóm NCC
-                </AccordionTrigger>
-                <AccordionContent className={"pb-0"}>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button
-                        variant="outline"
-                        className="w-full font-normal flex justify-start "
-                      >
-                        Chọn nhóm
-                      </Button>
-                    </DropdownMenuTrigger>
-                  </DropdownMenu>
-                </AccordionContent>
-              </AccordionItem>
-            </Accordion>
-          </CardContent>
-        </Card>
-
         <Card>
           <CardContent>
             <Accordion type="single" collapsible>
