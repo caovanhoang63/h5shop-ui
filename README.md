@@ -8,7 +8,6 @@
 - [Nguyễn Huỳnh Duy Hiếu]()
 - [Mai Hoàng Hưng ]()
 
-
 ### Required:
 
 Node 20.17.0 or higher
@@ -20,9 +19,8 @@ npm run dev
 npm run build
 ```
 
+### Husky setup:
 
-
-### Husky setup: 
 ```shell
 npx husky init
 node --eval "fs.writeFileSync('.husky/pre-commit','npx lint-staged\n')"

@@ -11,7 +11,7 @@ import { useState } from "react";
 import { CirclePlus } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area.tsx";
 import BrandModal from "@/pages/product/BrandModal.tsx";
-import { BrandDTO } from "@/dto/brand/BrandDTO.ts";
+import { BrandDTO } from "@/types/brand/BrandDTO.ts";
 
 const brands: BrandDTO[] = [
   { id: 0, name: "Tất cả" },
