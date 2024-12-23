@@ -283,7 +283,6 @@ export default function PartnerDataTable({
                     event.stopPropagation();
                     setIsOpenPartnerModal(true);
                     setSelectedPartner(row.original);
-                    console.log("Open");
                   }}
                   key={row.id}
                   data-state={row.getIsSelected() && "selected"}

@@ -24,8 +24,10 @@ import {
   ButtonVisibilityColumnTable,
   MenuVisibilityColumnTable,
 } from "@/components/ButtonVisibilityColumnTable.tsx";
+import NewPartnerModal from "@/pages/partner/components/NewPartnerModal.tsx";
 
 export default function PartnerPage() {
+  const [isOpenNewPartnerModal, setIsOpenNewPartnerModal] = useState(false);
   const [selectedTime, setSelectedTime] = useState("Toàn thời gian");
   const [fields, setFields] = useState<MenuVisibilityColumnTable[]>([
     { label: "Mã nhà cung cấp", key: "id", visible: true },
@@ -48,6 +50,10 @@ export default function PartnerPage() {
   };
   return (
     <Container className={"grid grid-cols-5 gap-4 grid-flow-row"}>
+      <NewPartnerModal
+        isOpen={isOpenNewPartnerModal}
+        onOpenChange={setIsOpenNewPartnerModal}
+      ></NewPartnerModal>
       <div className={"text-2xl col-span-1 font-bold"}>
         <p>Nhà cung cấp</p>
       </div>
@@ -57,7 +63,12 @@ export default function PartnerPage() {
           <Input className={"pl-9"} placeholder={"Theo mã, tên, điện thoại"} />
         </div>
         <div className={"flex space-x-2"}>
-          <Button className={"bg-green-500"}>
+          <Button
+            className={"bg-green-500"}
+            onClick={() => {
+              setIsOpenNewPartnerModal(true);
+            }}
+          >
             <Plus />
             Nhà cung cấp
           </Button>

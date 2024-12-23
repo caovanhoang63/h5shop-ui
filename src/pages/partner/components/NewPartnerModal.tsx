@@ -8,25 +8,22 @@ import {
 import { Button } from "@/components/ui/button.tsx";
 import { Label } from "@/components/ui/label.tsx";
 import { Input } from "@/components/ui/input.tsx";
-import { BanIcon, FileInput, Plus, Trash2Icon } from "lucide-react";
-import { Partner } from "@/types/partner.ts";
+import { BanIcon, FileInput } from "lucide-react";
 
-interface IPartnerModalProps {
+interface INewPartnerModalProps {
   isOpen: boolean;
   onOpenChange: (isOpen: boolean) => void;
-  partner?: Partner;
 }
 
-export default function PartnerModal({
+export default function NewPartnerModal({
   isOpen,
-  partner,
   onOpenChange,
-}: IPartnerModalProps) {
+}: INewPartnerModalProps) {
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-screen-xl min-h-[calc(100vh-30%)] flex flex-col">
         <DialogHeader>
-          <DialogTitle>Chi tiết nhà cung cấp</DialogTitle>
+          <DialogTitle>Thêm nhà cung cấp</DialogTitle>
         </DialogHeader>
         <div className="grow">
           <div className="space-y-2 space-x-12 flex flex-row mt-6">
@@ -38,7 +35,7 @@ export default function PartnerModal({
                   </Label>
                   <Input
                     id="id"
-                    value={partner?.id || ""}
+                    value={""}
                     onChange={(e) => {
                       const newValue = e.target.value;
                       console.log("Giá trị mới:", newValue);
@@ -51,7 +48,7 @@ export default function PartnerModal({
                   </Label>
                   <Input
                     id="name"
-                    value={partner?.name || ""}
+                    value={""}
                     onChange={(e) => {
                       const newValue = e.target.value;
                       console.log("Giá trị mới:", newValue);
@@ -64,7 +61,7 @@ export default function PartnerModal({
                   </Label>
                   <Input
                     id="address"
-                    value={partner?.address || ""}
+                    value={""}
                     onChange={(e) => {
                       const newValue = e.target.value;
                       console.log("Giá trị mới:", newValue);
@@ -79,7 +76,7 @@ export default function PartnerModal({
                   </Label>
                   <Input
                     id="phone_number"
-                    value={partner?.phoneNumber || ""}
+                    value={""}
                     onChange={(e) => {
                       const newValue = e.target.value;
                       console.log("Giá trị mới:", newValue);
@@ -92,7 +89,7 @@ export default function PartnerModal({
                   </Label>
                   <Input
                     id="debt"
-                    value={partner?.debt || ""}
+                    value={""}
                     onChange={(e) => {
                       const newValue = e.target.value;
                       console.log("Giá trị mới:", newValue);
@@ -106,16 +103,8 @@ export default function PartnerModal({
         <DialogFooter className="">
           <div className={"flex flex-row space-x-2 justify-end"}>
             <Button className={"bg-green-500 hover:bg-green-600"}>
-              <Plus />
-              Thêm mới
-            </Button>
-            <Button className={"bg-green-500 hover:bg-green-600"}>
               <FileInput />
               Lưu
-            </Button>
-            <Button className={"bg-red-500 hover:bg-red-600"}>
-              <Trash2Icon />
-              Xóa
             </Button>
             <Button
               className={"bg-gray-500 hover:bg-gray-600"}
