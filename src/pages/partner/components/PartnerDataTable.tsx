@@ -33,7 +33,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu.tsx";
 import PartnerModal from "@/pages/partner/components/PartnerModal.tsx";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { MenuVisibilityColumnTable } from "@/components/ButtonVisibilityColumnTable.tsx";
 
 function generatePartnerMockData(count: number = 10): Partner[] {
   return Array.from({ length: count }, (_, index) => ({
@@ -140,6 +141,22 @@ export const columns: ColumnDef<Partner>[] = [
     cell: ({ row }) => <div className="lowercase">{row.getValue("email")}</div>,
   },
   {
+    accessorKey: "debt",
+    header: ({ column }) => {
+      return (
+        <Button
+          className="p-0"
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Nợ
+          <ArrowUpDown />
+        </Button>
+      );
+    },
+    cell: ({ row }) => <div className="lowercase">{row.getValue("debt")}</div>,
+  },
+  {
     accessorKey: "status",
     header: "Trạng thái",
     cell: ({ row }) => <StatusRow status={row.getValue("status")} />,
@@ -174,19 +191,37 @@ export const columns: ColumnDef<Partner>[] = [
     },
   },
 ];
-export default function PartnerDataTable() {
+
+interface PartnerDataTableProps {
+  columnVisible: MenuVisibilityColumnTable[];
+}
+
+export default function PartnerDataTable({
+  columnVisible,
+}: PartnerDataTableProps) {
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     [],
   );
   const [isOpenPartnerModal, setIsOpenPartnerModal] = useState(false);
-
+  const [columnVisibility, setColumnVisibility] =
+    React.useState<VisibilityState>(
+      columnVisible.reduce((acc, col) => {
+        acc[col.key] = col.visible;
+        return acc;
+      }, {} as VisibilityState),
+    );
   const [selectedPartner, setSelectedPartner] = useState<Partner | undefined>(
     undefined,
   );
-  // console.log(data?.[0].images?.[0].url);
-  const [columnVisibility, setColumnVisibility] =
-    React.useState<VisibilityState>({});
+  useEffect(() => {
+    setColumnVisibility(
+      columnVisible.reduce((acc, col) => {
+        acc[col.key] = col.visible;
+        return acc;
+      }, {} as VisibilityState),
+    );
+  }, [columnVisible]);
   const [rowSelection, setRowSelection] = React.useState({});
   const table = useReactTable({
     initialState: {

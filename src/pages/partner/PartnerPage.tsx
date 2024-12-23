@@ -1,14 +1,7 @@
 import Container from "@/layouts/components/Container.tsx";
-import {
-  FileInput,
-  FileOutputIcon,
-  MenuIcon,
-  Plus,
-  Search,
-} from "lucide-react";
+import { FileInput, FileOutputIcon, Plus, Search } from "lucide-react";
 import { Input } from "@/components/ui/input.tsx";
 import { Button } from "@/components/ui/button.tsx";
-import TriangleDown from "@/components/icons/TriangleDown.tsx";
 import { Card, CardContent } from "@/components/ui/card.tsx";
 import {
   Accordion,
@@ -27,14 +20,32 @@ import {
 import { TimeDropdown } from "@/pages/partner/components/TimeDropdown.tsx";
 import { useState } from "react";
 import PartnerDataTable from "@/pages/partner/components/PartnerDataTable.tsx";
+import {
+  ButtonVisibilityColumnTable,
+  MenuVisibilityColumnTable,
+} from "@/components/ButtonVisibilityColumnTable.tsx";
 
 export default function PartnerPage() {
   const [selectedTime, setSelectedTime] = useState("Toàn thời gian");
-
+  const [fields, setFields] = useState<MenuVisibilityColumnTable[]>([
+    { label: "Mã nhà cung cấp", key: "id", visible: true },
+    { label: "Tên nhà cung cấp", key: "name", visible: true },
+    { label: "Số điện thoại", key: "phoneNumber", visible: true },
+    { label: "Email", key: "email", visible: true },
+    { label: "Nợ", key: "debt", visible: true },
+    { label: "Trạng thái", key: "status", visible: true },
+    { label: "Action", key: "actions", visible: true },
+  ]);
   const handleTimeSelect = (value: string) => {
     setSelectedTime(value);
   };
-
+  const handleCheckField = (key: string, visible: boolean) => {
+    setFields((prevFields) =>
+      prevFields.map((field) =>
+        field.key === key ? { ...field, visible } : field,
+      ),
+    );
+  };
   return (
     <Container className={"grid grid-cols-5 gap-4 grid-flow-row"}>
       <div className={"text-2xl col-span-1 font-bold"}>
@@ -58,10 +69,10 @@ export default function PartnerPage() {
             <FileOutputIcon />
             Xuất file
           </Button>
-          <Button className={"bg-green-500"}>
-            <MenuIcon />
-            <TriangleDown />
-          </Button>
+          <ButtonVisibilityColumnTable
+            menus={fields}
+            onCheckChange={handleCheckField}
+          />
         </div>
       </div>
       <div className={"col-span-1 space-y-4"}>
@@ -205,7 +216,7 @@ export default function PartnerPage() {
         </Card>
       </div>
       <div className={"col-span-4"}>
-        <PartnerDataTable></PartnerDataTable>
+        <PartnerDataTable columnVisible={fields}></PartnerDataTable>
       </div>
     </Container>
   );
