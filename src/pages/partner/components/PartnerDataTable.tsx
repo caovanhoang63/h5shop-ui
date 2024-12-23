@@ -30,9 +30,10 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu.tsx";
+import PartnerModal from "@/pages/partner/components/PartnerModal.tsx";
+import { useState } from "react";
 
 function generatePartnerMockData(count: number = 10): Partner[] {
   return Array.from({ length: count }, (_, index) => ({
@@ -177,6 +178,11 @@ export default function PartnerDataTable() {
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     [],
   );
+  const [isOpenPartnerModal, setIsOpenPartnerModal] = useState(false);
+
+  const [selectedPartner, setSelectedPartner] = useState<Partner | undefined>(
+    undefined,
+  );
   // console.log(data?.[0].images?.[0].url);
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>({});
@@ -206,11 +212,11 @@ export default function PartnerDataTable() {
   });
   return (
     <div className="w-full">
-      {/*<SpuModal
-        isOpen={isOpenSpuModal}
-        onOpenChange={setIsOpenSpuModal}
-        spu={selectedSpu}
-      ></SpuModal>*/}
+      <PartnerModal
+        isOpen={isOpenPartnerModal}
+        onOpenChange={setIsOpenPartnerModal}
+        partner={selectedPartner}
+      ></PartnerModal>
       <div className="rounded-md border">
         <Table>
           <TableHeader>
@@ -236,13 +242,13 @@ export default function PartnerDataTable() {
               table.getRowModel().rows.map((row) => (
                 <TableRow
                   className="cursor-pointer"
-                  /*onClick={(event) => {
+                  onClick={(event) => {
                     event.preventDefault();
                     event.stopPropagation();
-                    setIsOpenSpuModal(true);
-                    setSelectedSpu(row.original);
+                    setIsOpenPartnerModal(true);
+                    setSelectedPartner(row.original);
                     console.log("Open");
-                  }}*/
+                  }}
                   key={row.id}
                   data-state={row.getIsSelected() && "selected"}
                 >
