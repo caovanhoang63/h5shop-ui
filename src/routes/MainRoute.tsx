@@ -6,6 +6,7 @@ import { ErrorPage } from "@/pages/ErrorPage.tsx";
 import { DashBoardPage } from "@/pages/dashboard/DashBoardPage.tsx";
 import ProductPage from "@/pages/product/ProductPage.tsx";
 import PartnerPage from "@/pages/partner/PartnerPage.tsx";
+import SalePage from "@/pages/sale/SalePage.tsx";
 
 export const MainRoute = () => {
   return (
@@ -17,6 +18,7 @@ export const MainRoute = () => {
           <Route path={"product"} element={<ProductPage />} />
           <Route path={"partner"} element={<PartnerPage />} />
         </Route>
+        <Route path="/sale" element={<SalePage />} />
         <Route path="/error" element={<ErrorPage />} />
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
