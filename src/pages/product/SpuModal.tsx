@@ -22,9 +22,8 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card.tsx";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ScrollArea } from "@/components/ui/scroll-area.tsx";
-import InputWithBotBorder from "@/components/InputWithBotBorder.tsx";
 import { BanIcon, FileInput, Plus, Trash2Icon } from "lucide-react";
 import { ItemAttrSku } from "@/pages/product/ItemAttrSku.tsx";
 import { ItemSku } from "@/pages/product/ItemSku.tsx";
@@ -39,6 +38,7 @@ import { CardCategorySelect } from "@/pages/product/CategorySelect.tsx";
 import { InputUploadImage } from "@/components/InputUploadImage.tsx";
 import { Category } from "@/types/category/category.ts";
 import { Brand } from "@/types/brand/brand.ts";
+import { SkuAttrCreate, SkuCreate, SpuUpsert } from "@/types/spu/spuUpsert.ts";
 
 interface ISpuModalProps {
   isOpen: boolean;
@@ -55,21 +55,94 @@ export default function SpuModal({
   listCategories,
   listBrands,
 }: ISpuModalProps) {
-  const off: boolean = false;
-  const [imgIndex, setImgIndex] = useState<number>(0);
-  const [attrs, setAttrs] = useState<string[]>([]);
-  const [skus, setSkus] = useState<string[]>([""]);
+  const [id, setId] = useState<number>();
+  const [name, setName] = useState<string>("");
+  const [brandId, setBrandId] = useState<number>();
+  const [categoryId, setCategoryId] = useState<number>();
+  const [description, setDescription] = useState<string>("");
+  const [metadata, setMetadata] = useState({
+    position: "",
+  });
+  const [skus, setSkus] = useState<SkuCreate[]>([]);
+  const [attrs, setAttrs] = useState<SkuAttrCreate[]>([]);
+
+  const [spuUpsert, setSpuUpsert] = useState<SpuUpsert>();
+
+  useEffect(() => {
+    if (spu) {
+      setId(spu.id);
+      setName(spu.name);
+      setBrandId(1);
+      setCategoryId(spu.categoryId);
+    }
+  }, [spu]);
 
   const handleAddAttr = () => {
-    setAttrs((prev) => [...prev, ""]);
+    setAttrs((prev) => [
+      ...prev,
+      {
+        dataType: "text",
+        value: [""],
+      } as SkuAttrCreate,
+    ]);
   };
 
   const handleDeleteAttr = (index: number) => {
     setAttrs((prev) => prev.filter((_, i) => i !== index));
+    // Xoa skuTierIdx trong skus tuong ung
+    setSkus((prev) =>
+      prev.map((item) => {
+        return {
+          ...item,
+          skuTierIdx: item.skuTierIdx?.filter((_, i) => i !== index),
+        };
+      }),
+    );
   };
 
   const handleAddSku = () => {
-    setSkus((prev) => [...prev, ""]);
+    setSkus((prev) => [
+      ...prev,
+      {
+        costPrice: 0,
+        price: 0,
+        stock: 0,
+      } as SkuCreate,
+    ]);
+  };
+
+  const handleSetCategory = (id: number | null) => {
+    if (id) {
+      setCategoryId(id);
+    }
+  };
+
+  const mapSpuUpsert = () => {
+    const spuTest = {
+      id: id,
+      name: name,
+      description: description,
+      categoryId: categoryId,
+      brandId: brandId,
+      metadata: metadata,
+      skus: skus,
+      attrs: attrs,
+    };
+    console.log(spuTest);
+
+    if (id && name && categoryId && brandId) {
+      setSpuUpsert({
+        id: id,
+        name: name,
+        description: description,
+        categoryId: categoryId,
+        brandId: brandId,
+        metadata: metadata,
+        skus: skus,
+        attrs: attrs,
+      });
+      console.log(spuUpsert);
+    }
   };
 
   return (
@@ -80,79 +153,11 @@ export default function SpuModal({
         </DialogHeader>
         <Tabs defaultValue="spu" className="grow">
           <TabsList className="grid w-full grid-cols-3">
-            {off && <TabsTrigger value="info">Thông tin</TabsTrigger>}
             <TabsTrigger value="spu">Thông tin chung</TabsTrigger>
             <TabsTrigger value="attr">Thuộc tính</TabsTrigger>
             <TabsTrigger value="sku">Sản phẩm</TabsTrigger>
           </TabsList>
-          {off && (
-            <TabsContent value="info" className="space-y-2">
-              <div>
-                <h2 className={"text-xl text-primary"}>{spu?.name}</h2>
-              </div>
-              <div className={"flex space-x-5"}>
-                <div className={"flex space-x-2"}>
-                  <img
-                    className={"size-80 border-gray-400 border-2"}
-                    src={spu?.images?.[imgIndex].url || "image-placeholder.png"}
-                    alt={"Hình sản phẩm "}
-                  />
-                  <ScrollArea className="max-h-80 pr-4">
-                    <ul className={"space-y-1 "}>
-                      {spu?.images?.map((image, index) => {
-                        return (
-                          <li
-                            className={`hover:opacity-50 border-gray-400 border-2 cursor-pointer ${index == imgIndex ? "opacity-50" : ""} `}
-                            onClick={() => setImgIndex(index)}
-                          >
-                            <img className={"size-20"} src={image.url} alt="" />
-                          </li>
-                        );
-                      })}
-                    </ul>
-                  </ScrollArea>
-                </div>
-                <div className={"space-y-4"}>
-                  <form>
-                    <div>
-                      <InputWithBotBorder
-                        readonly={true}
-                        className={"font-bold"}
-                        label={"Mã:"}
-                        value={spu?.id.toString() || ""}
-                      />
-                      <InputWithBotBorder
-                        label={"Mã vạch:"}
-                        value={"21232124"}
-                      />
-                      <InputWithBotBorder
-                        label={"Loại hàng:"}
-                        value={"Máy ảnh"}
-                      />
-                      <InputWithBotBorder
-                        label={"Thương hiệu:"}
-                        value={"Canon"}
-                      />
-                      <InputWithBotBorder
-                        label={"Nhà cung cấp:"}
-                        value={"Cty TNHH Một Mình Tao "}
-                      />
-                      <InputWithBotBorder
-                        label={"Trọng lượng:"}
-                        value={"1.5kg"}
-                      />
-                    </div>
-                    <div>
-                      <InputWithBotBorder
-                        label={"Trọng lượng:"}
-                        value={"1.5kg"}
-                      />
-                    </div>
-                  </form>
-                </div>
-              </div>
-            </TabsContent>
-          )}
+
           <TabsContent value="spu">
             <Card>
               <CardContent className="space-y-2 space-x-12 flex flex-row mt-6">
@@ -171,7 +176,11 @@ export default function SpuModal({
                       <Label className={"w-5/12"} htmlFor="name">
                         Tên sản phẩm
                       </Label>
-                      <Input id="name" />
+                      <Input
+                        id="name"
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
+                      />
                     </div>
                     <div className={"flex flex-row items-center"}>
                       <Label className={"w-5/12"} htmlFor="name">
@@ -180,6 +189,7 @@ export default function SpuModal({
                       <Select
                         onValueChange={(value) => {
                           console.log(value);
+                          setBrandId(parseInt(value));
                         }}
                       >
                         <SelectTrigger>
@@ -187,7 +197,10 @@ export default function SpuModal({
                         </SelectTrigger>
                         <SelectContent>
                           {listBrands.map((brand) => (
-                            <SelectItem value={brand.id.toString()}>
+                            <SelectItem
+                              value={brand.id.toString()}
+                              key={brand.id}
+                            >
                               {brand.name}
                             </SelectItem>
                           ))}
@@ -201,13 +214,20 @@ export default function SpuModal({
                       <CardCategorySelect
                         listCategories={listCategories}
                         isAdd={true}
+                        setParentId={handleSetCategory}
                       />
                     </div>
                     <div className={"flex flex-row items-center"}>
-                      <Label className={"w-5/12"} htmlFor="name">
-                        Vị trí
-                      </Label>
-                      <Input id="name" />
+                      <Label className={"w-5/12"}>Vị trí</Label>
+                      <Input
+                        value={metadata.position}
+                        onChange={(e) => {
+                          setMetadata({
+                            ...metadata,
+                            position: e.target.value,
+                          });
+                        }}
+                      />
                     </div>
                   </div>
                   <div className={"flex flex-col flex-1 space-y-5"}>
@@ -215,25 +235,26 @@ export default function SpuModal({
                       <Label className={"w-6/12"} htmlFor="name">
                         Giá vốn (VND)
                       </Label>
-                      <Input id="name" />
+                      <Input id="name" disabled={true} />
                     </div>
                     <div className={"flex flex-row items-center"}>
                       <Label className={"w-6/12"} htmlFor="name">
                         Giá bán (VND)
                       </Label>
-                      <Input id="name" />
+                      <Input id="name" disabled={true} />
                     </div>
                     <div className={"flex flex-row items-center"}>
                       <Label className={"w-6/12"} htmlFor="name">
                         Tổng mức tồn kho
                       </Label>
-                      <Input id="name" />
+                      <Input id="name" disabled={true} />
                     </div>
                     <div className={"flex flex-row items-center"}>
-                      <Label className={"w-6/12"} htmlFor="name">
-                        Mô tả
-                      </Label>
-                      <Input id="name" />
+                      <Label className={"w-6/12"}>Mô tả</Label>
+                      <Input
+                        value={description}
+                        onChange={(e) => setDescription(e.target.value)}
+                      />
                     </div>
                   </div>
                 </div>
@@ -250,6 +271,13 @@ export default function SpuModal({
                   <ItemAttrSku
                     key={index}
                     onDeleted={() => handleDeleteAttr(index)}
+                    attribute={attrs[index]}
+                    indexAttr={index}
+                    setAttribute={(index, attribute) => {
+                      setAttrs((prev) =>
+                        prev.map((item, i) => (i === index ? attribute : item)),
+                      );
+                    }}
                   />
                 ))}
               </CardContent>
@@ -272,8 +300,18 @@ export default function SpuModal({
               <CardContent className="space-y-20">
                 <ScrollArea style={{ height: "360px" }}>
                   <div className={"flex flex-col p-4 space-y-20"}>
-                    {skus.map((_, index) => (
-                      <ItemSku key={index} />
+                    {skus.map((item, index) => (
+                      <ItemSku
+                        key={index}
+                        attribute={attrs}
+                        indexSku={index}
+                        sku={item}
+                        setSku={(index, sku) => {
+                          setSkus((prev) =>
+                            prev.map((item, i) => (i === index ? sku : item)),
+                          );
+                        }}
+                      />
                     ))}
                   </div>
                 </ScrollArea>
@@ -292,7 +330,10 @@ export default function SpuModal({
         </Tabs>
         <DialogFooter className="">
           <div className={"flex flex-row space-x-2 justify-end"}>
-            <Button className={"bg-green-500 hover:bg-green-600"}>
+            <Button
+              className={"bg-green-500 hover:bg-green-600"}
+              onClick={() => mapSpuUpsert()}
+            >
               <Plus />
               Thêm mới
             </Button>

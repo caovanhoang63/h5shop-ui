@@ -14,61 +14,144 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select.tsx";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button.tsx";
-import { FileInput, Plus, Trash2Icon } from "lucide-react";
+import { Plus, Trash2Icon } from "lucide-react";
 import { InputUploadImage } from "@/components/InputUploadImage.tsx";
 import { ItemWholeSalePrice } from "@/pages/product/ItemWholeSalePrice.tsx";
+import {
+  SkuAttrCreate,
+  SkuCreate,
+  SkuWholesalePriceCreate,
+} from "@/types/spu/spuUpsert.ts";
 
-interface Attribute {
-  id: number;
-  name: string;
-  value: Array<string | number>; // Chấp nhận cả chuỗi và số trong mảng
+export interface ItemSkuProps {
+  attribute: SkuAttrCreate[];
+  sku: SkuCreate;
+  indexSku: number;
+  setSku: (index: number, sku: SkuCreate) => void;
 }
 
-const dataTestAttribute: Attribute[] = [
-  {
-    id: 1,
-    name: "Color",
-    value: ["Red", "Blue", "Green"], // Chuỗi
-  },
-  {
-    id: 2,
-    name: "Size",
-    value: ["S", "M", "L"], // Chuỗi
-  },
-  {
-    id: 3,
-    name: "Material",
-    value: [16, 32, 24], // Số
-  },
-];
-
-export interface ItemWholeSalePriceProps {
-  min: number;
-  value: number;
-}
-
-export const ItemSku = () => {
+export const ItemSku = ({ attribute, sku, indexSku, setSku }: ItemSkuProps) => {
   const [attrSelected, setAttrSelected] = useState<string[]>(
-    new Array(dataTestAttribute.length).fill(""),
+    new Array(attribute.length).fill(""),
   );
-
   const [wholeSalePrice, setWholeSalePrice] = useState<
-    ItemWholeSalePriceProps[]
+    SkuWholesalePriceCreate[]
   >([]);
+  const [price, setPrice] = useState<number>(0);
+  const [costPrice, setCostPrice] = useState<number>(0);
+  const [stock, setStock] = useState<number>(0);
+  const [skuTierIdx, setSkuTierIdx] = useState<number[]>([]);
+
+  useEffect(() => {
+    setSkuTierIdx(new Array(attribute.length).fill(0));
+    if (sku.skuTierIdx) {
+      // gan gia tri skuTierIdx, neu length cua skuTierIdx < length cua attribute thi gan 0
+      const newSkuTierIdx = new Array(attribute.length).fill(0);
+      sku.skuTierIdx.map((v, i) => {
+        newSkuTierIdx[i] = v;
+      });
+      setSkuTierIdx(newSkuTierIdx);
+    }
+
+    // Attribute selected
+    const newAttrSelected = new Array(attribute.length).fill("");
+    newAttrSelected.map((_, index) => {
+      if (sku.skuTierIdx) {
+        newAttrSelected[index] = attribute[index].value[sku.skuTierIdx[index]];
+      }
+    });
+    setAttrSelected(newAttrSelected);
+
+    // Price, Cost, Stock
+    setPrice(sku.price);
+    setCostPrice(sku.costPrice);
+    setStock(sku.stock);
+
+    // WholeSalePrice
+    if (sku.wholesalePrices) {
+      setWholeSalePrice(sku.wholesalePrices);
+    }
+  }, []);
 
   const handleSelectAttr = (index: number, value: string) => {
-    console.log("hello");
     setAttrSelected((prev) => prev.map((v, i) => (i === index ? value : v)));
+    // find index of skuAttrCreate
+    const indexAttr = attribute[index].value.findIndex((v) => v === value);
+    console.log(indexAttr);
+    setSkuTierIdx((prev) => prev.map((v, i) => (i === index ? indexAttr : v)));
+
+    const newSkuTierIdx = skuTierIdx.map((v, i) =>
+      i === index ? indexAttr : v,
+    );
+    setSku(indexSku, { ...sku, skuTierIdx: newSkuTierIdx });
   };
 
   const handleAddWholeSalePrice = () => {
-    setWholeSalePrice((prev) => [...prev, { min: 0, value: 0 }]);
+    setWholeSalePrice((prev) => [
+      ...prev,
+      { minQuantity: 0, price: 0 } as SkuWholesalePriceCreate,
+    ]);
+
+    const newWholeSalePrice = [...wholeSalePrice, { minQuantity: 0, price: 0 }];
+    setSku(indexSku, {
+      ...sku,
+      wholesalePrices: newWholeSalePrice,
+    } as SkuCreate);
   };
 
   const handleDeleteWholeSalePrice = (index: number) => {
     setWholeSalePrice((prev) => prev.filter((_, i) => i !== index));
+
+    const newWholeSalePrice = wholeSalePrice.filter((_, i) => i !== index);
+    setSku(indexSku, {
+      ...sku,
+      wholesalePrices: newWholeSalePrice,
+    } as SkuCreate);
+  };
+
+  const handleSetPrice = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newValue: number = Number(e.target.value);
+    if (isNaN(newValue)) {
+      return;
+    }
+    setPrice(newValue);
+    setSku(indexSku, { ...sku, price: newValue });
+  };
+
+  const handleSetCostPrice = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newValue: number = Number(e.target.value);
+    if (isNaN(newValue)) {
+      return;
+    }
+    setCostPrice(newValue);
+    setSku(indexSku, { ...sku, costPrice: newValue });
+  };
+
+  const handleSetStock = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newValue: number = Number(e.target.value);
+    if (isNaN(newValue)) {
+      return;
+    }
+    setStock(newValue);
+    setSku(indexSku, { ...sku, stock: newValue });
+  };
+
+  const handleSetWholeSalePrice = (
+    index: number,
+    wholeSalePriceParam: SkuWholesalePriceCreate,
+  ) => {
+    setWholeSalePrice((prev) =>
+      prev.map((v, i) => (i === index ? wholeSalePriceParam : v)),
+    );
+    const newWholeSalePrice = wholeSalePrice.map((v, i) =>
+      i === index ? wholeSalePriceParam : v,
+    );
+    setSku(indexSku, {
+      ...sku,
+      wholesalePrices: newWholeSalePrice,
+    } as SkuCreate);
   };
 
   return (
@@ -90,7 +173,12 @@ export const ItemSku = () => {
               <Label className={"w-5/12"} htmlFor="name">
                 Tên sản phẩm
               </Label>
-              <Input id="name" className={"h-8"} />
+              <Input
+                id="name"
+                className={"h-8"}
+                disabled={true}
+                value={attrSelected.filter((item) => item !== "").join(" - ")}
+              />
             </div>
             <div className={"flex flex-row items-center"}>
               <Label className={"w-5/12"} htmlFor="name">
@@ -113,7 +201,7 @@ export const ItemSku = () => {
                       </div>
                     </AccordionTrigger>
                     <AccordionContent className={"p-1 space-y-2 pb-4"}>
-                      {dataTestAttribute.map((item, index) => (
+                      {attribute.map((item, index) => (
                         <div
                           key={index}
                           className={"flex flex-row justify-start items-center"}
@@ -125,17 +213,22 @@ export const ItemSku = () => {
                             onValueChange={(value) =>
                               handleSelectAttr(index, value)
                             }
+                            value={attrSelected[index]}
                           >
                             <SelectTrigger>
-                              <SelectValue placeholder={"Chọn thuộc tính"} />
+                              <SelectValue
+                                placeholder={"Chọn thuộc tính"}
+                              ></SelectValue>
                             </SelectTrigger>
                             <SelectContent>
                               {item.value.map((value, index) => (
                                 <SelectItem
                                   key={index}
-                                  value={value.toString()}
+                                  value={
+                                    value ? value.toString() : index.toString()
+                                  }
                                 >
-                                  {value}
+                                  {value ? value : "Chưa có giá trị"}
                                 </SelectItem>
                               ))}
                             </SelectContent>
@@ -150,22 +243,35 @@ export const ItemSku = () => {
           </div>
           <div className={"flex flex-col flex-1 space-y-4"}>
             <div className={"flex flex-row items-center"}>
-              <Label className={"w-5/12"} htmlFor="name">
-                Giá vốn (VND)
-              </Label>
-              <Input id="name" className={"h-8"} />
+              <Label className={"w-5/12"}>Giá vốn (VND)</Label>
+              <Input
+                id="name"
+                className={"h-8"}
+                value={costPrice}
+                onChange={(e) => handleSetCostPrice(e)}
+              />
             </div>
             <div className={"flex flex-row items-center"}>
               <Label className={"w-5/12"} htmlFor="name">
                 Giá bán (VND)
               </Label>
-              <Input id="name" className={"h-8"} />
+              <Input
+                id="name"
+                value={price}
+                className={"h-8"}
+                onChange={(e) => handleSetPrice(e)}
+              />
             </div>
             <div className={"flex flex-row items-center"}>
               <Label className={"w-5/12"} htmlFor="name">
                 Tồn kho
               </Label>
-              <Input id="name" className={"h-8"} />
+              <Input
+                id="name"
+                value={stock}
+                className={"h-8"}
+                onChange={(e) => handleSetStock(e)}
+              />
             </div>
             <Card>
               <CardContent className={"pb-0"}>
@@ -174,11 +280,6 @@ export const ItemSku = () => {
                     <AccordionTrigger className={"hover:no-underline"}>
                       <div className={"flex flex-row"}>
                         <Label htmlFor="name">Thiết lập giá bán sỉ</Label>
-                        <Label className={"ml-8"} htmlFor="name">
-                          {attrSelected
-                            .filter((item) => item !== "")
-                            .join(" - ")}
-                        </Label>
                       </div>
                     </AccordionTrigger>
                     <AccordionContent className={"p-1 space-y-2 pb-4"}>
@@ -197,6 +298,8 @@ export const ItemSku = () => {
                             handleDeleteWholeSalePrice(index);
                           }}
                           wholeSalePrice={item}
+                          indexWholeSalePrice={index}
+                          setWholeSalePrice={handleSetWholeSalePrice}
                         />
                       ))}
                       <Button
@@ -215,10 +318,6 @@ export const ItemSku = () => {
         </div>
         {/* button */}
         <div className={"flex flex-row space-x-2 justify-end"}>
-          <Button className={"bg-green-500 hover:bg-green-600"}>
-            <FileInput />
-            Lưu
-          </Button>
           <Button className={"bg-red-500 hover:bg-red-600"}>
             <Trash2Icon />
             Xóa
