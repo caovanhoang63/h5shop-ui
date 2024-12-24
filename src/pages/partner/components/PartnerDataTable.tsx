@@ -1,5 +1,3 @@
-import { Partner } from "@/types/partner.ts";
-import { faker } from "@faker-js/faker/locale/en";
 import * as React from "react";
 import {
   ColumnDef,
@@ -35,22 +33,8 @@ import {
 import PartnerModal from "@/pages/partner/components/PartnerModal.tsx";
 import { useEffect, useState } from "react";
 import { MenuVisibilityColumnTable } from "@/components/ButtonVisibilityColumnTable.tsx";
-
-function generatePartnerMockData(count: number = 10): Partner[] {
-  return Array.from({ length: count }, (_, index) => ({
-    id: index + 1,
-    name: faker.company.name(),
-    address: faker.address.streetAddress(),
-    email: faker.internet.email(),
-    phoneNumber: faker.phone.number(),
-    debt: faker.number.int({ min: 1000000, max: 10000000 }),
-    status: faker.helpers.arrayElement([0, 1]),
-    createdAt: faker.date.past(),
-    updatedAt: faker.date.recent(),
-  }));
-}
-const data = generatePartnerMockData(25);
-export const columns: ColumnDef<Partner>[] = [
+import { Provider } from "@/types/provider.ts";
+export const providerColumns: ColumnDef<Provider>[] = [
   {
     id: "select",
     header: ({ table }) => (
@@ -107,7 +91,7 @@ export const columns: ColumnDef<Partner>[] = [
     cell: ({ row }) => <div className="lowercase">{row.getValue("name")}</div>,
   },
   {
-    accessorKey: "phoneNumber",
+    accessorKey: "phone_number",
     header: ({ column }) => {
       return (
         <Button
@@ -121,7 +105,7 @@ export const columns: ColumnDef<Partner>[] = [
       );
     },
     cell: ({ row }) => (
-      <div className="lowercase">{row.getValue("phoneNumber")}</div>
+      <div className="lowercase">{row.getValue("phone_number")}</div>
     ),
   },
   {
@@ -194,10 +178,12 @@ export const columns: ColumnDef<Partner>[] = [
 
 interface PartnerDataTableProps {
   columnVisible: MenuVisibilityColumnTable[];
+  providerTableData: Provider[];
 }
 
 export default function PartnerDataTable({
   columnVisible,
+  providerTableData,
 }: PartnerDataTableProps) {
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
@@ -211,7 +197,7 @@ export default function PartnerDataTable({
         return acc;
       }, {} as VisibilityState),
     );
-  const [selectedPartner, setSelectedPartner] = useState<Partner | undefined>(
+  const [selectedPartner, setSelectedPartner] = useState<Provider | undefined>(
     undefined,
   );
   useEffect(() => {
@@ -229,8 +215,8 @@ export default function PartnerDataTable({
         pageSize: 10,
       },
     },
-    data,
-    columns,
+    data: providerTableData,
+    columns: providerColumns,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
     getCoreRowModel: getCoreRowModel(),
@@ -300,7 +286,7 @@ export default function PartnerDataTable({
             ) : (
               <TableRow>
                 <TableCell
-                  colSpan={columns.length}
+                  colSpan={providerColumns.length}
                   className="h-24 text-center"
                 >
                   No results.

@@ -9,12 +9,12 @@ import { Button } from "@/components/ui/button.tsx";
 import { Label } from "@/components/ui/label.tsx";
 import { Input } from "@/components/ui/input.tsx";
 import { BanIcon, FileInput, Plus, Trash2Icon } from "lucide-react";
-import { Partner } from "@/types/partner.ts";
+import { Provider } from "@/types/provider.ts";
 
 interface IPartnerModalProps {
   isOpen: boolean;
   onOpenChange: (isOpen: boolean) => void;
-  partner?: Partner;
+  partner?: Provider;
 }
 
 export default function PartnerModal({
@@ -79,7 +79,7 @@ export default function PartnerModal({
                   </Label>
                   <Input
                     id="phone_number"
-                    value={partner?.phoneNumber || ""}
+                    value={partner?.phone_number || ""}
                     onChange={(e) => {
                       const newValue = e.target.value;
                       console.log("Giá trị mới:", newValue);
