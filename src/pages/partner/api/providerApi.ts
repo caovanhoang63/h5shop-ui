@@ -27,6 +27,18 @@ export async function listProvider(): Promise<ProviderListResponse> {
     throw error;
   }
 }
+export async function deleteProvider(id: number): Promise<void> {
+  try {
+    await axiosInstance.delete(`v1/provider/${id}`, {
+      headers: {
+        Authorization: `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImZjMmFiNTAxLTg0NmMtNGM3NS04NWQ4LWMyYjE4MWM3NTlhZSIsInN1YiI6IjQiLCJub3RCZWZvcmUiOjE3MzM2NzA4ODMwNDEsImlzc3VlZEF0IjoxNzMzNjcwODgzMDQxLCJleHBpcmVzQXQiOjE3MzM2NzQ0ODMwNDEsImlhdCI6MTczMzY3MDg4M30.Dh04IhTLolfuL0OyRx7e5826_xPHzIjnOkQ-bNKss1M`,
+      },
+    });
+  } catch (error) {
+    console.error("Fetch error:", error);
+    throw error;
+  }
+}
 
 export async function createProvider(
   body: ProviderCreate,

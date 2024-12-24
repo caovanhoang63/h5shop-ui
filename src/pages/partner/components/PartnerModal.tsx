@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label.tsx";
 import { Input } from "@/components/ui/input.tsx";
 import { BanIcon, FileInput, Plus, Trash2Icon } from "lucide-react";
 import { Provider } from "@/types/provider.ts";
+import { deleteProvider } from "@/pages/partner/api/providerApi.ts";
 
 interface IPartnerModalProps {
   isOpen: boolean;
@@ -22,6 +23,17 @@ export default function PartnerModal({
   partner,
   onOpenChange,
 }: IPartnerModalProps) {
+  async function handleDelete() {
+    try {
+      if (partner?.id !== undefined) {
+        await deleteProvider(partner.id);
+        onOpenChange(false);
+      }
+    } catch (error) {
+      console.error("Lỗi xóa nhà cung cấp", error);
+    }
+  }
+
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-screen-xl min-h-[calc(100vh-30%)] flex flex-col">
@@ -113,7 +125,10 @@ export default function PartnerModal({
               <FileInput />
               Lưu
             </Button>
-            <Button className={"bg-red-500 hover:bg-red-600"}>
+            <Button
+              className={"bg-red-500 hover:bg-red-600"}
+              onClick={handleDelete}
+            >
               <Trash2Icon />
               Xóa
             </Button>
