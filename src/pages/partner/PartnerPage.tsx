@@ -38,6 +38,7 @@ export default function PartnerPage() {
   const [fields, setFields] = useState<MenuVisibilityColumnTable[]>([
     { label: "Mã nhà cung cấp", key: "id", visible: true },
     { label: "Tên nhà cung cấp", key: "name", visible: true },
+    { label: "Địa chỉ", key: "address", visible: true },
     { label: "Số điện thoại", key: "phoneNumber", visible: true },
     { label: "Email", key: "email", visible: true },
     { label: "Nợ", key: "debt", visible: true },

@@ -92,6 +92,24 @@ export const providerColumns: ColumnDef<Provider>[] = [
     cell: ({ row }) => <div className="lowercase">{row.getValue("name")}</div>,
   },
   {
+    accessorKey: "address",
+    header: ({ column }) => {
+      return (
+        <Button
+          className="p-0"
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Địa chỉ
+          <ArrowUpDown />
+        </Button>
+      );
+    },
+    cell: ({ row }) => (
+      <div className="lowercase">{row.getValue("address")}</div>
+    ),
+  },
+  {
     accessorKey: "phoneNumber",
     header: ({ column }) => {
       return (

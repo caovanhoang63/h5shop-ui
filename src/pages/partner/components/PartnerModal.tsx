@@ -8,10 +8,13 @@ import {
 import { Button } from "@/components/ui/button.tsx";
 import { Label } from "@/components/ui/label.tsx";
 import { Input } from "@/components/ui/input.tsx";
-import { BanIcon, FileInput, Plus, Trash2Icon } from "lucide-react";
-import { Provider } from "@/types/provider.ts";
-import { deleteProvider } from "@/pages/partner/api/providerApi.ts";
-
+import { BanIcon, FileInput, Trash2Icon } from "lucide-react";
+import { Provider, ProviderUpdate } from "@/types/provider.ts";
+import {
+  deleteProvider,
+  updateProvider,
+} from "@/pages/partner/api/providerApi.ts";
+import { useEffect, useState } from "react";
 interface IPartnerModalProps {
   isOpen: boolean;
   onOpenChange: (isOpen: boolean) => void;
@@ -23,10 +26,51 @@ export default function PartnerModal({
   partner,
   onOpenChange,
 }: IPartnerModalProps) {
+  const [partnerState, setPartnerState] = useState<Provider | undefined>();
+  const [name, setName] = useState("");
+  const [address, setAddress] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState("");
+  const [email, setEmail] = useState("");
+  const [debt, setDebt] = useState<number>(0);
+  const [status, setStatus] = useState(1);
+  useEffect(() => {
+    console.log("Nhà cung cấp:", partnerState);
+    if (partner) {
+      setPartnerState(partner);
+      setName(partner.name);
+      setAddress(partner.address);
+      setPhoneNumber(partner.phoneNumber);
+      setEmail(partner.email);
+      setDebt(partner.debt);
+      setStatus(partner.status);
+    }
+  }, [partner]);
   async function handleDelete() {
     try {
       if (partner?.id !== undefined) {
         await deleteProvider(partner.id);
+        onOpenChange(false);
+      }
+    } catch (error) {
+      console.error("Lỗi xóa nhà cung cấp", error);
+    }
+  }
+  async function handleUpdate() {
+    try {
+      if (partner?.id !== undefined) {
+        const body: ProviderUpdate = {
+          name: name,
+          address: address,
+          phone_number: phoneNumber,
+          email: email,
+          debt: debt,
+          status: status,
+        };
+        console.log("Body cập nhật:", body);
+        const response = await updateProvider(partner.id, body);
+        if (response) {
+          console.log("Cập nhật nhà cung cấp thành công", response);
+        }
         onOpenChange(false);
       }
     } catch (error) {
@@ -49,6 +93,7 @@ export default function PartnerModal({
                     Mã nhà cung cấp
                   </Label>
                   <Input
+                    disabled={true}
                     id="id"
                     value={partner?.id || ""}
                     onChange={(e) => {
@@ -63,9 +108,10 @@ export default function PartnerModal({
                   </Label>
                   <Input
                     id="name"
-                    value={partner?.name || ""}
+                    value={name}
                     onChange={(e) => {
                       const newValue = e.target.value;
+                      setName(newValue);
                       console.log("Giá trị mới:", newValue);
                     }}
                   />
@@ -76,9 +122,10 @@ export default function PartnerModal({
                   </Label>
                   <Input
                     id="address"
-                    value={partner?.address || ""}
+                    value={address}
                     onChange={(e) => {
                       const newValue = e.target.value;
+                      setAddress(newValue);
                       console.log("Giá trị mới:", newValue);
                     }}
                   />
@@ -91,9 +138,24 @@ export default function PartnerModal({
                   </Label>
                   <Input
                     id="phone_number"
-                    value={partner?.phoneNumber || ""}
+                    value={phoneNumber}
                     onChange={(e) => {
                       const newValue = e.target.value;
+                      setPhoneNumber(newValue);
+                      console.log("Giá trị mới:", newValue);
+                    }}
+                  />
+                </div>
+                <div className={"flex flex-row items-center"}>
+                  <Label className={"w-6/12"} htmlFor="salePrice">
+                    Email
+                  </Label>
+                  <Input
+                    id="email"
+                    value={email || ""}
+                    onChange={(e) => {
+                      const newValue = e.target.value;
+                      setEmail(newValue);
                       console.log("Giá trị mới:", newValue);
                     }}
                   />
@@ -104,12 +166,30 @@ export default function PartnerModal({
                   </Label>
                   <Input
                     id="debt"
-                    value={partner?.debt || ""}
+                    value={debt}
                     onChange={(e) => {
                       const newValue = e.target.value;
+                      setDebt(parseInt(newValue));
                       console.log("Giá trị mới:", newValue);
                     }}
                   />
+                </div>
+                <div className={"flex flex-row items-center"}>
+                  <Label className={"w-6/12"} htmlFor="status">
+                    Trạng thái
+                  </Label>
+                  <select
+                    id="status"
+                    value={status}
+                    onChange={(e) => {
+                      console.log("Giá trị mới:", Number(e.target.value));
+                      setStatus(Number(e.target.value));
+                    }}
+                    className="border rounded px-3 py-2 w-full"
+                  >
+                    <option value={1}>Đang hoạt động</option>
+                    <option value={0}>Đã xóa</option>
+                  </select>
                 </div>
               </div>
             </div>
@@ -117,13 +197,12 @@ export default function PartnerModal({
         </div>
         <DialogFooter className="">
           <div className={"flex flex-row space-x-2 justify-end"}>
-            <Button className={"bg-green-500 hover:bg-green-600"}>
-              <Plus />
-              Thêm mới
-            </Button>
-            <Button className={"bg-green-500 hover:bg-green-600"}>
+            <Button
+              className={"bg-green-500 hover:bg-green-600"}
+              onClick={handleUpdate}
+            >
               <FileInput />
-              Lưu
+              Sửa
             </Button>
             <Button
               className={"bg-red-500 hover:bg-red-600"}

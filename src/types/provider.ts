@@ -16,3 +16,12 @@ export interface ProviderCreate {
   phone_number: string;
   debt?: number;
 }
+
+export interface ProviderUpdate {
+  name?: string;
+  address?: string;
+  email?: string;
+  phone_number?: string;
+  debt?: number;
+  status?: number;
+}
