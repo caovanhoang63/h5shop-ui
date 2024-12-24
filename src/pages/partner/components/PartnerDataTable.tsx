@@ -91,7 +91,7 @@ export const providerColumns: ColumnDef<Provider>[] = [
     cell: ({ row }) => <div className="lowercase">{row.getValue("name")}</div>,
   },
   {
-    accessorKey: "phone_number",
+    accessorKey: "phoneNumber",
     header: ({ column }) => {
       return (
         <Button
@@ -105,7 +105,7 @@ export const providerColumns: ColumnDef<Provider>[] = [
       );
     },
     cell: ({ row }) => (
-      <div className="lowercase">{row.getValue("phone_number")}</div>
+      <div className="lowercase">{row.getValue("phoneNumber")}</div>
     ),
   },
   {

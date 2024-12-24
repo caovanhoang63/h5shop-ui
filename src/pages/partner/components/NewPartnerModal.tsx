@@ -9,6 +9,10 @@ import { Button } from "@/components/ui/button.tsx";
 import { Label } from "@/components/ui/label.tsx";
 import { Input } from "@/components/ui/input.tsx";
 import { BanIcon, FileInput } from "lucide-react";
+import { useState } from "react";
+import { ProviderCreate } from "@/types/provider.ts";
+import { createProvider } from "@/pages/partner/api/providerApi.ts";
+import { toast } from "sonner";
 
 interface INewPartnerModalProps {
   isOpen: boolean;
@@ -19,6 +23,31 @@ export default function NewPartnerModal({
   isOpen,
   onOpenChange,
 }: INewPartnerModalProps) {
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [address, setAddress] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState("");
+  const [debt, setDebt] = useState("");
+  async function onSubmit() {
+    const data: ProviderCreate = {
+      name: name,
+      email: email,
+      address: address,
+      phone_number: phoneNumber,
+      debt: parseInt(debt),
+    };
+    try {
+      const response = await createProvider(data);
+      if (response) {
+        toast("Tạo thành công", {});
+        onOpenChange(false);
+      }
+    } catch (e) {
+      toast("Tạo thất bại", {});
+      console.log(e);
+    }
+  }
+
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-screen-xl min-h-[calc(100vh-30%)] flex flex-col">
@@ -30,28 +59,26 @@ export default function NewPartnerModal({
             <div className={"flex flex-row flex-1 space-x-12"}>
               <div className={"flex flex-col flex-1 space-y-5"}>
                 <div className={"flex flex-row items-center"}>
-                  <Label className={"w-5/12"} htmlFor="barcode">
-                    Mã nhà cung cấp
-                  </Label>
-                  <Input
-                    id="id"
-                    value={""}
-                    onChange={(e) => {
-                      const newValue = e.target.value;
-                      console.log("Giá trị mới:", newValue);
-                    }}
-                  ></Input>
-                </div>
-                <div className={"flex flex-row items-center"}>
                   <Label className={"w-5/12"} htmlFor="name">
                     Tên nhà cung cấp
                   </Label>
                   <Input
                     id="name"
-                    value={""}
                     onChange={(e) => {
                       const newValue = e.target.value;
-                      console.log("Giá trị mới:", newValue);
+                      setName(newValue);
+                    }}
+                  />
+                </div>
+                <div className={"flex flex-row items-center"}>
+                  <Label className={"w-5/12"} htmlFor="brand">
+                    Email
+                  </Label>
+                  <Input
+                    id="email"
+                    onChange={(e) => {
+                      const newValue = e.target.value;
+                      setEmail(newValue);
                     }}
                   />
                 </div>
@@ -61,10 +88,9 @@ export default function NewPartnerModal({
                   </Label>
                   <Input
                     id="address"
-                    value={""}
                     onChange={(e) => {
                       const newValue = e.target.value;
-                      console.log("Giá trị mới:", newValue);
+                      setAddress(newValue);
                     }}
                   />
                 </div>
@@ -76,10 +102,9 @@ export default function NewPartnerModal({
                   </Label>
                   <Input
                     id="phone_number"
-                    value={""}
                     onChange={(e) => {
                       const newValue = e.target.value;
-                      console.log("Giá trị mới:", newValue);
+                      setPhoneNumber(newValue);
                     }}
                   />
                 </div>
@@ -89,10 +114,9 @@ export default function NewPartnerModal({
                   </Label>
                   <Input
                     id="debt"
-                    value={""}
                     onChange={(e) => {
                       const newValue = e.target.value;
-                      console.log("Giá trị mới:", newValue);
+                      setDebt(newValue);
                     }}
                   />
                 </div>
@@ -102,7 +126,10 @@ export default function NewPartnerModal({
         </div>
         <DialogFooter className="">
           <div className={"flex flex-row space-x-2 justify-end"}>
-            <Button className={"bg-green-500 hover:bg-green-600"}>
+            <Button
+              className={"bg-green-500 hover:bg-green-600"}
+              onClick={onSubmit}
+            >
               <FileInput />
               Lưu
             </Button>

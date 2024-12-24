@@ -79,7 +79,7 @@ export default function PartnerModal({
                   </Label>
                   <Input
                     id="phone_number"
-                    value={partner?.phone_number || ""}
+                    value={partner?.phoneNumber || ""}
                     onChange={(e) => {
                       const newValue = e.target.value;
                       console.log("Giá trị mới:", newValue);
