@@ -39,6 +39,7 @@ import { InputUploadImage } from "@/components/InputUploadImage.tsx";
 import { Category } from "@/types/category/category.ts";
 import { Brand } from "@/types/brand/brand.ts";
 import { SkuAttrCreate, SkuCreate, SpuUpsert } from "@/types/spu/spuUpsert.ts";
+import { upsertSpuDetail } from "@/pages/product/api/spuApi.ts";
 
 interface ISpuModalProps {
   isOpen: boolean;
@@ -77,10 +78,19 @@ export default function SpuModal({
     }
   }, [spu]);
 
+  const CallApiUpsertSpuDetail = async (spu: SpuUpsert) => {
+    try {
+      await upsertSpuDetail(spu);
+    } catch (error) {
+      console.error("Error: ", error);
+    }
+  };
+
   const handleAddAttr = () => {
     setAttrs((prev) => [
       ...prev,
       {
+        spuId: 0,
         dataType: "text",
         value: [""],
       } as SkuAttrCreate,
@@ -104,6 +114,7 @@ export default function SpuModal({
     setSkus((prev) => [
       ...prev,
       {
+        spuId: 0,
         costPrice: 0,
         price: 0,
         stock: 0,
@@ -129,6 +140,14 @@ export default function SpuModal({
       attrs: attrs,
     };
     console.log(spuTest);
+    CallApiUpsertSpuDetail(spuTest as SpuUpsert)
+      .then(() => {
+        console.log("Success");
+        alert("Thêm mới spu thành công");
+      })
+      .catch((error) => {
+        console.error("Error: ", error);
+      });
 
     if (id && name && categoryId && brandId) {
       setSpuUpsert({

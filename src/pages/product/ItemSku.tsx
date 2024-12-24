@@ -91,7 +91,11 @@ export const ItemSku = ({ attribute, sku, indexSku, setSku }: ItemSkuProps) => {
   const handleAddWholeSalePrice = () => {
     setWholeSalePrice((prev) => [
       ...prev,
-      { minQuantity: 0, price: 0 } as SkuWholesalePriceCreate,
+      {
+        skuId: 0,
+        minQuantity: 0,
+        price: 0,
+      } as SkuWholesalePriceCreate,
     ]);
 
     const newWholeSalePrice = [...wholeSalePrice, { minQuantity: 0, price: 0 }];
