@@ -47,6 +47,9 @@ export default function PartnerPage() {
       ),
     );
   };
+  const refreshData = async () => {
+    await getProviderTableData();
+  };
   const getProviderTableData = async () => {
     setIsLoading(true);
     try {
@@ -75,6 +78,7 @@ export default function PartnerPage() {
   return (
     <Container className={"grid grid-cols-5 gap-4 grid-flow-row"}>
       <NewPartnerModal
+        refreshData={refreshData}
         isOpen={isOpenNewPartnerModal}
         onOpenChange={setIsOpenNewPartnerModal}
       ></NewPartnerModal>
@@ -233,6 +237,7 @@ export default function PartnerPage() {
       </div>
       <div className={"col-span-4"}>
         <PartnerDataTable
+          refreshData={refreshData}
           providerTableData={providerData}
           columnVisible={fields}
         ></PartnerDataTable>

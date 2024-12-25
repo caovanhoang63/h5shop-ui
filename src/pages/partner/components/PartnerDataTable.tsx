@@ -89,7 +89,7 @@ export const providerColumns: ColumnDef<Provider>[] = [
         </Button>
       );
     },
-    cell: ({ row }) => <div className="lowercase">{row.getValue("name")}</div>,
+    cell: ({ row }) => <div>{row.getValue("name")}</div>,
   },
   {
     accessorKey: "address",
@@ -198,11 +198,13 @@ export const providerColumns: ColumnDef<Provider>[] = [
 interface PartnerDataTableProps {
   columnVisible: MenuVisibilityColumnTable[];
   providerTableData: Provider[];
+  refreshData: () => void; // Thêm prop refreshData
 }
 
 export default function PartnerDataTable({
   columnVisible,
   providerTableData,
+  refreshData,
 }: PartnerDataTableProps) {
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
@@ -254,6 +256,7 @@ export default function PartnerDataTable({
   return (
     <div className="w-full">
       <PartnerModal
+        refreshData={refreshData}
         isOpen={isOpenPartnerModal}
         onOpenChange={setIsOpenPartnerModal}
         partner={selectedPartner}

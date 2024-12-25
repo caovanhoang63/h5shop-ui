@@ -17,11 +17,13 @@ import { toast } from "sonner";
 interface INewPartnerModalProps {
   isOpen: boolean;
   onOpenChange: (isOpen: boolean) => void;
+  refreshData: () => void; // Thêm prop refreshData
 }
 
 export default function NewPartnerModal({
   isOpen,
   onOpenChange,
+  refreshData,
 }: INewPartnerModalProps) {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -40,6 +42,7 @@ export default function NewPartnerModal({
       const response = await createProvider(data);
       if (response) {
         toast("Tạo thành công", {});
+        refreshData();
         onOpenChange(false);
       }
     } catch (e) {

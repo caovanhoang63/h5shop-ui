@@ -19,12 +19,14 @@ interface IPartnerModalProps {
   isOpen: boolean;
   onOpenChange: (isOpen: boolean) => void;
   partner?: Provider;
+  refreshData: () => void; // Thêm prop refreshData
 }
 
 export default function PartnerModal({
   isOpen,
   partner,
   onOpenChange,
+  refreshData,
 }: IPartnerModalProps) {
   const [partnerState, setPartnerState] = useState<Provider | undefined>();
   const [name, setName] = useState("");
@@ -70,6 +72,7 @@ export default function PartnerModal({
         const response = await updateProvider(partner.id, body);
         if (response) {
           console.log("Cập nhật nhà cung cấp thành công", response);
+          refreshData(); // Gọi hàm refreshData sau khi cập nhật thành công
         }
         onOpenChange(false);
       }
