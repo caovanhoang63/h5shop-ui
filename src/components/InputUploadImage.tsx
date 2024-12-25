@@ -1,6 +1,7 @@
 import { Input } from "@/components/ui/input.tsx";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { CircleX } from "lucide-react";
+import { uploadImage } from "@/pages/product/api/spuApi.ts";
 
 export function InputUploadImage({
   width = "192px",
@@ -10,7 +11,19 @@ export function InputUploadImage({
   height?: string;
 }) {
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [image, setImage] = useState<string | ArrayBuffer | null>();
+  const [image, setImage] = useState<string | null>();
+
+  useEffect(() => {}, []);
+
+  const CallApiUpLoadImage = async (file: File) => {
+    try {
+      const res = uploadImage(file);
+      console.log(res);
+    } catch (error) {
+      console.error("Fetch error:", error);
+      throw error;
+    }
+  };
 
   const handleClickUploadImage = () => {
     fileInputRef.current?.click();
@@ -21,9 +34,11 @@ export function InputUploadImage({
     if (file) {
       const reader = new FileReader();
       reader.onload = (e) => {
-        setImage(e.target?.result);
+        setImage(e.target?.result as string);
       };
       reader.readAsDataURL(file);
+
+      CallApiUpLoadImage(file);
     }
   };
 
@@ -54,7 +69,7 @@ export function InputUploadImage({
           type={"file"}
           onChange={handleUploadImage}
           className={"hidden"}
-          accept={"image/*"}
+          accept={".jpg,.png,.webp"}
         />
         <div
           className="text-gray-500 absolute top-0 right-0 opacity-0 group-hover:opacity-100 cursor-pointer"

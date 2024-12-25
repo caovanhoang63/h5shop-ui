@@ -11,3 +11,11 @@ const axiosInstance = axios.create({
 
 export default axiosInstance;
 //baseURL: "https://api.h5shop.shop",
+
+export const axiosInstanceUpload = axios.create({
+  baseURL: "http://localhost:3000",
+  timeout: 5000,
+  headers: {
+    "Content-Type": "multipart/form-data",
+  },
+});
