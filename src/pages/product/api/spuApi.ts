@@ -1,5 +1,5 @@
 import { SpuUpsert } from "@/types/spu/spuUpsert.ts";
-import axiosInstance, { axiosInstanceUpload } from "@/axiosSetup.ts";
+import axiosInstance from "@/axiosSetup.ts";
 import { SpuListTable } from "@/types/spu/spuListTable.ts";
 import { Image } from "@/types/image.ts";
 
@@ -26,9 +26,14 @@ export async function uploadImage(file: File): Promise<Image> {
     const formData = new FormData();
     formData.append("file", file);
 
-    const response = await axiosInstanceUpload.post<Image>(
+    const response = await axiosInstance.post<Image>(
       "/v1/upload/image",
       formData,
+      {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      },
     );
 
     return response.data;
