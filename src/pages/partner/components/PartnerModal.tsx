@@ -28,22 +28,19 @@ export default function PartnerModal({
   onOpenChange,
   refreshData,
 }: IPartnerModalProps) {
-  const [partnerState, setPartnerState] = useState<Provider | undefined>();
   const [name, setName] = useState("");
   const [address, setAddress] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
   const [email, setEmail] = useState("");
-  const [debt, setDebt] = useState<number>(0);
+  const [debt, setDebt] = useState<number>();
   const [status, setStatus] = useState(1);
   useEffect(() => {
-    console.log("Nhà cung cấp:", partnerState);
     if (partner) {
-      setPartnerState(partner);
       setName(partner.name);
       setAddress(partner.address);
       setPhoneNumber(partner.phoneNumber);
       setEmail(partner.email);
-      setDebt(partner.debt);
+      setDebt(partner.debt ?? ""); // Set debt to an empty string if it's null
       setStatus(partner.status);
     }
   }, [partner]);
