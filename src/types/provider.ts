@@ -29,6 +29,7 @@ export interface ProviderFilter {
   lk_name?: string;
   lk_email?: string;
   lk_phone_number?: string;
-  lk_debt?: number;
+  lt_debt?: number;
+  gt_debt?: number;
   lk_status?: number;
 }

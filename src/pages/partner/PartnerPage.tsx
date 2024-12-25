@@ -11,13 +11,6 @@ import {
 } from "@/components/ui/accordion.tsx";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group.tsx";
 import { Label } from "@/components/ui/label.tsx";
-import { DatePickerWithRange } from "@/components/DatePickerWithRange.tsx";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover.tsx";
-import { TimeDropdown } from "@/pages/partner/components/TimeDropdown.tsx";
 import { useEffect, useState } from "react";
 import PartnerDataTable from "@/pages/partner/components/PartnerDataTable.tsx";
 import {
@@ -31,11 +24,12 @@ import { LoadingAnimation } from "@/components/ui/LoadingAnimation.tsx";
 
 export default function PartnerPage() {
   const [isOpenNewPartnerModal, setIsOpenNewPartnerModal] = useState(false);
-  const [selectedTime, setSelectedTime] = useState("Toàn thời gian");
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [providerData, setProviderData] = useState<Provider[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
+  const [fromDebt, setFromDebt] = useState(0);
+  const [toDebt, setToDebt] = useState(0);
   const [fields, setFields] = useState<MenuVisibilityColumnTable[]>([
     { label: "Mã nhà cung cấp", key: "id", visible: true },
     { label: "Tên nhà cung cấp", key: "name", visible: true },
@@ -46,9 +40,7 @@ export default function PartnerPage() {
     { label: "Trạng thái", key: "status", visible: true },
     { label: "Action", key: "actions", visible: true },
   ]);
-  const handleTimeSelect = (value: string) => {
-    setSelectedTime(value);
-  };
+
   const handleCheckField = (key: string, visible: boolean) => {
     setFields((prevFields) =>
       prevFields.map((field) =>
@@ -63,6 +55,36 @@ export default function PartnerPage() {
         lk_name: searchTerm,
       };
 
+      const response = await listProvider(filter);
+      console.log(response);
+      setProviderData(response.data);
+    } catch (error) {
+      setError(error.message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  const fromDebtFilter = async () => {
+    setIsLoading(true);
+    try {
+      const filter: ProviderFilter = {
+        gt_debt: fromDebt,
+      };
+      const response = await listProvider(filter);
+      console.log(response);
+      setProviderData(response.data);
+    } catch (error) {
+      setError(error.message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  const toDebtFilter = async () => {
+    setIsLoading(true);
+    try {
+      const filter: ProviderFilter = {
+        lt_debt: toDebt,
+      };
       const response = await listProvider(filter);
       console.log(response);
       setProviderData(response.data);
@@ -146,7 +168,7 @@ export default function PartnerPage() {
         </div>
       </div>
       <div className={"col-span-1 space-y-4"}>
-        <Card>
+        {/* <Card>
           <CardContent>
             <Accordion type="single" collapsible>
               <AccordionItem value="item-1">
@@ -211,7 +233,7 @@ export default function PartnerPage() {
               </AccordionItem>
             </Accordion>
           </CardContent>
-        </Card>
+        </Card>*/}
         <Card>
           <CardContent>
             <Accordion type="single" collapsible>
@@ -230,6 +252,10 @@ export default function PartnerPage() {
                           id="from"
                           placeholder="Giá trị"
                           className="border-0 focus-visible:ring-0  rounded-none shadow-none col-span-3 bg-background"
+                          onChange={(e) => {
+                            setFromDebt(parseInt(e.target.value));
+                            fromDebtFilter().then((r) => console.log(r));
+                          }}
                         />
                       </div>
                     </div>
@@ -239,9 +265,13 @@ export default function PartnerPage() {
                         className={"border-b-[1px] col-span-3 bg-background"}
                       >
                         <Input
-                          id="from"
+                          id="to"
                           placeholder="Giá trị"
                           className="border-0 focus-visible:ring-0  rounded-none shadow-none col-span-3 bg-background"
+                          onChange={(e) => {
+                            setToDebt(parseInt(e.target.value));
+                            toDebtFilter().then((r) => console.log(r));
+                          }}
                         />
                       </div>
                     </div>
