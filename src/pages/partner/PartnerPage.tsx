@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/accordion.tsx";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group.tsx";
 import { Label } from "@/components/ui/label.tsx";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import PartnerDataTable from "@/pages/partner/components/PartnerDataTable.tsx";
 import {
   ButtonVisibilityColumnTable,
@@ -29,6 +29,10 @@ export default function PartnerPage() {
   const [error, setError] = useState<string | null>(null);
   const [providerData, setProviderData] = useState<Provider[]>([]);
   const [providerFilter, setProviderFilter] = useState<ProviderFilter>({});
+  const [filterFrom, setFilterFrom] = useState("");
+  const [filterTo, setFilterTo] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [accordionOpen, setAccordionOpen] = useState<Set<string>>(new Set());
   const [fields, setFields] = useState<MenuVisibilityColumnTable[]>([
     { label: "Mã nhà cung cấp", key: "id", visible: true },
     { label: "Tên nhà cung cấp", key: "name", visible: true },
@@ -50,6 +54,16 @@ export default function PartnerPage() {
   const refreshData = async () => {
     await getProviderTableData();
   };
+  const handleFilterChange = (newFilter: Partial<ProviderFilter>) => {
+    setProviderFilter((prevFilter) => ({
+      ...prevFilter,
+      ...newFilter,
+    }));
+  };
+
+  const handleFilterApply = useCallback(() => {
+    getProviderTableData();
+  }, [providerFilter]);
   const getProviderTableData = async () => {
     setIsLoading(true);
     try {
@@ -91,13 +105,14 @@ export default function PartnerPage() {
           <Input
             className={"pl-9"}
             placeholder={"Theo tên nhà cung cấp"}
+            value={searchTerm}
             onChange={(e) => {
-              console.log(e.target.value);
-              setProviderFilter({ lk_name: e.target.value });
+              setSearchTerm(e.target.value);
+              handleFilterChange({ lk_name: e.target.value });
             }}
             onKeyPress={(e) => {
               if (e.key === "Enter") {
-                getProviderTableData().then((r) => console.log(r));
+                handleFilterApply();
               }
             }}
           />
@@ -126,7 +141,11 @@ export default function PartnerPage() {
       <div className={"col-span-1 space-y-4"}>
         <Card>
           <CardContent>
-            <Accordion type="single" collapsible>
+            <Accordion
+              type="multiple"
+              value={Array.from(accordionOpen)}
+              onValueChange={(value) => setAccordionOpen(new Set(value))}
+            >
               <AccordionItem value="item-1">
                 <AccordionTrigger className={"hover:no-underline"}>
                   Nợ hiện tại
@@ -142,16 +161,18 @@ export default function PartnerPage() {
                           id="from"
                           placeholder="Giá trị"
                           className="border-0 focus-visible:ring-0  rounded-none shadow-none col-span-3 bg-background"
+                          value={filterFrom}
                           onChange={(e) => {
-                            setProviderFilter({
+                            setFilterFrom(e.target.value);
+                            handleFilterChange({
                               gt_debt: parseInt(e.target.value),
                             });
                           }}
                           onKeyPress={(e) => {
+                            e.stopPropagation(); // Ngăn sự kiện lan truyền
+
                             if (e.key === "Enter") {
-                              getProviderTableData().then((r) =>
-                                console.log(r),
-                              );
+                              handleFilterApply();
                             }
                           }}
                         />
@@ -166,16 +187,17 @@ export default function PartnerPage() {
                           id="to"
                           placeholder="Giá trị"
                           className="border-0 focus-visible:ring-0  rounded-none shadow-none col-span-3 bg-background"
+                          value={filterTo}
                           onChange={(e) => {
-                            setProviderFilter({
+                            setFilterTo(e.target.value);
+                            handleFilterChange({
                               lt_debt: parseInt(e.target.value),
                             });
                           }}
                           onKeyPress={(e) => {
+                            e.stopPropagation(); // Ngăn sự kiện lan truyền
                             if (e.key === "Enter") {
-                              getProviderTableData().then((r) =>
-                                console.log(r),
-                              );
+                              handleFilterApply();
                             }
                           }}
                         />
