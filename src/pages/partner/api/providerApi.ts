@@ -1,4 +1,9 @@
-import { Provider, ProviderCreate, ProviderUpdate } from "@/types/provider.ts";
+import {
+  Provider,
+  ProviderCreate,
+  ProviderFilter,
+  ProviderUpdate,
+} from "@/types/provider.ts";
 import axiosInstance from "@/axiosSetup.ts";
 
 export interface ProviderListResponse {
@@ -15,10 +20,21 @@ export interface ProviderUpdateResponse {
   data: boolean;
 }
 
-export async function listProvider(): Promise<ProviderListResponse> {
+export async function listProvider(
+  filter: ProviderFilter,
+): Promise<ProviderListResponse> {
   try {
+    const queryObject = Object.entries(filter).reduce(
+      (acc, [key, value]) => {
+        acc[key] = value != null ? String(value) : "";
+        return acc;
+      },
+      {} as Record<string, string>,
+    );
+
+    const query = new URLSearchParams(queryObject).toString();
     const response = await axiosInstance.get<ProviderListResponse>(
-      "v1/provider",
+      `v1/provider?${query}`,
       {
         headers: {
           Authorization: `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImZjMmFiNTAxLTg0NmMtNGM3NS04NWQ4LWMyYjE4MWM3NTlhZSIsInN1YiI6IjQiLCJub3RCZWZvcmUiOjE3MzM2NzA4ODMwNDEsImlzc3VlZEF0IjoxNzMzNjcwODgzMDQxLCJleHBpcmVzQXQiOjE3MzM2NzQ0ODMwNDEsImlhdCI6MTczMzY3MDg4M30.Dh04IhTLolfuL0OyRx7e5826_xPHzIjnOkQ-bNKss1M`,

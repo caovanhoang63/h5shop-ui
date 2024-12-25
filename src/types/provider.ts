@@ -25,3 +25,10 @@ export interface ProviderUpdate {
   debt?: number;
   status?: number;
 }
+export interface ProviderFilter {
+  lk_name?: string;
+  lk_email?: string;
+  lk_phone_number?: string;
+  lk_debt?: number;
+  lk_status?: number;
+}

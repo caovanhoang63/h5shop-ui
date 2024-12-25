@@ -26,7 +26,7 @@ import {
 } from "@/components/ButtonVisibilityColumnTable.tsx";
 import NewPartnerModal from "@/pages/partner/components/NewPartnerModal.tsx";
 import { listProvider } from "@/pages/partner/api/providerApi.ts";
-import { Provider } from "@/types/provider.ts";
+import { Provider, ProviderFilter } from "@/types/provider.ts";
 import { LoadingAnimation } from "@/components/ui/LoadingAnimation.tsx";
 
 export default function PartnerPage() {
@@ -35,6 +35,7 @@ export default function PartnerPage() {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [providerData, setProviderData] = useState<Provider[]>([]);
+  const [searchTerm, setSearchTerm] = useState("");
   const [fields, setFields] = useState<MenuVisibilityColumnTable[]>([
     { label: "Mã nhà cung cấp", key: "id", visible: true },
     { label: "Tên nhà cung cấp", key: "name", visible: true },
@@ -55,10 +56,27 @@ export default function PartnerPage() {
       ),
     );
   };
+  const searchProvider = async () => {
+    setIsLoading(true);
+    try {
+      const filter: ProviderFilter = {
+        lk_name: searchTerm,
+      };
+
+      const response = await listProvider(filter);
+      console.log(response);
+      setProviderData(response.data);
+    } catch (error) {
+      setError(error.message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
   const getProviderTableData = async () => {
     setIsLoading(true);
     try {
-      const response = await listProvider();
+      const filter: ProviderFilter = {};
+      const response = await listProvider(filter);
       console.log(response);
       setProviderData(response.data);
     } catch (error) {
@@ -89,7 +107,19 @@ export default function PartnerPage() {
       <div className={"col-span-4 w-full flex  justify-between"}>
         <div className="relative flex items-center max-w-80">
           <Search className="absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 transform" />
-          <Input className={"pl-9"} placeholder={"Theo mã, tên, điện thoại"} />
+          <Input
+            className={"pl-9"}
+            placeholder={"Theo tên nhà cung cấp"}
+            onChange={(e) => {
+              console.log(e.target.value);
+              setSearchTerm(e.target.value);
+            }}
+            onKeyPress={(e) => {
+              if (e.key === "Enter") {
+                searchProvider().then((r) => console.log(r));
+              }
+            }}
+          />
         </div>
         <div className={"flex space-x-2"}>
           <Button
