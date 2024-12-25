@@ -1,5 +1,5 @@
 import Container from "@/layouts/components/Container.tsx";
-import { FileInput, FileOutputIcon, Plus, Search } from "lucide-react";
+import { FileInput, Plus, Search } from "lucide-react";
 import { Input } from "@/components/ui/input.tsx";
 import { Button } from "@/components/ui/button.tsx";
 import { Card, CardContent } from "@/components/ui/card.tsx";
@@ -9,7 +9,6 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion.tsx";
-import * as XLSX from "xlsx";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group.tsx";
 import { Label } from "@/components/ui/label.tsx";
 import { useEffect, useState } from "react";
@@ -22,18 +21,13 @@ import NewPartnerModal from "@/pages/partner/components/NewPartnerModal.tsx";
 import { listProvider } from "@/pages/partner/api/providerApi.ts";
 import { Provider, ProviderFilter } from "@/types/provider.ts";
 import { LoadingAnimation } from "@/components/ui/LoadingAnimation.tsx";
+import { ExportButton } from "@/components/ExportButton.tsx";
 
 export default function PartnerPage() {
   const [isOpenNewPartnerModal, setIsOpenNewPartnerModal] = useState(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [providerData, setProviderData] = useState<Provider[]>([]);
-  /* const [searchTerm, setSearchTerm] = useState("");
-  const [fromDebt, setFromDebt] = useState(0);
-  const [toDebt, setToDebt] = useState(0);
-  const [statusFilter, setStatusFilter] = useState<number | undefined>(
-    undefined,
-  );*/
   const [providerFilter, setProviderFilter] = useState<ProviderFilter>({});
   const [fields, setFields] = useState<MenuVisibilityColumnTable[]>([
     { label: "Mã nhà cung cấp", key: "id", visible: true },
@@ -45,17 +39,7 @@ export default function PartnerPage() {
     { label: "Trạng thái", key: "status", visible: true },
     { label: "Action", key: "actions", visible: true },
   ]);
-  const exportToExcel = (data: never, fileName: string = "export.xlsx") => {
-    // Convert JSON data to a worksheet
-    const worksheet = XLSX.utils.json_to_sheet(data);
 
-    // Create a new workbook
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, "Data");
-
-    // Generate Excel file and trigger download
-    XLSX.writeFile(workbook, fileName);
-  };
   const handleCheckField = (key: string, visible: boolean) => {
     setFields((prevFields) =>
       prevFields.map((field) =>
@@ -63,64 +47,6 @@ export default function PartnerPage() {
       ),
     );
   };
-  /*const searchProvider = async () => {
-    setIsLoading(true);
-    try {
-
-      const response = await listProvider(providerFilter);
-      console.log(response);
-      setProviderData(response.data);
-    } catch (error) {
-      setError(error.message);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-  const fromDebtFilter = async () => {
-    setIsLoading(true);
-    try {
-      const filter: ProviderFilter = {
-        gt_debt: fromDebt,
-      };
-      const response = await listProvider(filter);
-      console.log(response);
-      setProviderData(response.data);
-    } catch (error) {
-      setError(error.message);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-  const toDebtFilter = async () => {
-    setIsLoading(true);
-    try {
-      const filter: ProviderFilter = {
-        lt_debt: toDebt,
-      };
-      const response = await listProvider(filter);
-      console.log(response);
-      setProviderData(response.data);
-    } catch (error) {
-      setError(error.message);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-  const getStatusFilter = async () => {
-    setIsLoading(true);
-    try {
-      const filter: ProviderFilter = {
-        lk_status: statusFilter,
-      };
-      const response = await listProvider(filter);
-      console.log(response);
-      setProviderData(response.data);
-    } catch (error) {
-      setError(error.message);
-    } finally {
-      setIsLoading(false);
-    }
-  };*/
   const getProviderTableData = async () => {
     setIsLoading(true);
     try {
@@ -129,7 +55,9 @@ export default function PartnerPage() {
       console.log(response);
       setProviderData(response.data);
     } catch (error) {
-      setError(error.message);
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-expect-error
+      setError(error.response.data.message);
     } finally {
       setIsLoading(false);
     }
@@ -184,13 +112,7 @@ export default function PartnerPage() {
             <FileInput />
             Import
           </Button>
-          <Button
-            className={"bg-green-500"}
-            onClick={() => exportToExcel(providerData, "Providers.xlsx")}
-          >
-            <FileOutputIcon />
-            Xuất file
-          </Button>
+          <ExportButton data={providerData} />
           <ButtonVisibilityColumnTable
             menus={fields}
             onCheckChange={handleCheckField}
