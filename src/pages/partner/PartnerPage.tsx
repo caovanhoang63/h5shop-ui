@@ -9,6 +9,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion.tsx";
+import * as XLSX from "xlsx";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group.tsx";
 import { Label } from "@/components/ui/label.tsx";
 import { useEffect, useState } from "react";
@@ -27,9 +28,13 @@ export default function PartnerPage() {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [providerData, setProviderData] = useState<Provider[]>([]);
-  const [searchTerm, setSearchTerm] = useState("");
+  /* const [searchTerm, setSearchTerm] = useState("");
   const [fromDebt, setFromDebt] = useState(0);
   const [toDebt, setToDebt] = useState(0);
+  const [statusFilter, setStatusFilter] = useState<number | undefined>(
+    undefined,
+  );*/
+  const [providerFilter, setProviderFilter] = useState<ProviderFilter>({});
   const [fields, setFields] = useState<MenuVisibilityColumnTable[]>([
     { label: "Mã nhà cung cấp", key: "id", visible: true },
     { label: "Tên nhà cung cấp", key: "name", visible: true },
@@ -40,7 +45,17 @@ export default function PartnerPage() {
     { label: "Trạng thái", key: "status", visible: true },
     { label: "Action", key: "actions", visible: true },
   ]);
+  const exportToExcel = (data: never, fileName: string = "export.xlsx") => {
+    // Convert JSON data to a worksheet
+    const worksheet = XLSX.utils.json_to_sheet(data);
 
+    // Create a new workbook
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Data");
+
+    // Generate Excel file and trigger download
+    XLSX.writeFile(workbook, fileName);
+  };
   const handleCheckField = (key: string, visible: boolean) => {
     setFields((prevFields) =>
       prevFields.map((field) =>
@@ -48,14 +63,11 @@ export default function PartnerPage() {
       ),
     );
   };
-  const searchProvider = async () => {
+  /*const searchProvider = async () => {
     setIsLoading(true);
     try {
-      const filter: ProviderFilter = {
-        lk_name: searchTerm,
-      };
 
-      const response = await listProvider(filter);
+      const response = await listProvider(providerFilter);
       console.log(response);
       setProviderData(response.data);
     } catch (error) {
@@ -94,11 +106,26 @@ export default function PartnerPage() {
       setIsLoading(false);
     }
   };
+  const getStatusFilter = async () => {
+    setIsLoading(true);
+    try {
+      const filter: ProviderFilter = {
+        lk_status: statusFilter,
+      };
+      const response = await listProvider(filter);
+      console.log(response);
+      setProviderData(response.data);
+    } catch (error) {
+      setError(error.message);
+    } finally {
+      setIsLoading(false);
+    }
+  };*/
   const getProviderTableData = async () => {
     setIsLoading(true);
     try {
-      const filter: ProviderFilter = {};
-      const response = await listProvider(filter);
+      console.log("filter: ", providerFilter);
+      const response = await listProvider(providerFilter);
       console.log(response);
       setProviderData(response.data);
     } catch (error) {
@@ -134,11 +161,11 @@ export default function PartnerPage() {
             placeholder={"Theo tên nhà cung cấp"}
             onChange={(e) => {
               console.log(e.target.value);
-              setSearchTerm(e.target.value);
+              setProviderFilter({ lk_name: e.target.value });
             }}
             onKeyPress={(e) => {
               if (e.key === "Enter") {
-                searchProvider().then((r) => console.log(r));
+                getProviderTableData().then((r) => console.log(r));
               }
             }}
           />
@@ -157,7 +184,10 @@ export default function PartnerPage() {
             <FileInput />
             Import
           </Button>
-          <Button className={"bg-green-500"}>
+          <Button
+            className={"bg-green-500"}
+            onClick={() => exportToExcel(providerData, "Providers.xlsx")}
+          >
             <FileOutputIcon />
             Xuất file
           </Button>
@@ -168,72 +198,6 @@ export default function PartnerPage() {
         </div>
       </div>
       <div className={"col-span-1 space-y-4"}>
-        {/* <Card>
-          <CardContent>
-            <Accordion type="single" collapsible>
-              <AccordionItem value="item-1">
-                <AccordionTrigger className={"hover:no-underline"}>
-                  Tổng mua
-                </AccordionTrigger>
-                <AccordionContent className={"py-1 px-1 flex flex-col gap-2"}>
-                  <div className={"space-y-1"}>
-                    <div className="grid grid-cols-4 items-center gap-2">
-                      <Label htmlFor="maxWidth">Từ</Label>
-                      <div
-                        className={"border-b-[1px] col-span-3 bg-background"}
-                      >
-                        <Input
-                          id="from"
-                          placeholder="Giá trị"
-                          className="border-0 focus-visible:ring-0  rounded-none shadow-none col-span-3 bg-background"
-                        />
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-4 items-center gap-2">
-                      <Label htmlFor="maxWidth">Đến</Label>
-                      <div
-                        className={"border-b-[1px] col-span-3 bg-background"}
-                      >
-                        <Input
-                          id="from"
-                          placeholder="Giá trị"
-                          className="border-0 focus-visible:ring-0  rounded-none shadow-none col-span-3 bg-background"
-                        />
-                      </div>
-                    </div>
-                  </div>
-                  <RadioGroup defaultValue="option-one">
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="option-one" id="option-one" />
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <Button
-                            variant="outline"
-                            className="w-full font-normal flex justify-start "
-                          >
-                            {selectedTime}
-                          </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-[600px] p-0" align="start">
-                          <TimeDropdown
-                            selectedValue={selectedTime}
-                            onSelect={handleTimeSelect}
-                          />
-                        </PopoverContent>
-                      </Popover>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="option-two" id="option-two" />
-                      <DatePickerWithRange
-                        className={"w-full"}
-                      ></DatePickerWithRange>
-                    </div>
-                  </RadioGroup>
-                </AccordionContent>
-              </AccordionItem>
-            </Accordion>
-          </CardContent>
-        </Card>*/}
         <Card>
           <CardContent>
             <Accordion type="single" collapsible>
@@ -253,8 +217,16 @@ export default function PartnerPage() {
                           placeholder="Giá trị"
                           className="border-0 focus-visible:ring-0  rounded-none shadow-none col-span-3 bg-background"
                           onChange={(e) => {
-                            setFromDebt(parseInt(e.target.value));
-                            fromDebtFilter().then((r) => console.log(r));
+                            setProviderFilter({
+                              gt_debt: parseInt(e.target.value),
+                            });
+                          }}
+                          onKeyPress={(e) => {
+                            if (e.key === "Enter") {
+                              getProviderTableData().then((r) =>
+                                console.log(r),
+                              );
+                            }
                           }}
                         />
                       </div>
@@ -269,8 +241,16 @@ export default function PartnerPage() {
                           placeholder="Giá trị"
                           className="border-0 focus-visible:ring-0  rounded-none shadow-none col-span-3 bg-background"
                           onChange={(e) => {
-                            setToDebt(parseInt(e.target.value));
-                            toDebtFilter().then((r) => console.log(r));
+                            setProviderFilter({
+                              lt_debt: parseInt(e.target.value),
+                            });
+                          }}
+                          onKeyPress={(e) => {
+                            if (e.key === "Enter") {
+                              getProviderTableData().then((r) =>
+                                console.log(r),
+                              );
+                            }
                           }}
                         />
                       </div>
@@ -289,7 +269,21 @@ export default function PartnerPage() {
                   Trạng thái
                 </AccordionTrigger>
                 <AccordionContent className={"pb-2"}>
-                  <RadioGroup defaultValue="option-one">
+                  <RadioGroup
+                    defaultValue="option-one"
+                    onValueChange={(value) => {
+                      const updatedFilter = { ...providerFilter }; // Giữ các giá trị hiện tại
+                      if (value === "option-one") {
+                        delete updatedFilter.lk_status; // Xóa bộ lọc trạng thái nếu chọn "Tất cả"
+                      } else if (value === "option-two") {
+                        updatedFilter.lk_status = 1; // Trạng thái "Đang hoạt động"
+                      } else if (value === "option-three") {
+                        updatedFilter.lk_status = 0; // Trạng thái "Ngừng hoạt động"
+                      }
+                      setProviderFilter(updatedFilter); // Cập nhật bộ lọc
+                      getProviderTableData(); // Làm mới bảng dữ liệu
+                    }}
+                  >
                     <div className="flex items-center space-x-2">
                       <RadioGroupItem value="option-one" id="option-one" />
                       <Label htmlFor="option-one" className={"font-normal"}>
