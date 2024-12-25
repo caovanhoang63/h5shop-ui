@@ -21,10 +21,24 @@ interface ResponseInventoryReportCreate {
   extra?: never;
   paging?: never;
 }
-export async function getInventoryReports(): Promise<ResponseInventoryReport> {
+export interface InventoryReportFilter {
+  lk_warehouseMan1?: string | null;
+  time?: string | null;
+  status?: [] | null;
+}
+export async function getInventoryReports(
+  filters: InventoryReportFilter,
+): Promise<ResponseInventoryReport> {
   try {
-    const response =
-      await axiosInstance.get<ResponseInventoryReport>("v1/inventory/table");
+    const params: InventoryReportFilter = {};
+    if (filters.lk_warehouseMan1)
+      params.lk_warehouseMan1 = filters.lk_warehouseMan1;
+    if (filters.time) params.time = filters.time;
+    if (filters.status) params.status = filters.status;
+    const response = await axiosInstance.get<ResponseInventoryReport>(
+      "v1/inventory/table",
+      { params: params },
+    );
     return response.data;
   } catch (error) {
     console.error("Fetch error:", error);

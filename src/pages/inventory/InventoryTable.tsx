@@ -99,6 +99,7 @@ const columnsInventory: ColumnDef<InventoryReport>[] = [
         checked={row.getIsSelected()}
         onCheckedChange={(value) => row.toggleSelected(!!value)}
         aria-label="Select row"
+        onClick={(event) => event.stopPropagation()}
       />
     ),
     enableSorting: false,
@@ -325,7 +326,6 @@ export function InventoryTable({
                     setSelectedInventoryReport(selectedReport);
                     console.log(selectedInventoryReport);
                     await getInventoryReportDetails(selectedReport.id);
-                    console.log("Open");
                   }}
                   key={row.id}
                   data-state={row.getIsSelected() && "selected"}

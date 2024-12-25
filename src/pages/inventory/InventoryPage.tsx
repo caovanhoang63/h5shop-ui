@@ -16,7 +16,10 @@ import { InventoryTable } from "./InventoryTable.tsx";
 import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { InventoryReport } from "@/types/inventoryReport.ts";
-import { getInventoryReports } from "@/pages/inventory/api/reportApi.ts";
+import {
+  getInventoryReports,
+  InventoryReportFilter,
+} from "@/pages/inventory/api/reportApi.ts";
 import {
   ButtonVisibilityColumnTable,
   MenuVisibilityColumnTable,
@@ -26,25 +29,40 @@ export const InventoryPage = () => {
   const [inventoryReports, setInventoryReports] = useState<InventoryReport[]>(
     [],
   );
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
+  const [filters, setFilters] = useState<InventoryReportFilter>({
+    lk_warehouseMan1: null,
+    time: null,
+    status: [],
+  });
+  const handleStatusChange = (value: string, checked: boolean) => {
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-expect-error
+    setFilters((prevFilters) => {
+      const updatedStatus = checked
+        ? [...prevFilters.status!, value]
+        : prevFilters.status!.filter((item) => item !== value);
+
+      return {
+        ...prevFilters,
+        status: updatedStatus,
+      };
+    });
+  };
+  /*const handleFilterChange = (key: string, value: never) => {
+    setFilters((prevFilters) => ({ ...prevFilters, [key]: value }));
+  };*/
   const getInventoryReportTable = async () => {
     try {
-      const response = await getInventoryReports();
+      const response = await getInventoryReports(filters);
       console.log("api", response.data);
       setInventoryReports(response.data);
-      setLoading(false);
     } catch (error) {
-      setError("Failed to fetch inventory reports.");
-      setLoading(false);
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-expect-error
-      console.log(error.response.data.message);
+      console.log(error);
     }
   };
   useEffect(() => {
     getInventoryReportTable();
-  }, []);
+  }, [filters]);
   const [fields, setFields] = useState<MenuVisibilityColumnTable[]>([
     { label: "Mã kiểm kho", key: "id", visible: true },
     { label: "Thời gian cân bằng", key: "updatedAt", visible: true },
@@ -61,13 +79,7 @@ export const InventoryPage = () => {
       ),
     );
   };
-  if (loading) {
-    return <div>Loading...</div>;
-  }
-
-  if (error) {
-    return <div>{error}</div>;
-  }
+  console.log("fillet", filters);
 
   return (
     <Container className={"grid grid-cols-5 gap-4 grid-flow-row"}>
@@ -77,7 +89,10 @@ export const InventoryPage = () => {
       <div className={"col-span-4 w-full flex justify-between"}>
         <div className="relative flex items-center max-w-80">
           <Search className="absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 transform" />
-          <Input className={"pl-9"} placeholder={"Theo mã, tên hàng"} />
+          <Input
+            className={"pl-9"}
+            placeholder={"Theo mã, thời gian cân bằng"}
+          />
         </div>
         <div className={"flex space-x-2"}>
           <Link to={"/stock-takes"}>
@@ -132,11 +147,24 @@ export const InventoryPage = () => {
                   Trạng thái
                 </AccordionTrigger>
                 <AccordionContent className={"pb-2 space-y-2"}>
-                  <CheckBoxWithText id={"normal"}>Phiếu tạm</CheckBoxWithText>
-                  <CheckBoxWithText id={"serial"}>
+                  <CheckBoxWithText
+                    id={"draft"}
+                    onCheckChange={(value) => handleStatusChange("2", !!value)}
+                  >
+                    Phiếu tạm
+                  </CheckBoxWithText>
+                  <CheckBoxWithText
+                    id={"serial"}
+                    onCheckChange={(value) => handleStatusChange("1", !!value)}
+                  >
                     Đã cân bằng kho
                   </CheckBoxWithText>
-                  <CheckBoxWithText id={"service"}>Đã hủy</CheckBoxWithText>
+                  <CheckBoxWithText
+                    id={"service"}
+                    onCheckChange={(value) => handleStatusChange("0", !!value)}
+                  >
+                    Đã hủy
+                  </CheckBoxWithText>
                 </AccordionContent>
               </AccordionItem>
             </Accordion>

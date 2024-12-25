@@ -8,7 +8,7 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Save, FileDown, XCircle } from "lucide-react";
+import { Save, XCircle } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -31,7 +31,7 @@ export default function InventoryReportDetailModal({
 }: IInventoryReportDetailModalProps) {
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-screen-xl min-h-[calc(100vh-10%)] flex flex-col">
+      <DialogContent className="max-w-screen-xl max-h-screen flex flex-col">
         <DialogHeader>
           <DialogTitle>Chi tiết phiếu kiểm kho</DialogTitle>
         </DialogHeader>
@@ -45,11 +45,17 @@ export default function InventoryReportDetailModal({
                 </div>
                 <div className="flex justify-between">
                   <span className="font-medium">Thời gian:</span>
-                  <span>{inventoryItem.createdAt?.toString()}</span>
+                  <span>
+                    {inventoryItem.createdAt &&
+                      new Date(inventoryItem.createdAt).toLocaleString()}
+                  </span>
                 </div>
                 <div className="flex justify-between">
                   <span className="font-medium">Ngày cân bằng:</span>
-                  <span>{inventoryItem.updatedAt?.toString()}</span>
+                  <span>
+                    {inventoryItem.updatedAt &&
+                      new Date(inventoryItem.updatedAt).toLocaleString()}
+                  </span>
                 </div>
               </div>
               <div className="space-y-4">
@@ -70,7 +76,6 @@ export default function InventoryReportDetailModal({
           )}
           <div className="space-y-4">
             <div className="flex gap-4 mb-4">
-              <Input placeholder="Tìm mã hàng" className="max-w-[200px]" />
               <Input placeholder="Tìm tên hàng" className="max-w-[200px]" />
             </div>
             <ScrollArea className={"h-[300px] px-2"}>
@@ -110,10 +115,8 @@ export default function InventoryReportDetailModal({
               </Table>
             </ScrollArea>
             <div className="space-y-2 text-right">
-              <div>Tổng thực tế (90): 0</div>
-              <div>Tổng lệch tăng (0): 0</div>
-              <div>Tổng lệch giảm (-2): 0</div>
-              <div>Tổng chênh lệch (-2): 0</div>
+              <div>Tổng thực tế: 0</div>
+              <div>Tổng chênh lệch: 0</div>
             </div>
           </div>
         </div>
@@ -122,11 +125,11 @@ export default function InventoryReportDetailModal({
             <Save className="w-4 h-4 mr-2" />
             Lưu
           </Button>
-          <Button variant="secondary">
+          {/*<Button variant="secondary">
             <FileDown className="w-4 h-4 mr-2" />
             Xuất file
-          </Button>
-          <Button variant="destructive">
+          </Button>*/}
+          <Button variant="destructive" onClick={() => onOpenChange(false)}>
             <XCircle className="w-4 h-4 mr-2" />
             Hủy bỏ
           </Button>
