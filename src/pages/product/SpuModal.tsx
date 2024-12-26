@@ -46,6 +46,8 @@ import {
 import { getSpuDetail, upsertSpuDetail } from "@/pages/product/api/spuApi.ts";
 import { Image } from "@/types/image.ts";
 import { SpuDetail } from "@/types/spu/spuGetDetail.ts";
+import { deleteSkuAttr } from "@/pages/product/api/skuAttrApi.ts";
+import { deleteSku } from "@/pages/product/api/skuApi.ts";
 
 interface ISpuModalProps {
   isOpen: boolean;
@@ -98,6 +100,22 @@ export default function SpuModal({
     }
   };
 
+  const CallApiDeleteSkuAttr = async (id: number, index: number) => {
+    try {
+      await deleteSkuAttr(id, index);
+    } catch (error) {
+      console.error("Error: ", error);
+    }
+  };
+
+  const CallApiDeleteSku = async (id: number) => {
+    try {
+      await deleteSku(id);
+    } catch (error) {
+      console.error("Error: ", error);
+    }
+  };
+
   const fetchSpuDetail = async (id: number) => {
     try {
       const response = await getSpuDetail(id);
@@ -120,16 +138,42 @@ export default function SpuModal({
   };
 
   const handleDeleteAttr = (index: number) => {
-    setAttrs((prev) => prev.filter((_, i) => i !== index));
-    // Xoa skuTierIdx trong skus tuong ung
-    setSkus((prev) =>
-      prev.map((item) => {
-        return {
-          ...item,
-          skuTierIdx: item.skuTierIdx?.filter((_, i) => i !== index),
-        };
-      }),
-    );
+    // neu co id thi goi api xoa
+    if (attrs[index].id) {
+      CallApiDeleteSkuAttr(attrs[index].id, index).then(() => {
+        setAttrs((prev) => prev.filter((_, i) => i !== index));
+        // Xoa skuTierIdx trong skus tuong ung
+        setSkus((prev) =>
+          prev.map((item) => {
+            return {
+              ...item,
+              skuTierIdx: item.skuTierIdx?.filter((_, i) => i !== index),
+            };
+          }),
+        );
+      });
+    } else {
+      setAttrs((prev) => prev.filter((_, i) => i !== index));
+      // Xoa skuTierIdx trong skus tuong ung
+      setSkus((prev) =>
+        prev.map((item) => {
+          return {
+            ...item,
+            skuTierIdx: item.skuTierIdx?.filter((_, i) => i !== index),
+          };
+        }),
+      );
+    }
+  };
+
+  const handleDeleteSku = (index: number) => {
+    if (skus[index].id) {
+      CallApiDeleteSku(skus[index].id).then(() => {
+        setSkus((prev) => prev.filter((_, i) => i !== index));
+      });
+    } else {
+      setSkus((prev) => prev.filter((_, i) => i !== index));
+    }
   };
 
   const handleAddSku = () => {
@@ -338,6 +382,7 @@ export default function SpuModal({
                     {skus.map((item, index) => (
                       <ItemSku
                         key={index}
+                        onDeleted={() => handleDeleteSku(index)}
                         attribute={attrs}
                         indexSku={index}
                         sku={item}

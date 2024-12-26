@@ -27,13 +27,20 @@ import {
 import { Image } from "@/types/image.ts";
 
 export interface ItemSkuProps {
+  onDeleted: () => void;
   attribute: SkuAttrCreate[];
   sku: SkuCreate;
   indexSku: number;
   setSku: (index: number, sku: SkuCreate) => void;
 }
 
-export const ItemSku = ({ attribute, sku, indexSku, setSku }: ItemSkuProps) => {
+export const ItemSku = ({
+  onDeleted,
+  attribute,
+  sku,
+  indexSku,
+  setSku,
+}: ItemSkuProps) => {
   const [attrSelected, setAttrSelected] = useState<string[]>(
     new Array(attribute.length).fill(""),
   );
@@ -80,7 +87,7 @@ export const ItemSku = ({ attribute, sku, indexSku, setSku }: ItemSkuProps) => {
     if (sku.images) {
       setImage(sku.images[0]);
     }
-  }, []);
+  }, [sku]);
 
   const handleSelectAttr = (index: number, value: string) => {
     setAttrSelected((prev) => prev.map((v, i) => (i === index ? value : v)));
@@ -337,7 +344,10 @@ export const ItemSku = ({ attribute, sku, indexSku, setSku }: ItemSkuProps) => {
         </div>
         {/* button */}
         <div className={"flex flex-row space-x-2 justify-end"}>
-          <Button className={"bg-red-500 hover:bg-red-600"}>
+          <Button
+            className={"bg-red-500 hover:bg-red-600"}
+            onClick={() => onDeleted()}
+          >
             <Trash2Icon />
             Xóa
           </Button>
