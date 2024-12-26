@@ -25,4 +25,18 @@ interface InventoryItem {
   name: string;
   amount: number;
   inventoryDif: number;
+  actualQuantity?: number;
+  varianceValue?: number;
+}
+export interface InventoryReportCreate {
+  warehouseMan1: number;
+  warehouseMan2?: number;
+  warehouseMan3?: number;
+  note?: string;
+  items: InventoryReportDetailCreate[];
+}
+interface InventoryReportDetailCreate {
+  skuId: number;
+  amount: number;
+  inventoryDif: number;
 }
