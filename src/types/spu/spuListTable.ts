@@ -9,6 +9,6 @@ export interface SpuListTable {
   categoryId: number;
   brandName: string;
   categoryName: string;
-  images?: Image;
+  images?: Image[];
   outOfStock: boolean;
 }

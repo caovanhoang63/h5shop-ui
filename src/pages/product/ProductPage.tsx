@@ -25,15 +25,17 @@ import { Brand } from "@/types/brand/brand.ts";
 import { getCategories } from "@/pages/product/api/categoryApi.ts";
 import { Category } from "@/types/category/category.ts";
 import SpuModal from "@/pages/product/SpuModal.tsx";
+import { SpuListTable } from "@/types/spu/spuListTable.ts";
+import { getSpuListTable } from "@/pages/product/api/spuApi.ts";
 
 export default function ProductPage() {
   const [fields, setFields] = useState<MenuVisibilityColumnTable[]>([
     { label: "Mã", key: "id", visible: true },
     { label: "Ảnh", key: "images", visible: true },
     { label: "Tên sản phẩm", key: "name", visible: true },
-    { label: "Tồn kho", key: "stock", visible: true },
-    { label: "Trạng thái", key: "status", visible: true },
-    { label: "Action", key: "actions", visible: true },
+    { label: "Thương hiệu", key: "brandName", visible: true },
+    { label: "Nhóm hàng", key: "categoryName", visible: true },
+    { label: "Mô tả", key: "description", visible: true },
   ]);
 
   const [brandSelected, setBrandSelected] = useState<string>("0");
@@ -41,10 +43,12 @@ export default function ProductPage() {
   const [categorySelected, setCategorySelected] = useState<number>();
   const [listCategories, setListCategories] = useState<Category[]>([]);
   const [isOpenModalSpu, setIsOpenModalSpu] = useState<boolean>(false);
+  const [spuList, setSpuList] = useState<SpuListTable[]>([]);
 
   useEffect(() => {
     fetchBrands();
     fetchCategories();
+    fetchSpuListTable();
   }, []);
 
   const fetchBrands = async () => {
@@ -53,6 +57,16 @@ export default function ProductPage() {
       setListBrands(response.data);
     } catch (error) {
       console.error("Fetch error:", error);
+    }
+  };
+
+  const fetchSpuListTable = async () => {
+    try {
+      const response = await getSpuListTable();
+      console.log(response);
+      setSpuList(response.data);
+    } catch (error) {
+      console.error("Error: ", error);
     }
   };
 
@@ -166,7 +180,10 @@ export default function ProductPage() {
         </Card>
       </div>
       <div className={"col-span-4"}>
-        <DataTableDemo columnVisible={fields}></DataTableDemo>
+        <DataTableDemo
+          columnVisible={fields}
+          spuListTable={spuList}
+        ></DataTableDemo>
       </div>
       <SpuModal
         isAdd={true}
