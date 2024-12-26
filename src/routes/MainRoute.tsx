@@ -9,6 +9,7 @@ import { InventoryPage } from "@/pages/inventory/InventoryPage.tsx";
 import InventoryCheckPage from "@/pages/inventory/stockTakes/StockTakesPage.tsx";
 import PartnerPage from "@/pages/partner/PartnerPage.tsx";
 import SalePage from "@/pages/sale/SalePage.tsx";
+import { StockInPage } from "@/pages/inventory/stockIn/StockInPage.tsx";
 
 export const MainRoute = () => {
   return (
@@ -21,6 +22,7 @@ export const MainRoute = () => {
           <Route path={"inventory"} element={<InventoryPage />} />
           <Route path={"stock-takes"} element={<InventoryCheckPage />} />
           <Route path={"partner"} element={<PartnerPage />} />
+          <Route path={"stock-in"} element={<StockInPage />} />
         </Route>
         <Route path="/sale" element={<SalePage />} />
         <Route path="/error" element={<ErrorPage />} />
