@@ -6,7 +6,7 @@ export interface SpuUpsert {
   description: string;
   categoryId: number;
   brandId: number;
-  metadata: object;
+  metadata: MetadataSpu;
   images?: Image[];
   skus: SkuCreate[];
   attrs: SkuAttrCreate[];
@@ -36,4 +36,8 @@ export interface SkuWholesalePriceCreate {
   skuId: number;
   minQuantity: number;
   price: number;
+}
+
+export interface MetadataSpu {
+  position: string;
 }

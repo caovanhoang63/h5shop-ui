@@ -27,7 +27,7 @@ export const ItemAttrSku: React.FC<ItemAttrSkuProps> = ({
   }, [attribute]);
 
   const handleChangeItemInValue = (index: number, value: string) => {
-    //setValues((prev) => prev.map((v, i) => (i === index ? value : v)));
+    setValues((prev) => prev.map((v, i) => (i === index ? value : v)));
     const newValue = values.map((v, i) => (i === index ? value : v));
     setAttribute(indexAttr, { ...attribute, value: newValue });
   };

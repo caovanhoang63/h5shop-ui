@@ -1,24 +1,43 @@
 import { Input } from "@/components/ui/input.tsx";
 import { useEffect, useRef, useState } from "react";
 import { CircleX } from "lucide-react";
-import { uploadImage } from "@/pages/product/api/spuApi.ts";
+import { Image } from "@/types/image.ts";
+import { uploadImage } from "@/pages/product/api/uploadApi.ts";
 
 export function InputUploadImage({
   width = "192px",
   height = "192px",
+  image,
+  setImage,
 }: {
   width?: string;
   height?: string;
+  image?: Image;
+  setImage?: (image: Image) => void;
 }) {
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [image, setImage] = useState<string | null>();
+  const [imageState, setImageState] = useState<string | null>();
 
-  useEffect(() => {}, []);
+  useEffect(() => {
+    if (image) {
+      setImageState(image.url);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (image) {
+      setImageState(image.url);
+    }
+  }, [image]);
 
   const CallApiUpLoadImage = async (file: File) => {
     try {
-      const res = uploadImage(file);
-      console.log(res);
+      const res = await uploadImage(file);
+      console.log(res.data);
+
+      if (setImage) {
+        setImage(res.data);
+      }
     } catch (error) {
       console.error("Fetch error:", error);
       throw error;
@@ -26,6 +45,11 @@ export function InputUploadImage({
   };
 
   const handleClickUploadImage = () => {
+    // Check if exists image
+    if (imageState) {
+      return;
+    }
+
     fileInputRef.current?.click();
   };
 
@@ -34,7 +58,7 @@ export function InputUploadImage({
     if (file) {
       const reader = new FileReader();
       reader.onload = (e) => {
-        setImage(e.target?.result as string);
+        setImageState(e.target?.result as string);
       };
       reader.readAsDataURL(file);
 
@@ -43,7 +67,7 @@ export function InputUploadImage({
   };
 
   const handleDeleteImage = () => {
-    setImage(null);
+    setImageState(null);
   };
   return (
     <div className={"flex flex-col items-center"}>
@@ -56,8 +80,8 @@ export function InputUploadImage({
       >
         <img
           src={
-            image
-              ? image.toString()
+            imageState
+              ? imageState.toString()
               : "https://media.istockphoto.com/id/1222357475/vector/image-preview-icon-picture-placeholder-for-website-or-ui-ux-design-vector-illustration.jpg?s=612x612&w=0&k=20&c=KuCo-dRBYV7nz2gbk4J9w1WtTAgpTdznHu55W9FjimE="
           }
           alt={"preview"}

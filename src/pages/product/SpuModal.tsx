@@ -8,7 +8,6 @@ import {
 import { Button } from "@/components/ui/button.tsx";
 import { Label } from "@/components/ui/label.tsx";
 import { Input } from "@/components/ui/input.tsx";
-import { Spu } from "@/types/spu.ts";
 import {
   Tabs,
   TabsContent,
@@ -38,20 +37,27 @@ import { CardCategorySelect } from "@/pages/product/CategorySelect.tsx";
 import { InputUploadImage } from "@/components/InputUploadImage.tsx";
 import { Category } from "@/types/category/category.ts";
 import { Brand } from "@/types/brand/brand.ts";
-import { SkuAttrCreate, SkuCreate, SpuUpsert } from "@/types/spu/spuUpsert.ts";
-import { upsertSpuDetail } from "@/pages/product/api/spuApi.ts";
+import {
+  MetadataSpu,
+  SkuAttrCreate,
+  SkuCreate,
+  SpuUpsert,
+} from "@/types/spu/spuUpsert.ts";
+import { getSpuDetail, upsertSpuDetail } from "@/pages/product/api/spuApi.ts";
+import { Image } from "@/types/image.ts";
+import { SpuDetail } from "@/types/spu/spuGetDetail.ts";
 
 interface ISpuModalProps {
   isOpen: boolean;
+  isAdd: boolean;
   onOpenChange: (isOpen: boolean) => void;
-  spu?: Spu;
   listCategories: Category[];
   listBrands: Brand[];
 }
 
 export default function SpuModal({
   isOpen,
-  spu,
+  isAdd,
   onOpenChange,
   listCategories,
   listBrands,
@@ -61,26 +67,42 @@ export default function SpuModal({
   const [brandId, setBrandId] = useState<number>();
   const [categoryId, setCategoryId] = useState<number>();
   const [description, setDescription] = useState<string>("");
-  const [metadata, setMetadata] = useState({
-    position: "",
-  });
+  const [metadata, setMetadata] = useState<MetadataSpu>({ position: "" });
   const [skus, setSkus] = useState<SkuCreate[]>([]);
   const [attrs, setAttrs] = useState<SkuAttrCreate[]>([]);
+  const [image, setImage] = useState<Image>();
 
-  const [spuUpsert, setSpuUpsert] = useState<SpuUpsert>();
+  const [spuDetail, setSpuDetail] = useState<SpuDetail>();
 
   useEffect(() => {
-    if (spu) {
-      setId(spu.id);
-      setName(spu.name);
-      setBrandId(1);
-      setCategoryId(spu.categoryId);
-    }
-  }, [spu]);
+    fetchSpuDetail(7);
+  }, []);
+
+  useEffect(() => {
+    setId(spuDetail?.id);
+    setName(spuDetail?.name || "");
+    setBrandId(spuDetail?.brandId || 0);
+    setCategoryId(spuDetail?.categoryId || 0);
+    setDescription(spuDetail?.description || "");
+    setMetadata((spuDetail?.metadata as MetadataSpu) || { position: "" });
+    setImage(spuDetail?.images?.[0]);
+    setSkus((spuDetail?.skus as SkuCreate[]) || []);
+    setAttrs((spuDetail?.attrs as SkuAttrCreate[]) || []);
+  }, [spuDetail]);
 
   const CallApiUpsertSpuDetail = async (spu: SpuUpsert) => {
     try {
       await upsertSpuDetail(spu);
+    } catch (error) {
+      console.error("Error: ", error);
+    }
+  };
+
+  const fetchSpuDetail = async (id: number) => {
+    try {
+      const response = await getSpuDetail(id);
+      console.log(response.data);
+      setSpuDetail(response.data.spuDetail);
     } catch (error) {
       console.error("Error: ", error);
     }
@@ -135,6 +157,7 @@ export default function SpuModal({
       description: description,
       categoryId: categoryId,
       brandId: brandId,
+      images: [image],
       metadata: metadata,
       skus: skus,
       attrs: attrs,
@@ -148,20 +171,6 @@ export default function SpuModal({
       .catch((error) => {
         console.error("Error: ", error);
       });
-
-    if (id && name && categoryId && brandId) {
-      setSpuUpsert({
-        id: id,
-        name: name,
-        description: description,
-        categoryId: categoryId,
-        brandId: brandId,
-        metadata: metadata,
-        skus: skus,
-        attrs: attrs,
-      });
-      console.log(spuUpsert);
-    }
   };
 
   return (
@@ -181,7 +190,12 @@ export default function SpuModal({
             <Card>
               <CardContent className="space-y-2 space-x-12 flex flex-row mt-6">
                 <div>
-                  <InputUploadImage height={"320px"} width={"320px"} />
+                  <InputUploadImage
+                    height={"320px"}
+                    width={"320px"}
+                    image={image}
+                    setImage={setImage}
+                  />
                 </div>
                 <div className={"flex flex-row flex-1 space-x-12"}>
                   <div className={"flex flex-col flex-1 space-y-5"}>
@@ -210,6 +224,7 @@ export default function SpuModal({
                           console.log(value);
                           setBrandId(parseInt(value));
                         }}
+                        value={brandId?.toString()}
                       >
                         <SelectTrigger>
                           <SelectValue placeholder={"Chọn thương hiệu"} />
@@ -234,6 +249,7 @@ export default function SpuModal({
                         listCategories={listCategories}
                         isAdd={true}
                         setParentId={handleSetCategory}
+                        parentIdSelected={categoryId}
                       />
                     </div>
                     <div className={"flex flex-row items-center"}>
@@ -349,21 +365,27 @@ export default function SpuModal({
         </Tabs>
         <DialogFooter className="">
           <div className={"flex flex-row space-x-2 justify-end"}>
-            <Button
-              className={"bg-green-500 hover:bg-green-600"}
-              onClick={() => mapSpuUpsert()}
-            >
-              <Plus />
-              Thêm mới
-            </Button>
-            <Button className={"bg-green-500 hover:bg-green-600"}>
-              <FileInput />
-              Lưu
-            </Button>
-            <Button className={"bg-red-500 hover:bg-red-600"}>
-              <Trash2Icon />
-              Xóa
-            </Button>
+            {isAdd && (
+              <Button
+                className={"bg-green-500 hover:bg-green-600"}
+                onClick={() => mapSpuUpsert()}
+              >
+                <Plus />
+                Thêm mới
+              </Button>
+            )}
+            {!isAdd && (
+              <Button className={"bg-green-500 hover:bg-green-600"}>
+                <FileInput />
+                Lưu
+              </Button>
+            )}
+            {!isAdd && (
+              <Button className={"bg-red-500 hover:bg-red-600"}>
+                <Trash2Icon />
+                Xóa
+              </Button>
+            )}
             <Button
               className={"bg-gray-500 hover:bg-gray-600"}
               onClick={() => onOpenChange(false)}

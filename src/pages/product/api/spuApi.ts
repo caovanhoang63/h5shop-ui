@@ -1,10 +1,18 @@
 import { SpuUpsert } from "@/types/spu/spuUpsert.ts";
 import axiosInstance from "@/axiosSetup.ts";
 import { SpuListTable } from "@/types/spu/spuListTable.ts";
-import { Image } from "@/types/image.ts";
+import { SpuDetail } from "@/types/spu/spuGetDetail.ts";
 
 export interface ResponseSpu {
   data: SpuListTable[];
+  extra?: never;
+  paging?: never;
+}
+
+export interface ResponseSpuDetail {
+  data: {
+    spuDetail: SpuDetail;
+  };
   extra?: never;
   paging?: never;
 }
@@ -18,24 +26,11 @@ export async function upsertSpuDetail(spu: SpuUpsert): Promise<void> {
   }
 }
 
-export async function uploadImage(file: File): Promise<Image> {
-  if (!file) {
-    throw new Error("File is required");
-  }
+export async function getSpuDetail(id: number): Promise<ResponseSpuDetail> {
   try {
-    const formData = new FormData();
-    formData.append("file", file);
-
-    const response = await axiosInstance.post<Image>(
-      "/v1/upload/image",
-      formData,
-      {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      },
+    const response = await axiosInstance.get<ResponseSpuDetail>(
+      `/v1/spu/detail/${id}`,
     );
-
     return response.data;
   } catch (error) {
     console.error("Fetch error:", error);

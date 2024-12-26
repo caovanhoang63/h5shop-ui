@@ -24,6 +24,7 @@ import {
   SkuCreate,
   SkuWholesalePriceCreate,
 } from "@/types/spu/spuUpsert.ts";
+import { Image } from "@/types/image.ts";
 
 export interface ItemSkuProps {
   attribute: SkuAttrCreate[];
@@ -43,6 +44,7 @@ export const ItemSku = ({ attribute, sku, indexSku, setSku }: ItemSkuProps) => {
   const [costPrice, setCostPrice] = useState<number>(0);
   const [stock, setStock] = useState<number>(0);
   const [skuTierIdx, setSkuTierIdx] = useState<number[]>([]);
+  const [image, setImage] = useState<Image>();
 
   useEffect(() => {
     setSkuTierIdx(new Array(attribute.length).fill(0));
@@ -72,6 +74,11 @@ export const ItemSku = ({ attribute, sku, indexSku, setSku }: ItemSkuProps) => {
     // WholeSalePrice
     if (sku.wholesalePrices) {
       setWholeSalePrice(sku.wholesalePrices);
+    }
+
+    // Image
+    if (sku.images) {
+      setImage(sku.images[0]);
     }
   }, []);
 
@@ -142,6 +149,14 @@ export const ItemSku = ({ attribute, sku, indexSku, setSku }: ItemSkuProps) => {
     setSku(indexSku, { ...sku, stock: newValue });
   };
 
+  const handleSetImage = (image: Image) => {
+    setImage(image);
+    setSku(indexSku, {
+      ...sku,
+      images: [image],
+    });
+  };
+
   const handleSetWholeSalePrice = (
     index: number,
     wholeSalePriceParam: SkuWholesalePriceCreate,
@@ -162,7 +177,7 @@ export const ItemSku = ({ attribute, sku, indexSku, setSku }: ItemSkuProps) => {
     <div className={"flex flex-row space-x-10"}>
       <div>
         {/* Upload Image */}
-        <InputUploadImage />
+        <InputUploadImage image={image} setImage={handleSetImage} />
       </div>
       <div className={"flex flex-1 flex-col space-y-4"}>
         <div className={"flex flex-row space-x-12"}>

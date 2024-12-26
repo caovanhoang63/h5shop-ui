@@ -169,6 +169,7 @@ export default function ProductPage() {
         <DataTableDemo columnVisible={fields}></DataTableDemo>
       </div>
       <SpuModal
+        isAdd={true}
         isOpen={isOpenModalSpu}
         onOpenChange={handleCloseModalSpu}
         listCategories={listCategories}
