@@ -8,147 +8,86 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select.tsx";
+import { Category } from "@/types/category/category.ts";
 
-export interface CategoryFilter {
-  id: number;
-  name: string;
-  children: CategoryFilter[];
-  parentID: number | undefined;
-  checked: boolean;
+export interface ICardCategorySelectProps {
+  listCategories: Category[];
+  isAdd: boolean;
+  setParentId?: (id: number | null) => void;
+  parentIdSelected?: number | null;
 }
 
-//Mock data
-const categories: CategoryFilter[] = [
-  {
-    id: 1,
-    name: "Laptop",
-    checked: false,
-    parentID: undefined,
-    children: [
-      {
-        id: 2,
-        name: "Dell",
-        checked: false,
-        parentID: 1,
-        children: [
-          {
-            id: 14,
-            name: "Dell Inspiron",
-            checked: false,
-            parentID: 2,
-            children: [],
-          },
-          {
-            id: 15,
-            checked: false,
-            name: "Dell Vostro",
-            parentID: 2,
-            children: [],
-          },
-        ],
-      },
-      {
-        id: 3,
-        checked: false,
-        name: "HP",
-        parentID: 1,
-        children: [],
-      },
-      {
-        id: 4,
-        checked: false,
-        name: "MSI",
-        parentID: 1,
-        children: [],
-      },
-      {
-        id: 5,
-        checked: false,
-        name: "Lenovo",
-        parentID: 1,
-        children: [],
-      },
-      {
-        id: 6,
-        checked: false,
-        name: "Asus",
-        parentID: 1,
-        children: [],
-      },
-      {
-        id: 7,
-        checked: false,
-        name: "Acer",
-        parentID: 1,
-        children: [],
-      },
-    ],
-  },
-  {
-    id: 8,
-    checked: false,
-    name: "Điện thoại",
-    parentID: undefined,
-    children: [
-      {
-        id: 9,
-        checked: false,
-        parentID: 8,
-        name: "Samsung",
-        children: [],
-      },
-      {
-        id: 10,
-        checked: false,
-        parentID: 8,
-        name: "Iphone",
-        children: [],
-      },
-      {
-        id: 11,
-        checked: false,
-        parentID: 8,
-        name: "Xiaomi",
-        children: [],
-      },
-      {
-        id: 12,
-        checked: false,
-        parentID: 8,
-        name: "Oppo",
-        children: [],
-      },
-      {
-        id: 13,
-        checked: false,
-        parentID: 8,
-        name: "Vsmart",
-        children: [],
-      },
-    ],
-  },
-];
-
-export const CardCategorySelect = () => {
-  const [categoryState, setCategoryState] =
-    useState<CategoryFilter[]>(categories);
+export const CardCategorySelect = ({
+  listCategories,
+  isAdd,
+  setParentId,
+  parentIdSelected,
+}: ICardCategorySelectProps) => {
   const [idCategorySelected, setIdCategorySelected] = useState<number>(0);
   const [searchText, setSearchText] = useState<string>("");
   const [isOpen, setIsOpen] = useState(false);
   const [categoryName, setCategoryName] = useState<string>("");
+  const [listCate, setListCate] = useState<Category[]>([
+    {
+      id: 0,
+      name: "Không chọn cha",
+      parentId: null,
+      children: [],
+    },
+  ]);
+
+  useEffect(() => {
+    if (isAdd) {
+      setListCate(listCategories);
+    } else {
+      setListCate((prev) => [...prev, ...listCategories]);
+    }
+  }, [listCategories]);
+
+  useEffect(() => {
+    if (parentIdSelected === null) {
+      setIdCategorySelected(0);
+      setCategoryName("Không chọn cha");
+    } else {
+      setIdCategorySelected(parentIdSelected as number);
+
+      const category = findCategoryById(
+        listCategories,
+        parentIdSelected as number,
+      );
+      if (category) {
+        setCategoryName(category.name);
+      }
+    }
+  }, [parentIdSelected]);
+
+  // Đệ quy tìm kiếm category bằng id
+  const findCategoryById = (
+    categories: Category[],
+    id: number,
+  ): Category | null => {
+    for (let i = 0; i < categories.length; i++) {
+      if (categories[i].id === id) {
+        return categories[i];
+      } else {
+        const found = findCategoryById(categories[i].children, id);
+        if (found) return found;
+      }
+    }
+    return null;
+  };
 
   const handleClickCategory = (id: number, name: string) => {
-    setCategoryState((prevState) => {
-      return prevState.map((category) => {
-        if (category.id === id) {
-          category.checked = !category.checked;
-        }
-        return category;
-      });
-    });
     setCategoryName(name);
     setIdCategorySelected(id);
     setIsOpen(false);
+    if (setParentId) {
+      if (id === 0) {
+        setParentId(null);
+      } else {
+        setParentId(id);
+      }
+    }
   };
 
   const normalizeText = (text: string): string => {
@@ -160,9 +99,9 @@ export const CardCategorySelect = () => {
       .toLowerCase(); // Chuyển tất cả thành chữ thường.
   };
   const filterCategories = (
-    categories: CategoryFilter[],
+    categories: Category[],
     searchText: string,
-  ): CategoryFilter[] => {
+  ): Category[] => {
     if (!searchText) return categories;
 
     const normalizedSearchText = normalizeText(searchText);
@@ -184,15 +123,15 @@ export const CardCategorySelect = () => {
 
         return null;
       })
-      .filter((category) => category !== null) as CategoryFilter[];
+      .filter((category) => category !== null) as Category[];
   };
-  const filteredCategories = filterCategories(categoryState, searchText);
+  const filteredCategories = filterCategories(listCate, searchText);
 
   return (
-    <Select open={isOpen} onOpenChange={setIsOpen} value={"1"}>
+    <Select open={isOpen} onOpenChange={setIsOpen} value={"0"}>
       <SelectTrigger>
-        <SelectValue placeholder={"Chọn nhóm hàng"}>
-          {categoryName ? categoryName : "Chọn nhóm hàng"}
+        <SelectValue placeholder={"--Lựa chọn--"}>
+          {categoryName ? categoryName : "--Lựa chọn--"}
         </SelectValue>
       </SelectTrigger>
       <SelectContent>
@@ -238,7 +177,7 @@ export const CardCategorySelectItem = ({
   onClick,
   searchText,
 }: {
-  category: CategoryFilter;
+  category: Category;
   idSelected?: number;
   onClick?: (id: number, name: string) => void;
   searchText: string;

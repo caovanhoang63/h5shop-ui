@@ -1,27 +1,54 @@
 import { Input } from "@/components/ui/input.tsx";
 import { Trash2Icon } from "lucide-react";
-import { ItemWholeSalePriceProps } from "@/pages/product/ItemSku.tsx";
+import { SkuWholesalePriceCreate } from "@/types/spu/spuUpsert.ts";
 
 interface ItemAttrSkuProps {
   onDeleted: () => void;
-  wholeSalePrice: ItemWholeSalePriceProps;
+  wholeSalePrice: SkuWholesalePriceCreate;
+  indexWholeSalePrice: number;
+  setWholeSalePrice: (
+    index: number,
+    wholeSalePrice: SkuWholesalePriceCreate,
+  ) => void;
 }
 
 export const ItemWholeSalePrice: React.FC<ItemAttrSkuProps> = ({
   onDeleted,
   wholeSalePrice,
+  indexWholeSalePrice,
+  setWholeSalePrice,
 }) => {
+  const handleChangeMinQuantity = (value: number) => {
+    if (isNaN(value)) return;
+
+    setWholeSalePrice(indexWholeSalePrice, {
+      ...wholeSalePrice,
+      minQuantity: value,
+    });
+  };
+
+  const handleChangePrice = (value: number) => {
+    if (isNaN(value)) return;
+
+    setWholeSalePrice(indexWholeSalePrice, {
+      ...wholeSalePrice,
+      price: value,
+    });
+  };
+
   return (
     <div className={"flex flex-row justify-between items-center"}>
       <Input
         placeholder={"Số lượng"}
         style={{ width: "100px" }}
-        value={wholeSalePrice.min}
+        value={wholeSalePrice.minQuantity}
+        onChange={(e) => handleChangeMinQuantity(Number(e.target.value))}
       />
       <Input
         placeholder={"Giá"}
         style={{ width: "200px" }}
-        value={wholeSalePrice.value}
+        value={wholeSalePrice.price}
+        onChange={(e) => handleChangePrice(Number(e.target.value))}
       />
       <button
         className={"flex justify-center items-center hover:bg-gray-400"}

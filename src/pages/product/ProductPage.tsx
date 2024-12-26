@@ -17,21 +17,70 @@ import {
   ButtonVisibilityColumnTable,
   MenuVisibilityColumnTable,
 } from "@/components/ButtonVisibilityColumnTable.tsx";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { CardCategoryFilter } from "@/pages/product/CardCategoryFilter.tsx";
 import { CardBrandFilter } from "@/pages/product/CardBrandFilter.tsx";
+import { getBrands } from "@/pages/product/api/brandApi.ts";
+import { Brand } from "@/types/brand/brand.ts";
+import { getCategories } from "@/pages/product/api/categoryApi.ts";
+import { Category } from "@/types/category/category.ts";
+import SpuModal from "@/pages/product/SpuModal.tsx";
+import { SpuListTable } from "@/types/spu/spuListTable.ts";
+import { getSpuListTable } from "@/pages/product/api/spuApi.ts";
 
 export default function ProductPage() {
   const [fields, setFields] = useState<MenuVisibilityColumnTable[]>([
     { label: "Mã", key: "id", visible: true },
     { label: "Ảnh", key: "images", visible: true },
     { label: "Tên sản phẩm", key: "name", visible: true },
-    { label: "Tồn kho", key: "stock", visible: true },
-    { label: "Trạng thái", key: "status", visible: true },
-    { label: "Action", key: "actions", visible: true },
+    { label: "Thương hiệu", key: "brandName", visible: true },
+    { label: "Nhóm hàng", key: "categoryName", visible: true },
+    { label: "Mô tả", key: "description", visible: true },
   ]);
 
   const [brandSelected, setBrandSelected] = useState<string>("0");
+  const [listBrands, setListBrands] = useState<Brand[]>([]);
+  const [categorySelected, setCategorySelected] = useState<number>();
+  const [listCategories, setListCategories] = useState<Category[]>([]);
+  const [isOpenModalSpu, setIsOpenModalSpu] = useState<boolean>(false);
+  const [spuList, setSpuList] = useState<SpuListTable[]>([]);
+  const [spuIdSelected, setSpuIdSelected] = useState<number>();
+  const [isAdd, setIsAdd] = useState<boolean>(true);
+
+  useEffect(() => {
+    fetchBrands();
+    fetchCategories();
+    fetchSpuListTable();
+  }, []);
+
+  const fetchBrands = async () => {
+    try {
+      const response = await getBrands();
+      setListBrands(response.data);
+    } catch (error) {
+      console.error("Fetch error:", error);
+    }
+  };
+
+  const fetchSpuListTable = async () => {
+    try {
+      const response = await getSpuListTable();
+      console.log(response);
+      setSpuList(response.data);
+    } catch (error) {
+      console.error("Error: ", error);
+    }
+  };
+
+  const fetchCategories = async () => {
+    try {
+      const response = await getCategories();
+      console.log(response);
+      setListCategories(response.data);
+    } catch (error) {
+      console.error("Fetch error:", error);
+    }
+  };
 
   const handleChangedBrand = (brandId: string) => {
     console.log(brandSelected);
@@ -47,6 +96,21 @@ export default function ProductPage() {
     );
   };
 
+  const handleCloseModalSpu = () => {
+    setIsOpenModalSpu(false);
+  };
+
+  const handleSelectItemTable = (spuId: number) => {
+    setSpuIdSelected(spuId);
+    setIsAdd(false);
+    setIsOpenModalSpu(true);
+  };
+
+  const handleChangeCategory = (categoryId: number) => {
+    console.log(categorySelected);
+    setCategorySelected(categoryId);
+  };
+
   return (
     <Container className={"grid grid-cols-5 gap-4 grid-flow-row"}>
       <div className={"text-2xl col-span-1 font-bold"}>
@@ -58,7 +122,13 @@ export default function ProductPage() {
           <Input className={"pl-9"} placeholder={"Theo mã, tên hàng"} />
         </div>
         <div className={"flex space-x-2"}>
-          <Button className={"bg-green-500"}>
+          <Button
+            className={"bg-green-500"}
+            onClick={() => {
+              setIsOpenModalSpu(true);
+              setIsAdd(true);
+            }}
+          >
             <Plus />
             Thêm mới
             <TriangleDown />
@@ -78,8 +148,14 @@ export default function ProductPage() {
         </div>
       </div>
       <div className={"col-span-1 space-y-4"}>
-        <CardCategoryFilter />
-        <CardBrandFilter onChange={handleChangedBrand} />
+        <CardCategoryFilter
+          listCategories={listCategories}
+          setCategorySelected={(categoryId) => handleChangeCategory(categoryId)}
+        />
+        <CardBrandFilter
+          onChange={handleChangedBrand}
+          listBrands={listBrands}
+        />
         <Card>
           <CardContent>
             <Accordion type="single" collapsible>
@@ -115,8 +191,20 @@ export default function ProductPage() {
         </Card>
       </div>
       <div className={"col-span-4"}>
-        <DataTableDemo columnVisible={fields}></DataTableDemo>
+        <DataTableDemo
+          columnVisible={fields}
+          spuListTable={spuList}
+          onSelectedRow={handleSelectItemTable}
+        ></DataTableDemo>
       </div>
+      <SpuModal
+        isAdd={isAdd}
+        isOpen={isOpenModalSpu}
+        onOpenChange={handleCloseModalSpu}
+        listCategories={listCategories}
+        listBrands={listBrands}
+        spuIdSelected={spuIdSelected}
+      />
     </Container>
   );
 }

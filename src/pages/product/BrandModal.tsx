@@ -8,14 +8,19 @@ import {
 import { Button } from "@/components/ui/button.tsx";
 import { BanIcon, FileInput, Plus, Trash2Icon } from "lucide-react";
 import { Input } from "@/components/ui/input.tsx";
-import { BrandDTO } from "@/types/brand/BrandDTO.ts";
+import { Brand, brandConverter, BrandCreate } from "@/types/brand/brand.ts";
 import { useEffect, useState } from "react";
+import {
+  createBrand,
+  deleteBrand,
+  updateBrand,
+} from "@/pages/product/api/brandApi.ts";
 
 interface IBrandModalProps {
   isOpen: boolean;
   onOpenChange: (isOpen: boolean) => void;
   isAdd: boolean;
-  brandUpdate?: BrandDTO;
+  brandUpdate?: Brand;
 }
 
 export default function BrandModal({
@@ -24,27 +29,72 @@ export default function BrandModal({
   isAdd,
   brandUpdate,
 }: IBrandModalProps) {
-  const [brand, setBrand] = useState<BrandDTO>(new BrandDTO(0, ""));
+  const [brand, setBrand] = useState<Brand>({ name: "", id: 0 });
   useEffect(() => {
     if (brandUpdate) {
       setBrand(brandUpdate);
     }
   }, [brandUpdate]);
 
+  const CallApiAddBrand = async (brand: BrandCreate) => {
+    try {
+      await createBrand(brand);
+    } catch (error) {
+      console.error("Fetch error:", error);
+    }
+  };
+
+  const CallApiUpdateBrand = async (brand: Brand) => {
+    try {
+      await updateBrand(brand);
+    } catch (error) {
+      console.error("Fetch error:", error);
+    }
+  };
+
+  const CallApiDeleteBrand = async (brandId: number) => {
+    try {
+      await deleteBrand(brandId);
+    } catch (error) {
+      console.error("Fetch error:", error);
+    }
+  };
+
+  const handleClickBtnAdd = () => {
+    CallApiAddBrand(brandConverter.convertBrandToBrandCreate(brand))
+      .then(() => {
+        onOpenChange(false);
+        alert("Thêm mới thương hiệu thành công");
+      })
+      .catch((error) => {
+        console.error("Fetch error:", error);
+      });
+  };
+
+  const handleClickBtnUpdate = () => {
+    CallApiUpdateBrand(brand)
+      .then(() => {
+        onOpenChange(false);
+        alert("Cập nhật thương hiệu thành công");
+      })
+      .catch((error) => {
+        console.error("Fetch error:", error);
+      });
+  };
+
   const handleSetNameBrand = (name: string) => {
     setBrand((prev) => ({ ...prev, name }));
   };
 
-  const handleCreateBrand = () => {
-    alert(`Create brand: ${brand.name}`);
-  };
-
-  const handleUpdateBrand = () => {
-    alert(`Update brand: ${brand.name}`);
-  };
-
-  const handleDeleteBrand = () => {
-    alert(`Delete brand: ${brand.name}`);
+  const handleClickBtnDelete = () => {
+    CallApiDeleteBrand(brand.id)
+      .then(() => {
+        onOpenChange(false);
+        alert("Xóa thương hiệu thành công");
+      })
+      .catch((error) => {
+        console.error("Fetch error:", error);
+      });
   };
 
   return (
@@ -74,7 +124,7 @@ export default function BrandModal({
           {isAdd && (
             <Button
               className={"bg-green-500 hover:bg-green-600"}
-              onClick={() => handleCreateBrand()}
+              onClick={() => handleClickBtnAdd()}
             >
               <Plus />
               Thêm mới
@@ -83,7 +133,7 @@ export default function BrandModal({
           {!isAdd && (
             <Button
               className={"bg-green-500 hover:bg-green-600"}
-              onClick={() => handleUpdateBrand()}
+              onClick={() => handleClickBtnUpdate()}
             >
               <FileInput />
               Lưu
@@ -92,7 +142,7 @@ export default function BrandModal({
           {!isAdd && (
             <Button
               className={"bg-red-500 hover:bg-red-600"}
-              onClick={() => handleDeleteBrand()}
+              onClick={() => handleClickBtnDelete()}
             >
               <Trash2Icon />
               Xóa
