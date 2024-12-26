@@ -4,6 +4,7 @@ export interface Partner {
   address: string;
   email: string;
   phoneNumber: string;
+  debt: number;
   status: number;
   createdAt: Date;
   updatedAt: Date;
