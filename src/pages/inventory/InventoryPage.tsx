@@ -1,4 +1,4 @@
-import { FileOutputIcon, Plus, Search } from "lucide-react";
+import { CalendarIcon, FileOutputIcon, Plus, Search } from "lucide-react";
 import { Input } from "@/components/ui/input.tsx";
 import { Button } from "@/components/ui/button.tsx";
 import { Card, CardContent } from "@/components/ui/card.tsx";
@@ -24,6 +24,15 @@ import {
   ButtonVisibilityColumnTable,
   MenuVisibilityColumnTable,
 } from "@/components/ButtonVisibilityColumnTable.tsx";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover.tsx";
+import { cn } from "@/lib/utils.ts";
+import { endOfMonth, format, startOfMonth } from "date-fns";
+import { Calendar } from "@/components/ui/calendar";
+import { SelectRangeEventHandler } from "react-day-picker";
 
 export const InventoryPage = () => {
   const [inventoryReports, setInventoryReports] = useState<InventoryReport[]>(
@@ -31,9 +40,19 @@ export const InventoryPage = () => {
   );
   const [filters, setFilters] = useState<InventoryReportFilter>({
     lk_warehouseMan1: null,
-    time: null,
+    gtUpdatedAt: null,
+    ltUpdatedAt: null,
     status: [],
   });
+  const [selectedTimeOption, setSelectedTimeOption] = useState("all");
+  const [dateRange, setDateRange] = useState<{
+    from: Date | undefined;
+    to: Date | undefined;
+  }>({
+    from: undefined,
+    to: undefined,
+  });
+
   const handleStatusChange = (value: string, checked: boolean) => {
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-expect-error
@@ -51,6 +70,47 @@ export const InventoryPage = () => {
   /*const handleFilterChange = (key: string, value: never) => {
     setFilters((prevFilters) => ({ ...prevFilters, [key]: value }));
   };*/
+  const handleTimeOptionChange = (value: string) => {
+    setSelectedTimeOption(value);
+    const newFilters = { ...filters };
+
+    switch (value) {
+      case "all":
+        newFilters.gtUpdatedAt = null;
+        newFilters.ltUpdatedAt = null;
+        setDateRange({ from: undefined, to: undefined });
+        break;
+      case "this-month":
+        newFilters.gtUpdatedAt = startOfMonth(new Date());
+        newFilters.ltUpdatedAt = endOfMonth(new Date());
+        setDateRange({
+          from: newFilters.gtUpdatedAt,
+          to: newFilters.ltUpdatedAt,
+        });
+        break;
+      case "custom":
+        break;
+    }
+
+    setFilters(newFilters);
+  };
+  const handleDateRangeChange: SelectRangeEventHandler = (range) => {
+    if (range?.from) {
+      setDateRange({ from: range.from, to: range.to });
+      setFilters((prevFilters) => ({
+        ...prevFilters,
+        gtUpdatedAt: range.from,
+        ltUpdatedAt: range.to || range.from,
+      }));
+    } else {
+      setDateRange({ from: undefined, to: undefined });
+      setFilters((prevFilters) => ({
+        ...prevFilters,
+        gtUpdatedAt: null,
+        ltUpdatedAt: null,
+      }));
+    }
+  };
   const getInventoryReportTable = async () => {
     try {
       const response = await getInventoryReports(filters);
@@ -120,20 +180,67 @@ export const InventoryPage = () => {
                   Thời gian
                 </AccordionTrigger>
                 <AccordionContent className={"space-y-2"}>
-                  <RadioGroup defaultValue="option-one">
+                  <RadioGroup
+                    defaultValue="all"
+                    value={selectedTimeOption}
+                    onValueChange={handleTimeOptionChange}
+                  >
                     <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="option-one" id="option-one" />
-                      <Label htmlFor="option-one" className={"font-normal"}>
+                      <RadioGroupItem value="all" id="all" />
+                      <Label htmlFor="all" className={"font-normal"}>
+                        Tất cả
+                      </Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="this-month" id="this-month" />
+                      <Label htmlFor="this-month" className={"font-normal"}>
                         Tháng này
                       </Label>
                     </div>
                     <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="option-two" id="option-two" />
-                      <Label htmlFor="option-two" className={"font-normal"}>
+                      <RadioGroupItem value="custom" id="custom" />
+                      <Label htmlFor="custom" className={"custom"}>
                         Lựa chọn khác
                       </Label>
                     </div>
                   </RadioGroup>
+                  {selectedTimeOption === "custom" && (
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant={"outline"}
+                          className={cn(
+                            "w-full justify-start text-left font-normal",
+                            !dateRange && "text-muted-foreground",
+                          )}
+                        >
+                          <CalendarIcon className="mr-2 h-4 w-4" />
+                          {dateRange?.from ? (
+                            dateRange.to ? (
+                              <>
+                                {format(dateRange.from, "LLL dd, y")} -{" "}
+                                {format(dateRange.to, "LLL dd, y")}
+                              </>
+                            ) : (
+                              format(dateRange.from, "LLL dd, y")
+                            )
+                          ) : (
+                            <span>Pick a date range</span>
+                          )}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar
+                          initialFocus
+                          mode="range"
+                          defaultMonth={dateRange?.from}
+                          selected={dateRange}
+                          onSelect={handleDateRangeChange}
+                          numberOfMonths={1}
+                        />
+                      </PopoverContent>
+                    </Popover>
+                  )}
                 </AccordionContent>
               </AccordionItem>
             </Accordion>

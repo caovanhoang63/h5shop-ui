@@ -23,7 +23,8 @@ interface ResponseInventoryReportCreate {
 }
 export interface InventoryReportFilter {
   lk_warehouseMan1?: string | null;
-  time?: string | null;
+  ltUpdatedAt?: Date | null;
+  gtUpdatedAt?: Date | null;
   status?: [] | null;
 }
 export async function getInventoryReports(
@@ -33,7 +34,8 @@ export async function getInventoryReports(
     const params: InventoryReportFilter = {};
     if (filters.lk_warehouseMan1)
       params.lk_warehouseMan1 = filters.lk_warehouseMan1;
-    if (filters.time) params.time = filters.time;
+    if (filters.ltUpdatedAt) params.ltUpdatedAt = filters.ltUpdatedAt;
+    if (filters.gtUpdatedAt) params.gtUpdatedAt = filters.gtUpdatedAt;
     if (filters.status) params.status = filters.status;
     const response = await axiosInstance.get<ResponseInventoryReport>(
       "v1/inventory/table",
