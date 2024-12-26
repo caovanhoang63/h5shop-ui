@@ -62,6 +62,8 @@ export const ItemSku = ({
         newSkuTierIdx[i] = v;
       });
       setSkuTierIdx(newSkuTierIdx);
+    } else {
+      setSkuTierIdx(new Array(attribute.length).fill(0));
     }
 
     // Attribute selected
@@ -81,11 +83,15 @@ export const ItemSku = ({
     // WholeSalePrice
     if (sku.wholesalePrices) {
       setWholeSalePrice(sku.wholesalePrices);
+    } else {
+      setWholeSalePrice([]);
     }
 
     // Image
     if (sku.images) {
       setImage(sku.images[0]);
+    } else {
+      setImage(undefined);
     }
   }, [sku]);
 

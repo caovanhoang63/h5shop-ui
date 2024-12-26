@@ -55,6 +55,7 @@ interface ISpuModalProps {
   onOpenChange: (isOpen: boolean) => void;
   listCategories: Category[];
   listBrands: Brand[];
+  spuIdSelected?: number;
 }
 
 export default function SpuModal({
@@ -63,6 +64,7 @@ export default function SpuModal({
   onOpenChange,
   listCategories,
   listBrands,
+  spuIdSelected,
 }: ISpuModalProps) {
   const [id, setId] = useState<number>();
   const [name, setName] = useState<string>("");
@@ -77,8 +79,26 @@ export default function SpuModal({
   const [spuDetail, setSpuDetail] = useState<SpuDetail>();
 
   useEffect(() => {
-    fetchSpuDetail(7);
-  }, []);
+    // clear data when open modal
+    if (!isOpen) {
+      setId(undefined);
+      setName("");
+      setBrandId(undefined);
+      setCategoryId(undefined);
+      setDescription("");
+      setMetadata({ position: "" });
+      setSkus([]);
+      setAttrs([]);
+      setImage(undefined);
+      setSpuDetail(undefined);
+    }
+  }, [isOpen]);
+
+  useEffect(() => {
+    if (spuIdSelected && !isAdd) {
+      fetchSpuDetail(spuIdSelected);
+    }
+  }, [spuIdSelected]);
 
   useEffect(() => {
     setId(spuDetail?.id);

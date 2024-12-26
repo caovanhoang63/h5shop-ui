@@ -184,11 +184,13 @@ export const spuColumns: ColumnDef<SpuListTable>[] = [
 interface DataTableDemoProps {
   columnVisible: MenuVisibilityColumnTable[];
   spuListTable: SpuListTable[];
+  onSelectedRow: (spuId: number) => void;
 }
 
 export const DataTableDemo: React.FC<DataTableDemoProps> = ({
   columnVisible,
   spuListTable,
+  onSelectedRow,
 }) => {
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
@@ -267,6 +269,7 @@ export const DataTableDemo: React.FC<DataTableDemoProps> = ({
                   onClick={(event) => {
                     event.preventDefault();
                     event.stopPropagation();
+                    onSelectedRow(row.original.id);
                     console.log("Open");
                   }}
                   key={row.id}

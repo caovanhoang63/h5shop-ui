@@ -44,6 +44,8 @@ export default function ProductPage() {
   const [listCategories, setListCategories] = useState<Category[]>([]);
   const [isOpenModalSpu, setIsOpenModalSpu] = useState<boolean>(false);
   const [spuList, setSpuList] = useState<SpuListTable[]>([]);
+  const [spuIdSelected, setSpuIdSelected] = useState<number>();
+  const [isAdd, setIsAdd] = useState<boolean>(true);
 
   useEffect(() => {
     fetchBrands();
@@ -98,6 +100,12 @@ export default function ProductPage() {
     setIsOpenModalSpu(false);
   };
 
+  const handleSelectItemTable = (spuId: number) => {
+    setSpuIdSelected(spuId);
+    setIsAdd(false);
+    setIsOpenModalSpu(true);
+  };
+
   const handleChangeCategory = (categoryId: number) => {
     console.log(categorySelected);
     setCategorySelected(categoryId);
@@ -116,7 +124,10 @@ export default function ProductPage() {
         <div className={"flex space-x-2"}>
           <Button
             className={"bg-green-500"}
-            onClick={() => setIsOpenModalSpu(true)}
+            onClick={() => {
+              setIsOpenModalSpu(true);
+              setIsAdd(true);
+            }}
           >
             <Plus />
             Thêm mới
@@ -183,14 +194,16 @@ export default function ProductPage() {
         <DataTableDemo
           columnVisible={fields}
           spuListTable={spuList}
+          onSelectedRow={handleSelectItemTable}
         ></DataTableDemo>
       </div>
       <SpuModal
-        isAdd={true}
+        isAdd={isAdd}
         isOpen={isOpenModalSpu}
         onOpenChange={handleCloseModalSpu}
         listCategories={listCategories}
         listBrands={listBrands}
+        spuIdSelected={spuIdSelected}
       />
     </Container>
   );
