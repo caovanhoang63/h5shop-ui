@@ -1,12 +1,5 @@
 import * as React from "react";
-import {
-  ArrowLeft,
-  Printer,
-  Eye,
-  AlertCircle,
-  Trash2,
-  Pencil,
-} from "lucide-react";
+import { ArrowLeft, Trash2, Pencil } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -162,17 +155,6 @@ export default function InventoryCheckPage() {
               </div>
             )}
           </div>
-        </div>
-        <div className="flex items-center gap-2">
-          <Button variant="outline" size="icon">
-            <Printer className="h-4 w-4" />
-          </Button>
-          <Button variant="outline" size="icon">
-            <Eye className="h-4 w-4" />
-          </Button>
-          <Button variant="outline" size="icon">
-            <AlertCircle className="h-4 w-4" />
-          </Button>
         </div>
       </div>
 
