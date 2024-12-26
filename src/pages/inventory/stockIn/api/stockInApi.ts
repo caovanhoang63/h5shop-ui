@@ -1,16 +1,16 @@
 import axiosInstance from "@/axiosSetup.ts";
-import { StockInItemTable } from "@/types/stockIn.ts";
+import { StockInDetails, StockInItemTable } from "@/types/stockIn.ts";
 
 interface ResponseStockInTable {
   data: StockInItemTable[];
   extra?: never;
   paging?: never;
 }
-/*interface ResponseInventoryReportDetail {
+interface ResponseStockInDetail {
   data: StockInDetails;
   extra?: never;
   paging?: never;
-}*/
+}
 
 /*interface ResponseInventoryReportCreate {
   data: number;
@@ -46,12 +46,12 @@ export async function getStockInTableApi(
   }
 }
 
-/*export async function getInventoryReportDetailById(
+export async function getStockInDetailById(
   reportId: number,
-): Promise<ResponseInventoryReportDetail> {
+): Promise<ResponseStockInDetail> {
   try {
-    const response = await axiosInstance.get<ResponseInventoryReportDetail>(
-      `v1/inventory/${reportId}/details`,
+    const response = await axiosInstance.get<ResponseStockInDetail>(
+      `v1/stock-in/details/${reportId}`,
     );
     return response.data;
   } catch (error) {
@@ -59,7 +59,7 @@ export async function getStockInTableApi(
     throw error;
   }
 }
-export async function createInventoryReport(
+/*export async function createInventoryReport(
   body: InventoryReportCreate,
 ): Promise<ResponseInventoryReportCreate> {
   try {

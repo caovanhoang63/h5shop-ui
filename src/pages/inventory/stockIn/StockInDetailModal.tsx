@@ -16,24 +16,36 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog.tsx";
-import { InventoryReportDetails } from "@/types/inventoryReport.ts";
 import { ScrollArea } from "@/components/ui/scroll-area.tsx";
+import { StockInDetails } from "@/types/stockIn.ts";
 
 interface IStockInDetailModalProps {
   isOpen: boolean;
   onOpenChange: (isOpen: boolean) => void;
-  stockItem?: InventoryReportDetails;
+  stockItem?: StockInDetails;
 }
 export default function StockInDetailModal({
   isOpen,
   onOpenChange,
   stockItem,
 }: IStockInDetailModalProps) {
+  interface IStatusMap {
+    [key: number]: string;
+  }
+  const statusMap: IStatusMap = {
+    1: "Đã nhập hàng",
+    0: "Đã hủy",
+    2: "Phiếu tạm",
+  };
+  const formatCurrency = (amount: number) => {
+    const numberPrice = Number(amount);
+    return numberPrice.toLocaleString("en-US");
+  };
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-screen-xl max-h-screen flex flex-col">
         <DialogHeader>
-          <DialogTitle>Chi tiết phiếu kiểm kho</DialogTitle>
+          <DialogTitle>Chi tiết phiếu nhập hàng</DialogTitle>
         </DialogHeader>
         <div className="w-full mx-auto space-y-4">
           {stockItem && (
@@ -41,7 +53,7 @@ export default function StockInDetailModal({
               <div className="space-y-4">
                 <div className="flex justify-between">
                   <span className="font-medium">Mã kiểm kho:</span>
-                  <span>{stockItem.inventoryReportId}</span>
+                  <span>{stockItem.id}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="font-medium">Thời gian:</span>
@@ -61,7 +73,7 @@ export default function StockInDetailModal({
               <div className="space-y-4">
                 <div className="flex justify-between">
                   <span className="font-medium">Trạng thái:</span>
-                  <span>{stockItem.status}</span>
+                  <span>{statusMap[stockItem.status]}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="font-medium">Người tạo:</span>
@@ -84,10 +96,8 @@ export default function StockInDetailModal({
                   <TableRow>
                     <TableHead>Mã hàng</TableHead>
                     <TableHead>Tên hàng</TableHead>
-                    <TableHead className="text-right">Tồn kho</TableHead>
-                    <TableHead className="text-right">Thực tế</TableHead>
-                    <TableHead className="text-right">SL lệch</TableHead>
-                    <TableHead className="text-right">Giá trị lệch</TableHead>
+                    <TableHead className="text-right">Số lượng</TableHead>
+                    <TableHead className="text-right">Đơn giá</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -101,13 +111,7 @@ export default function StockInDetailModal({
                         {item.amount}
                       </TableCell>
                       <TableCell className="text-right">
-                        {item.amount - item.inventoryDif}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        {item.inventoryDif}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        {item.amount - item.inventoryDif}
+                        {formatCurrency(item.price)}
                       </TableCell>
                     </TableRow>
                   ))}

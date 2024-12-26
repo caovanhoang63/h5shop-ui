@@ -1,8 +1,10 @@
 export interface StockInDetails {
-  stockId: number;
+  id: number;
   amount: number;
   warehouseMan: number;
   warehouseName: string;
+  providerId: number;
+  providerName: string;
   status: number;
   items: StockInItem[];
   note: string;
@@ -13,6 +15,7 @@ interface StockInItem {
   skuId: number;
   name: string;
   amount: number;
+  price: number;
 }
 
 export interface StockInItemTable {

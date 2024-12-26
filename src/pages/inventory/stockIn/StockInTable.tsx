@@ -1,5 +1,5 @@
 import * as React from "react";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 import {
   ColumnDef,
@@ -34,7 +34,9 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { MenuVisibilityColumnTable } from "@/components/ButtonVisibilityColumnTable.tsx";
-import { StockInItemTable } from "@/types/stockIn.ts";
+import { StockInDetails, StockInItemTable } from "@/types/stockIn.ts";
+import StockInDetailModal from "@/pages/inventory/stockIn/StockInDetailModal.tsx";
+import { getStockInDetailById } from "@/pages/inventory/stockIn/api/stockInApi.ts";
 /*function generateMockSpus(count: number = 10): InventoryReport[] {
   return Array.from({ length: count }, (_, index) => ({
     id: index + 1,
@@ -221,23 +223,23 @@ export function StockInTable({
       }, {} as VisibilityState),
     );
   const [rowSelection, setRowSelection] = React.useState({});
-  /*const [isOpenStockTakesModal, setIsOpenStockTakesModal] = useState(false);
+  const [isOpenStockTakesModal, setIsOpenStockTakesModal] = useState(false);
 
-  const [selectedInventoryReport, setSelectedInventoryReport] = useState<
+  const [selectedStockInReport, setSelectedStockInReport] = useState<
     StockInItemTable | undefined
-  >(undefined);*/
-  /*const [inventoryReportDetails, setInventoryReportDetails] = useState<
-    StockInTable | undefined
-  >(undefined);*/
+  >(undefined);
+  const [stockInReportDetails, setStockInReportDetails] = useState<
+    StockInDetails | undefined
+  >(undefined);
 
-  /*const getInventoryReportDetails = async (id: number) => {
+  const getStockInDetails = async (id: number) => {
     try {
-      const response = await getInventoryReportDetailById(id);
-      setInventoryReportDetails(response.data);
+      const response = await getStockInDetailById(id);
+      setStockInReportDetails(response.data);
     } catch (error) {
-      console.error("Error fetching inventory report details:", error);
+      console.error("Error fetching stock in report details:", error);
     }
-  };*/
+  };
   const table = useReactTable<StockInItemTable>({
     initialState: {
       pagination: {
@@ -271,11 +273,11 @@ export function StockInTable({
   }, [columnVisible]);
   return (
     <div className="w-full">
-      {/*<InventoryReportDetailModal
+      <StockInDetailModal
         isOpen={isOpenStockTakesModal}
         onOpenChange={setIsOpenStockTakesModal}
-        inventoryItem={inventoryReportDetails}
-      ></InventoryReportDetailModal>*/}
+        stockItem={stockInReportDetails}
+      ></StockInDetailModal>
       <div className="rounded-md border">
         <Table>
           <TableHeader>
@@ -304,11 +306,11 @@ export function StockInTable({
                   onClick={async (event) => {
                     event.preventDefault();
                     event.stopPropagation();
-                    /*const selectedReport = row.original;
+                    const selectedReport = row.original;
                     setIsOpenStockTakesModal(true);
-                    setSelectedInventoryReport(selectedReport);
-                    console.log(selectedInventoryReport);
-                    await getInventoryReportDetails(selectedReport.id);*/
+                    setSelectedStockInReport(selectedReport);
+                    console.log(selectedStockInReport);
+                    await getStockInDetails(selectedReport.id);
                   }}
                   key={row.id}
                   data-state={row.getIsSelected() && "selected"}
