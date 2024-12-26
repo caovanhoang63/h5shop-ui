@@ -92,7 +92,7 @@ export async function updateProvider(
       body,
       {
         headers: {
-          Authorization: `Bearer ${token}M`,
+          Authorization: `Bearer ${token}`,
         },
       },
     );
