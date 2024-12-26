@@ -43,6 +43,7 @@ export const InventoryPage = () => {
     gtUpdatedAt: null,
     ltUpdatedAt: null,
     status: [],
+    lk_Id: null,
   });
   const [selectedTimeOption, setSelectedTimeOption] = useState("all");
   const [dateRange, setDateRange] = useState<{
@@ -52,7 +53,7 @@ export const InventoryPage = () => {
     from: undefined,
     to: undefined,
   });
-
+  const [search, setSearch] = useState<string>();
   const handleStatusChange = (value: string, checked: boolean) => {
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-expect-error
@@ -67,9 +68,12 @@ export const InventoryPage = () => {
       };
     });
   };
-  /*const handleFilterChange = (key: string, value: never) => {
-    setFilters((prevFilters) => ({ ...prevFilters, [key]: value }));
-  };*/
+  const handleSearchChange = (value: string) => {
+    setFilters((prevFilters) => ({
+      ...prevFilters,
+      lk_Id: value,
+    }));
+  };
   const handleTimeOptionChange = (value: string) => {
     setSelectedTimeOption(value);
     const newFilters = { ...filters };
@@ -150,8 +154,13 @@ export const InventoryPage = () => {
         <div className="relative flex items-center max-w-80">
           <Search className="absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 transform" />
           <Input
+            value={search}
+            onChange={(e) => {
+              setSearch(e.target.value);
+              handleSearchChange(e.target.value);
+            }}
             className={"pl-9"}
-            placeholder={"Theo mã, thời gian cân bằng"}
+            placeholder={"Theo mã"}
           />
         </div>
         <div className={"flex space-x-2"}>

@@ -26,6 +26,7 @@ export interface InventoryReportFilter {
   ltUpdatedAt?: Date | null;
   gtUpdatedAt?: Date | null;
   status?: [] | null;
+  lk_Id?: string | null;
 }
 export async function getInventoryReports(
   filters: InventoryReportFilter,
@@ -37,6 +38,7 @@ export async function getInventoryReports(
     if (filters.ltUpdatedAt) params.ltUpdatedAt = filters.ltUpdatedAt;
     if (filters.gtUpdatedAt) params.gtUpdatedAt = filters.gtUpdatedAt;
     if (filters.status) params.status = filters.status;
+    if (filters.lk_Id) params.lk_Id = filters.lk_Id;
     const response = await axiosInstance.get<ResponseInventoryReport>(
       "v1/inventory/table",
       { params: params },
