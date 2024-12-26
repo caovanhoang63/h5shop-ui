@@ -220,16 +220,18 @@ export default function PartnerPage() {
                   <RadioGroup
                     defaultValue="option-one"
                     onValueChange={(value) => {
-                      const updatedFilter = { ...providerFilter }; // Giữ các giá trị hiện tại
-                      if (value === "option-one") {
-                        delete updatedFilter.lk_status; // Xóa bộ lọc trạng thái nếu chọn "Tất cả"
-                      } else if (value === "option-two") {
-                        updatedFilter.lk_status = 1; // Trạng thái "Đang hoạt động"
-                      } else if (value === "option-three") {
-                        updatedFilter.lk_status = 0; // Trạng thái "Ngừng hoạt động"
-                      }
-                      setProviderFilter(updatedFilter); // Cập nhật bộ lọc
-                      getProviderTableData(); // Làm mới bảng dữ liệu
+                      setProviderFilter((prevFilter) => {
+                        const updatedFilter = { ...prevFilter };
+                        if (value === "option-one") {
+                          delete updatedFilter.lk_status;
+                        } else if (value === "option-two") {
+                          updatedFilter.lk_status = 1;
+                        } else if (value === "option-three") {
+                          updatedFilter.lk_status = 0;
+                        }
+                        getProviderTableData();
+                        return updatedFilter;
+                      });
                     }}
                   >
                     <div className="flex items-center space-x-2">
