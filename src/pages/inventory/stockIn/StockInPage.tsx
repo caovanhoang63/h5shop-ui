@@ -144,7 +144,7 @@ export const StockInPage = () => {
   return (
     <Container className={"grid grid-cols-5 gap-4 grid-flow-row"}>
       <div className={"text-2xl col-span-1 font-bold"}>
-        <p>Phiếu kiểm kho</p>
+        <p>Phiếu nhập hàng</p>
       </div>
       <div className={"col-span-4 w-full flex justify-between"}>
         <div className="relative flex items-center max-w-80">
