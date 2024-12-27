@@ -1,5 +1,5 @@
 ﻿import { Card } from "@/components/ui/card.tsx";
-import { Minus, MoreVertical, Plus, Trash2 } from "lucide-react";
+import { Info, Minus, MoreVertical, Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button.tsx";
 import { Input } from "@/components/ui/input.tsx";
 import { ChangeEvent, useState } from "react";
@@ -55,8 +55,8 @@ export function OrderItemCard({
   };
 
   const handleDiscountChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const value = parseFloat(e.target.value);
-    setCurrentDiscount({ ...currentDiscount, value });
+    const value = parseFloat(e.target.value) || 0; // Default to 0 if invalid
+    setCurrentDiscount((prev) => ({ ...prev, value }));
     onDiscountChange({ ...currentDiscount, value });
   };
 
@@ -74,7 +74,7 @@ export function OrderItemCard({
   };
 
   return (
-    <Card className="flex flex-col gap-2 p-4 shadow-md rounded-lg">
+    <Card className="flex flex-col gap-2 p-4 shadow-md rounded-lg hover:border-primary group">
       <div className="flex items-center mb-2 gap-6">
         <span className="text-sm">{index}</span>
         <Button
@@ -84,7 +84,12 @@ export function OrderItemCard({
           <Trash2 />
         </Button>
         <span className="md:w-1/5 text-sm">ID: {id}</span>
-        <span className="text-sm">{name}</span>
+        <div>
+          <span className="text-sm">{name}</span>
+          <Button className="p-1 h-6 w-6 bg-background text-gray-600 hover:bg-gray-200 rounded-full shadow-none">
+            <Info />
+          </Button>
+        </div>
         <Button className="p-1 ml-auto h-7 w-7 bg-background text-gray-600 hover:bg-gray-200 rounded-full shadow-none">
           <MoreVertical />
         </Button>
@@ -95,7 +100,7 @@ export function OrderItemCard({
         <div className="flex items-center space-x-2">
           <Button
             onClick={onDecreament}
-            className="p-1 h-6 w-6 bg-gray-200 hover:bg-gray-300 rounded-full shadow-none"
+            className="p-1 h-6 w-6 bg-gray-200 hover:bg-gray-300 opacity-0 group-hover:opacity-100 rounded-full shadow-none"
           >
             <Minus className="w-4 h-4 text-gray-600" />
           </Button>
@@ -107,7 +112,7 @@ export function OrderItemCard({
 
           <Button
             onClick={onIncreament}
-            className="p-1 h-6 w-6 bg-gray-200 hover:bg-gray-300 rounded-full shadow-none"
+            className="p-1 h-6 w-6 bg-gray-200 hover:bg-gray-300 opacity-0 group-hover:opacity-100 rounded-full shadow-none"
           >
             <Plus className="w-4 h-4 text-gray-600" />
           </Button>
@@ -122,11 +127,13 @@ export function OrderItemCard({
                   <span className="w-24 text-end border-b-2 border-gray-300 text-sm text-gray-700">
                     {currentOriginalPrice}
                   </span>
-                  <span className="w-24 text-end text-sm text-red-600">
-                    {currentDiscount.type === "percent"
-                      ? `- ${currentDiscount.value}%`
-                      : `- ${currentDiscount.value}`}
-                  </span>
+                  {currentDiscount.value > 0 && ( // Only show discount if value > 0
+                    <span className="w-24 text-end text-sm text-red-600">
+                      {currentDiscount.type === "percent"
+                        ? `- ${currentDiscount.value}%`
+                        : `- ${currentDiscount.value}`}
+                    </span>
+                  )}
                 </div>
               </DropdownMenuTrigger>
               <DropdownMenuContent

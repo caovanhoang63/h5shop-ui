@@ -1,12 +1,9 @@
 ﻿import {
-  ArrowRightLeft,
   ChevronDown,
   ChevronLeft,
   ChevronRight,
   CirclePlus,
   Filter,
-  Image,
-  Images,
   List,
   Pen,
   Search,
@@ -24,7 +21,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu.tsx";
-import { SpuCard1, SpuCard2 } from "@/pages/sale/components/SpuCard.tsx";
+import { SpuCard } from "@/pages/sale/components/SpuCard.tsx";
 
 export default function SalePage() {
   const [searchValue, setSearchValue] = useState("");
@@ -33,7 +30,6 @@ export default function SalePage() {
 
   const [tabs, setTabs] = useState([
     {
-      type: "sale",
       number: 1,
       orderItems: [
         {
@@ -99,7 +95,6 @@ export default function SalePage() {
       ],
     },
     {
-      type: "sale",
       number: 2,
       orderItems: [
         {
@@ -121,7 +116,6 @@ export default function SalePage() {
   const tabListRef = useRef<HTMLDivElement>(null);
   const [isOverflowing, setIsOverflowing] = useState(false);
 
-  const [spuListType, setSpuListType] = useState(false);
   const spus = [
     { id: "1", name: "Xiaomi Redmi Note 13 Pro 128GB", price: 100000 },
     { id: "2", name: "Product 2", price: 150000 },
@@ -233,11 +227,6 @@ export default function SalePage() {
       });
     }
   };
-  const changeTabType = (index: number, type: string) => {
-    const updatedTabs = [...tabs];
-    updatedTabs[index].type = type;
-    setTabs(updatedTabs);
-  };
   const deleteTab = (index: number) => {
     const updatedTabs = tabs.filter((_, i) => i !== index);
     setTabs(updatedTabs);
@@ -305,11 +294,6 @@ export default function SalePage() {
     updateTotalPrice();
   };
 
-  // Spu
-  const handleSpuListType = () => {
-    setSpuListType((prevState) => !prevState);
-  };
-
   useEffect(() => {
     updateTotalPrice();
   }, [tabs, activeTab, updateTotalPrice]);
@@ -374,31 +358,12 @@ export default function SalePage() {
                     onClick={(e) => e.stopPropagation()} // Prevent tab selection when clicking on buttons
                     style={{ minWidth: "fit-content" }}
                   >
-                    {/* Type toggle button */}
-                    {activeTab === index && (
-                      <Button
-                        onClick={(e) => {
-                          e.stopPropagation(); // Prevent tab selection when toggling type
-                          changeTabType(
-                            index,
-                            tab.type === "sale" ? "order" : "sale",
-                          );
-                        }}
-                        className={`ml-2 p-1 h-6 w-6 bg-transparent ${activeTab === index ? "text-black hover:bg-gray-300" : "text-white hover:bg-blue-800"} rounded-full shadow-none`}
-                      >
-                        <ArrowRightLeft />
-                      </Button>
-                    )}
-
                     {/* Tab trigger */}
                     <TabsTrigger
                       value={`tab-${index}`}
                       className="p-1 flex rounded-none rounded-t-lg text-background data-[state=active]:shadow-none transition-transform"
                     >
-                      <span>
-                        {tab.type === "sale" ? "Hoá đơn " : "Đặt hàng "}{" "}
-                        {tab.number.toString()}
-                      </span>
+                      <span>Hoá đơn {tab.number.toString()}</span>
                     </TabsTrigger>
 
                     {/* Delete button */}
@@ -459,7 +424,7 @@ export default function SalePage() {
         {/* Left Section */}
         <div className="p-2 w-full md:w-[55%] flex flex-col h-full">
           {/* Order items */}
-          <div className="flex flex-col flex-grow p-2 space-y-4 overflow-y-auto h-[0px]">
+          <div className="flex flex-col flex-grow p-2 space-y-2 overflow-y-auto h-[0px]">
             {tabs[activeTab].orderItems.map((item, index) => (
               <OrderItemCard
                 key={item.id} // Ensure each card has a unique key
@@ -531,12 +496,6 @@ export default function SalePage() {
                 <Button className="p-1 h-7 w-7 bg-transparent text-black rounded-full shadow-none hover:bg-blue-200 hover:text-blue-800">
                   <Filter />
                 </Button>
-                <Button
-                  className="p-1 h-7 w-7 bg-transparent text-black rounded-full shadow-none hover:bg-blue-200 hover:text-blue-800"
-                  onClick={handleSpuListType}
-                >
-                  {spuListType ? <Images /> : <Image />}
-                </Button>
               </div>
             </div>
 
@@ -549,32 +508,24 @@ export default function SalePage() {
             >
               {spus.map((spu) => (
                 <div key={spu.id}>
-                  {spuListType ? (
-                    <SpuCard2 name={spu.name} price={spu.price} />
-                  ) : (
-                    <SpuCard1 name={spu.name} price={spu.price} />
-                  )}
+                  <SpuCard name={spu.name} price={spu.price} />
                 </div>
               ))}
             </div>
 
             {/*Action*/}
             <div className="flex flex-row p-2 items-center mt-auto gap-10">
-              {/*<div className="flex flex-row gap-2">*/}
-              {/*  <Button*/}
-              {/*    className="p-1 h-6 w-6 bg-gray-200 text-gray-600 hover:bg-gray-300 rounded-full shadow-none"*/}
-              {/*  >*/}
-              {/*    <ChevronLeft />*/}
-              {/*  </Button>*/}
-              {/*  <span>*/}
-              {/*    {currentPage}/{totalPages}*/}
-              {/*  </span>*/}
-              {/*  <Button*/}
-              {/*    className="p-1 h-6 w-6 bg-gray-200 text-gray-600 hover:bg-gray-300 rounded-full shadow-none"*/}
-              {/*  >*/}
-              {/*    <ChevronRight />*/}
-              {/*  </Button>*/}
-              {/*</div>*/}
+              <div className="flex flex-row gap-2">
+                <Button className="p-1 h-6 w-6 bg-gray-200 text-gray-600 hover:bg-gray-300 rounded-full shadow-none">
+                  <ChevronLeft />
+                </Button>
+                <span>
+                  {1}/{2}
+                </span>
+                <Button className="p-1 h-6 w-6 bg-gray-200 text-gray-600 hover:bg-gray-300 rounded-full shadow-none">
+                  <ChevronRight />
+                </Button>
+              </div>
               <Button className="p-4 w-full h-12">THANH TOÁN</Button>
             </div>
           </Card>
