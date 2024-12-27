@@ -5,11 +5,13 @@ import {
   CircleDollarSign,
   EyeIcon,
   Handshake,
+  LogOut,
   Mail,
   Package2,
   Settings,
   ShoppingBasket,
   ShoppingCart,
+  User,
 } from "lucide-react";
 import {
   Avatar,
@@ -25,6 +27,12 @@ import {
 } from "@/components/ui/navigation-menu.tsx";
 import { Fragment } from "react";
 import { Link } from "react-router-dom";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 export const TopBar = () => {
   return (
@@ -41,10 +49,32 @@ export const TopBar = () => {
             <Settings size={32} />
           </button>
           <div className={"content-center text-xl "}>0896374872</div>
-          <Avatar className={"cursor-pointer"}>
-            <AvatarImage src="https://github.com/shadcn.png" alt="@shadcn" />
-            <AvatarFallback>CN</AvatarFallback>
-          </Avatar>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Avatar className="cursor-pointer">
+                <AvatarImage
+                  src="https://github.com/shadcn.png"
+                  alt="@shadcn"
+                />
+                <AvatarFallback>CN</AvatarFallback>
+              </Avatar>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="" align="end">
+              <DropdownMenuItem>
+                <User />
+                Tài khoản
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => {
+                  localStorage.removeItem("token");
+                  window.location.reload();
+                }}
+              >
+                <LogOut />
+                Logout
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
       <div className={"w-full bg-primary px-5 flex justify-between text-white"}>
