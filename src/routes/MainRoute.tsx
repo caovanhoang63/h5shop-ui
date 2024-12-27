@@ -1,5 +1,4 @@
 import { BrowserRouter, Route, Routes } from "react-router-dom";
-import { LoginPage } from "@/pages/login/LoginPage.tsx";
 import RootLayout from "@/layouts/RootLayout.tsx";
 import { NotFoundPage } from "@/pages/NotFoundPage.tsx";
 import { ErrorPage } from "@/pages/ErrorPage.tsx";
@@ -9,6 +8,7 @@ import { InventoryPage } from "@/pages/inventory/InventoryPage.tsx";
 import InventoryCheckPage from "@/pages/inventory/stockTakes/StockTakesPage.tsx";
 import PartnerPage from "@/pages/partner/PartnerPage.tsx";
 import SalePage from "@/pages/sale/SalePage.tsx";
+import LoginPage from "@/pages/login/LoginPage.tsx";
 
 export const MainRoute = () => {
   return (
