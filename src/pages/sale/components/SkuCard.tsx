@@ -1,20 +1,15 @@
 ﻿import { Card } from "@/components/ui/card.tsx";
-import { ImageIcon } from "lucide-react"; // Replace with your preferred icon library
+import { ImageIcon } from "lucide-react";
+import { SkuGetDetail } from "@/types/sku/skuGetDetail.ts";
 
-interface SpuCardProps {
-  name: string;
-  price: number;
-  imageUrl?: string; // Optional image URL
-}
-
-export function SpuCard({ name, price, imageUrl }: SpuCardProps): JSX.Element {
+export function SkuCard({ name, price, images }: SkuGetDetail): JSX.Element {
   return (
     <Card className="px-2 py-3 flex flex-wrap items-center gap-2 w-48 h-24 hover:border-primary">
       {/* Image Section */}
       <div className="w-16 h-16 flex-shrink-0 bg-gray-200 flex items-center justify-center rounded">
-        {imageUrl ? (
+        {images && images.length > 0 ? (
           <img
-            src={imageUrl}
+            src={images[0].url}
             alt={name}
             className="w-full h-full object-cover rounded"
           />
