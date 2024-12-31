@@ -3,15 +3,6 @@ import { Input } from "@/components/ui/input.tsx";
 import { FileInput, FileOutputIcon, Plus, Search } from "lucide-react";
 import { Button } from "@/components/ui/button.tsx";
 import TriangleDown from "@/components/icons/TriangleDown.tsx";
-import { Card, CardContent } from "@/components/ui/card.tsx";
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion.tsx";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group.tsx";
-import { Label } from "@/components/ui/label.tsx";
 import { DataTableDemo } from "@/pages/product/DataTable.tsx";
 import {
   ButtonVisibilityColumnTable,
@@ -156,39 +147,6 @@ export default function ProductPage() {
           onChange={handleChangedBrand}
           listBrands={listBrands}
         />
-        <Card>
-          <CardContent>
-            <Accordion type="single" collapsible>
-              <AccordionItem value="item-1">
-                <AccordionTrigger className={"hover:no-underline"}>
-                  Bảo hành
-                </AccordionTrigger>
-                <AccordionContent className={""}>
-                  <RadioGroup defaultValue="option-one">
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="option-one" id="option-one" />
-                      <Label htmlFor="option-one" className={"font-normal"}>
-                        Tất cả
-                      </Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="option-two" id="option-two" />
-                      <Label htmlFor="option-two" className={"font-normal"}>
-                        Có bảo hành
-                      </Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="option-three" id="option-three" />
-                      <Label htmlFor="option-three" className={"font-normal"}>
-                        Không bảo hành
-                      </Label>
-                    </div>
-                  </RadioGroup>
-                </AccordionContent>
-              </AccordionItem>
-            </Accordion>
-          </CardContent>
-        </Card>
       </div>
       <div className={"col-span-4"}>
         <DataTableDemo
