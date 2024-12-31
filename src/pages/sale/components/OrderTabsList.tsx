@@ -14,19 +14,11 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { RefObject } from "react";
+import { OrderGetDetail } from "@/types/order/orderGetDetail.ts";
 
-interface Tab {
+export interface Tab {
   number: number;
-  orderItems: {
-    id: string;
-    name: string;
-    quantity: number;
-    originalPrice: number;
-    discount: {
-      type: string;
-      value: number;
-    };
-  }[];
+  order: OrderGetDetail;
 }
 
 interface OrderTabsListProps {

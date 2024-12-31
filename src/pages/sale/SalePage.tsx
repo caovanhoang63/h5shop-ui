@@ -5,10 +5,12 @@ import { Card } from "@/components/ui/card.tsx";
 import { OrderItemCard } from "@/pages/sale/components/OrderItemCard.tsx";
 import { Button } from "@/components/ui/button.tsx";
 import { SkuCard } from "@/pages/sale/components/SkuCard.tsx";
-import { OrderTabsList } from "@/pages/sale/components/OrderTabsList.tsx";
+import { OrderTabsList, Tab } from "@/pages/sale/components/OrderTabsList.tsx";
 import { getListSku } from "@/pages/sale/api/skuApi.ts";
 import { SkuGetDetail } from "@/types/sku/skuGetDetail.ts";
 import { Pagination } from "@/pages/sale/components/Pagination.tsx";
+import { OrderGetDetail, OrderItem } from "@/types/order/orderGetDetail.ts";
+import { getListOrder, OrderStatus } from "@/pages/sale/api/orderApi.ts";
 
 export default function SalePage() {
   // Input
@@ -17,88 +19,7 @@ export default function SalePage() {
   const [searchCustomer, setSearchCustomer] = useState("");
 
   // Order tabs
-  const [tabs, setTabs] = useState([
-    {
-      number: 1,
-      orderItems: [
-        {
-          id: "DT000020",
-          name: "Xiaomi Redmi Note 13 Pro 128GB",
-          quantity: 2,
-          originalPrice: 200000,
-          discount: {
-            type: "percent",
-            value: 10,
-          },
-        },
-        {
-          id: "DT000021",
-          name: "Xiaomi Redmi Note 13 Pro 128GB",
-          quantity: 2,
-          originalPrice: 200000,
-          discount: {
-            type: "percent",
-            value: 10,
-          },
-        },
-        {
-          id: "DT000022",
-          name: "Xiaomi Redmi Note 13 Pro 128GB",
-          quantity: 2,
-          originalPrice: 200000,
-          discount: {
-            type: "percent",
-            value: 10,
-          },
-        },
-        {
-          id: "DT000023",
-          name: "Xiaomi Redmi Note 13 Pro 128GB",
-          quantity: 2,
-          originalPrice: 200000,
-          discount: {
-            type: "percent",
-            value: 10,
-          },
-        },
-        {
-          id: "DT000024",
-          name: "Xiaomi Redmi Note 13 Pro 128GB",
-          quantity: 2,
-          originalPrice: 200000,
-          discount: {
-            type: "percent",
-            value: 10,
-          },
-        },
-        {
-          id: "DT000025",
-          name: "Xiaomi Redmi Note 13 Pro 128GB",
-          quantity: 2,
-          originalPrice: 200000,
-          discount: {
-            type: "percent",
-            value: 10,
-          },
-        },
-      ],
-    },
-    {
-      number: 2,
-      orderItems: [
-        {
-          id: "DT000026",
-          name: "Xiaomi Redmi Note 13 Pro 128GB",
-          quantity: 2,
-          originalPrice: 200000,
-          discount: {
-            type: "percent",
-            value: 10,
-          },
-        },
-      ],
-    },
-  ]);
+  const [tabs, setTabs] = useState<Tab[]>([]);
   const [activeTab, setActiveTab] = useState(0);
   const [totalPrice, setTotalPrice] = useState(0);
   const [numberOfItems, setNumberOfItems] = useState(0);
@@ -156,18 +77,17 @@ export default function SalePage() {
   };
 
   const updateTotalPrice = useCallback(() => {
-    const activeOrderItems = tabs[activeTab].orderItems;
+    if (!tabs[activeTab]) return;
+
+    const activeOrderItems = tabs[activeTab].order.items || [];
     let total = 0;
     let itemCount = 0;
 
     activeOrderItems.forEach((item) => {
-      const discountAmount =
-        item.discount.type === "percent"
-          ? (item.originalPrice * item.discount.value) / 100
-          : item.discount.value;
-      const finalPrice = item.originalPrice - discountAmount;
-      total += finalPrice * item.quantity;
-      itemCount += item.quantity;
+      const discountAmount = item.discount || 0;
+      const finalPrice = item.unitPrice - discountAmount;
+      total += finalPrice * item.amount;
+      itemCount += item.amount;
     });
 
     setTotalPrice(total);
@@ -179,7 +99,12 @@ export default function SalePage() {
     setSearchValue(e.target.value);
   };
   const handleDescriptionChange = (e: ChangeEvent<HTMLInputElement>) => {
+    if (!tabs[activeTab]) return;
     setOrderDescription(e.target.value);
+
+    const updatedTabs = [...tabs];
+    updatedTabs[activeTab].order.description = e.target.value;
+    setTabs(updatedTabs);
   };
   const handleSearchCustomer = (e: ChangeEvent<HTMLInputElement>) => {
     setSearchCustomer(e.target.value);
@@ -198,9 +123,20 @@ export default function SalePage() {
   };
 
   // Tabs stuff
-  const addTab = (type: string) => {
+  const addTab = () => {
     const number = handleTabNumber();
-    const newTab = { type, number, orderItems: [] };
+    const order: OrderGetDetail = {
+      id: 0,
+      customerId: 0,
+      sellerId: 0,
+      status: 1,
+      orderType: "retail",
+      description: "",
+      createAt: new Date(),
+      updateAt: new Date(),
+      items: [],
+    };
+    const newTab = { number, order };
     setTabs((prevTabs) => [...prevTabs, newTab]);
 
     setActiveTab(tabs.length);
@@ -227,9 +163,9 @@ export default function SalePage() {
       setActiveTab((prevActiveTab) => prevActiveTab - 1);
     }
 
-    // If there are no tabs left, create a new tab (sale type by default)
+    // If there are no tabs left, create a new tab
     if (updatedTabs.length === 0) {
-      addTab("sale");
+      addTab();
       setActiveTab(0);
     }
   };
@@ -238,43 +174,40 @@ export default function SalePage() {
   };
 
   // Items stuff
-  const handleOrderItemIncrease = (index: number) => {
+  const updateOrderItem = (index: number, changes: Partial<OrderItem>) => {
+    if (!tabs[activeTab]?.order.items[index]) return;
     const updatedTabs = [...tabs];
-    updatedTabs[activeTab].orderItems[index].quantity += 1;
+    const item = updatedTabs[activeTab].order.items[index];
+    updatedTabs[activeTab].order.items[index] = { ...item, ...changes };
     setTabs(updatedTabs);
     updateTotalPrice();
   };
+  const handleOrderItemIncrease = (index: number) =>
+    updateOrderItem(index, {
+      amount: tabs[activeTab].order.items[index].amount + 1,
+    });
   const handleOrderItemDecrease = (index: number) => {
-    const updatedTabs = [...tabs];
-    if (updatedTabs[activeTab].orderItems[index].quantity > 1) {
-      updatedTabs[activeTab].orderItems[index].quantity -= 1;
-      setTabs(updatedTabs);
-      updateTotalPrice();
+    if (tabs[activeTab].order.items[index].amount > 1) {
+      updateOrderItem(index, {
+        amount: tabs[activeTab].order.items[index].amount - 1,
+      });
     }
   };
   const handleOrderItemRemove = (index: number) => {
     const updatedTabs = [...tabs];
-    updatedTabs[activeTab].orderItems = updatedTabs[
+    updatedTabs[activeTab].order.items = updatedTabs[
       activeTab
-    ].orderItems.filter((_, i) => i !== index);
+    ].order.items.filter((_, i) => i !== index);
     setTabs(updatedTabs);
     updateTotalPrice();
   };
-  const handleOrderItemOriginalPriceChange = (
-    index: number,
-    newPrice: number,
-  ) => {
-    const updatedTabs = [...tabs];
-    updatedTabs[activeTab].orderItems[index].originalPrice = newPrice;
-    setTabs(updatedTabs);
-    updateTotalPrice();
-  };
+
   const handleOrderItemDiscountChange = (
     index: number,
-    newDiscount: { type: string; value: number },
+    newDiscount: number,
   ) => {
     const updatedTabs = [...tabs];
-    updatedTabs[activeTab].orderItems[index].discount = newDiscount;
+    updatedTabs[activeTab].order.items[index].discount = newDiscount;
     setTabs(updatedTabs);
     updateTotalPrice();
   };
@@ -317,7 +250,7 @@ export default function SalePage() {
       ); // Calculate total pages
       setTotalPages(totalPages);
 
-      console.log("Fetched SKU data:", response);
+      // console.log("Fetched SKU data:", response);
     } catch (error) {
       console.log("Fetch error:", error);
       // setError("Failed to fetch SKU data.");
@@ -325,6 +258,24 @@ export default function SalePage() {
     // finally {
     //   setLoading(false);
     // }
+  };
+  const fetchOrders = async () => {
+    try {
+      const response = await getListOrder(OrderStatus.PENDING); // Fetch all orders
+      // console.log("Fetched orders:", response);
+      const transformedTabs: Tab[] = response.data.map(
+        (order: OrderGetDetail) => ({
+          number: order.id,
+          order,
+        }),
+      );
+      setTabs(transformedTabs);
+      if (transformedTabs.length > 0) {
+        setActiveTab(0); // Set the first tab as active if orders exist
+      }
+    } catch (error) {
+      console.log("Fetch error:", error);
+    }
   };
 
   // Set up ResizeObserver to monitor container size
@@ -348,6 +299,22 @@ export default function SalePage() {
   useEffect(() => {
     fetchSkus();
   }, [brandId, categoryId, page, limit]);
+
+  useEffect(() => {
+    fetchOrders(); // Fetch orders on component mount
+  }, []);
+
+  useEffect(() => {
+    if (tabs[activeTab]) {
+      setOrderDescription(tabs[activeTab].order.description || "");
+    }
+  }, [tabs, activeTab]);
+
+  useEffect(() => {
+    if (tabs.length === 0) {
+      addTab();
+    }
+  }, [tabs]);
 
   // Adjust the current page if it exceeds the new total pages
   useEffect(() => {
@@ -408,21 +375,23 @@ export default function SalePage() {
         <div className="p-2 w-full md:w-[55%] flex flex-col h-full">
           {/* Order items */}
           <div className="flex flex-col flex-grow p-2 space-y-2 overflow-y-auto h-[0px]">
-            {tabs[activeTab].orderItems.map((item, index) => (
+            {tabs[activeTab]?.order.items.length === 0 && (
+              <div className="text-center text-gray-500">
+                No items in this order.
+              </div>
+            )}
+            {tabs[activeTab]?.order?.items.map((item, index) => (
               <OrderItemCard
-                key={item.id} // Ensure each card has a unique key
+                key={item.skuId} // Ensure each card has a unique key
                 index={index + 1} // Optionally use 1-based indexing
-                id={item.id}
-                name={item.name}
-                quantity={item.quantity}
-                originalPrice={item.originalPrice}
-                discount={item.discount}
+                id={item.skuId}
+                name={"item name"}
+                quantity={item.amount}
+                originalPrice={item.unitPrice}
+                discount={item.discount || 0}
                 onDecreament={() => handleOrderItemDecrease(index)} // Decrease quantity for this item
                 onIncreament={() => handleOrderItemIncrease(index)} // Increase quantity for this item
                 onRemove={() => handleOrderItemRemove(index)} // Remove this item from the order
-                onOriginalPriceChange={(newPrice) =>
-                  handleOrderItemOriginalPriceChange(index, newPrice)
-                } // Change item's original price
                 onDiscountChange={(newDiscount) =>
                   handleOrderItemDiscountChange(index, newDiscount)
                 } // Change item's discount

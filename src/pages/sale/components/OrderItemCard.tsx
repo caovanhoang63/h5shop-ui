@@ -2,30 +2,28 @@
 import { Info, Minus, MoreVertical, Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button.tsx";
 import { Input } from "@/components/ui/input.tsx";
-import { ChangeEvent, useState } from "react";
+import { ChangeEvent, useCallback, useState } from "react";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu.tsx";
 import { NoSpinnerNumberInput } from "@/components/NoSpinnerNumberInput.tsx";
+import { NoSpinnerFloatInput } from "@/components/NoSpinnerFloatInput.tsx";
 
 interface OrderItemCardProps {
   index: number;
-  id: string;
+  id: number;
   name: string;
   quantity: number;
   originalPrice: number;
-  discount: {
-    type: string;
-    value: number;
-  };
+  discount: number;
   onDecreament: () => void;
   onIncreament: () => void;
   onRemove: () => void;
-  onOriginalPriceChange: (newPrice: number) => void;
-  onDiscountChange: (newDiscount: { type: string; value: number }) => void;
+  onDiscountChange: (newDiscount: number) => void;
 }
+
 export function OrderItemCard({
   index,
   id,
@@ -36,42 +34,67 @@ export function OrderItemCard({
   onDecreament,
   onIncreament,
   onRemove,
-  onOriginalPriceChange,
   onDiscountChange,
 }: OrderItemCardProps): JSX.Element {
   const [itemDescription, setItemDescription] = useState("");
-  // const [openPriceMenu, setOpenPriceMenu] = useState(false);
-  const [currentDiscount, setCurrentDiscount] = useState(discount);
-  const [currentOriginalPrice, setOriginalPrice] = useState(originalPrice);
+  const [currentDiscountType, setCurrentDiscountType] = useState<
+    "percent" | "amount"
+  >(discount > 0 && discount <= 100 ? "percent" : "amount");
+  const [currentDiscountValue, setCurrentDiscountValue] = useState<number>(
+    currentDiscountType === "percent"
+      ? (discount / originalPrice) * 100
+      : discount,
+  );
 
-  // Calculate final price based on discount
-  const finalPrice =
-    discount.type === "percent"
-      ? currentOriginalPrice - (currentOriginalPrice * discount.value) / 100
-      : currentOriginalPrice - discount.value;
+  const safeOriginalPrice = Number(originalPrice) || 0;
+  // Calculate the displayed discount in amount format
+  const computedDiscount =
+    currentDiscountType === "percent"
+      ? (safeOriginalPrice * currentDiscountValue) / 100
+      : currentDiscountValue;
 
-  const handleDescriptionChange = (e: ChangeEvent<HTMLInputElement>) => {
-    setItemDescription(e.target.value);
-  };
+  // Calculate the final price
+  const finalPrice = safeOriginalPrice - computedDiscount;
 
-  const handleDiscountChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const value = parseFloat(e.target.value) || 0; // Default to 0 if invalid
-    setCurrentDiscount((prev) => ({ ...prev, value }));
-    onDiscountChange({ ...currentDiscount, value });
-  };
+  const handleDescriptionChange = useCallback(
+    (e: ChangeEvent<HTMLInputElement>) => {
+      setItemDescription(e.target.value);
+    },
+    [],
+  );
 
-  const handlePriceChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const value = parseFloat(e.target.value);
-    setOriginalPrice(value);
-    onOriginalPriceChange(value);
-  };
+  const handleDiscountChange = useCallback(
+    (e: ChangeEvent<HTMLInputElement>) => {
+      let value = parseFloat(e.target.value) || 0;
 
-  const handleToggleDiscountType = () => {
-    setCurrentDiscount({
-      ...currentDiscount,
-      type: currentDiscount.type === "percent" ? "amount" : "percent",
-    });
-  };
+      if (currentDiscountType === "percent") {
+        value = Math.min(Math.max(value, 0), 100); // Clamp percent between 0 and 100
+      } else {
+        value = Math.min(Math.max(value, 0), safeOriginalPrice); // Clamp amount to original price
+      }
+
+      setCurrentDiscountValue(value);
+
+      const computedValue =
+        currentDiscountType === "percent"
+          ? (safeOriginalPrice * value) / 100
+          : value;
+      onDiscountChange(computedValue); // Always return the discount as amount
+    },
+    [currentDiscountType, safeOriginalPrice, onDiscountChange],
+  );
+
+  const handleToggleDiscountType = useCallback(() => {
+    const newType = currentDiscountType === "percent" ? "amount" : "percent";
+
+    const newValue =
+      newType === "percent"
+        ? (currentDiscountValue / safeOriginalPrice) * 100
+        : (safeOriginalPrice * currentDiscountValue) / 100;
+
+    setCurrentDiscountType(newType);
+    setCurrentDiscountValue(newValue);
+  }, [currentDiscountType, currentDiscountValue, safeOriginalPrice]);
 
   return (
     <Card className="flex flex-col gap-2 p-4 shadow-md rounded-lg hover:border-primary group">
@@ -125,13 +148,13 @@ export function OrderItemCard({
               <DropdownMenuTrigger asChild>
                 <div className="flex flex-col items-end align-middle cursor-pointer">
                   <span className="w-24 text-end border-b-2 border-gray-300 text-sm text-gray-700">
-                    {currentOriginalPrice}
+                    {new Intl.NumberFormat("en-US").format(originalPrice)}
                   </span>
-                  {currentDiscount.value > 0 && ( // Only show discount if value > 0
+                  {computedDiscount > 0 && (
                     <span className="w-24 text-end text-sm text-red-600">
-                      {currentDiscount.type === "percent"
-                        ? `- ${currentDiscount.value}%`
-                        : `- ${currentDiscount.value}`}
+                      {currentDiscountType === "percent"
+                        ? `- ${new Intl.NumberFormat("en-US").format(currentDiscountValue)}%`
+                        : `- ${new Intl.NumberFormat("en-US").format(computedDiscount)}`}
                     </span>
                   )}
                 </div>
@@ -147,12 +170,9 @@ export function OrderItemCard({
                     <span className="text-sm min-w-16 text-gray-600">
                       Đơn giá
                     </span>
-                    <NoSpinnerNumberInput
-                      value={currentOriginalPrice}
-                      onChange={handlePriceChange}
-                      className="p-0 w-auto text-end border-b-2 border-gray-300 focus:outline-none focus:border-primary rounded-none shadow-none"
-                      placeholder="Nhập đơn giá"
-                    />
+                    <span className="text-end w-full">
+                      {new Intl.NumberFormat("en-US").format(originalPrice)}
+                    </span>
                   </div>
 
                   {/* Discount */}
@@ -160,8 +180,8 @@ export function OrderItemCard({
                     <span className="text-sm min-w-16 text-gray-600">
                       Giảm giá
                     </span>
-                    <NoSpinnerNumberInput
-                      value={currentDiscount.value}
+                    <NoSpinnerFloatInput
+                      value={currentDiscountValue}
                       onChange={handleDiscountChange}
                       className="p-0 text-end border-b-2 border-gray-300 focus:outline-none focus:border-primary rounded-none shadow-none"
                       placeholder="Nhập giảm giá"
@@ -173,7 +193,7 @@ export function OrderItemCard({
                       onClick={handleToggleDiscountType}
                       className="w-12 text-sm text-gray-600"
                     >
-                      {currentDiscount.type === "percent" ? "%" : "VND"}
+                      {currentDiscountType === "percent" ? "%" : "VND"}
                     </Button>
                   </div>
 
@@ -190,7 +210,9 @@ export function OrderItemCard({
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
-          <span className="font-semibold text-gray-900">{finalPrice}</span>
+          <span className="font-semibold text-gray-900">
+            {finalPrice.toLocaleString()}
+          </span>
         </div>
       </div>
 
