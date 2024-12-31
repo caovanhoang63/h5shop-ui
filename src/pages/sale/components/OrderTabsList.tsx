@@ -13,8 +13,9 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { RefObject } from "react";
+import { RefObject, useState } from "react";
 import { OrderGetDetail } from "@/types/order/orderGetDetail.ts";
+import ConfirmDeleteDialog from "@/components/ConfirmDeleteDialog.tsx";
 
 export interface Tab {
   number: number;
@@ -42,6 +43,14 @@ export const OrderTabsList = ({
   scrollTabs,
   tabListRef,
 }: OrderTabsListProps) => {
+  const [isConfirmDialogOpen, setIsConfirmDialogOpen] = useState(false);
+  const [tabDeleteIndex, setTabDeleteIndex] = useState<number | null>(null);
+  const handleDeleteTab = () => {
+    if (tabDeleteIndex === null) return;
+    onDeleteTab(tabDeleteIndex);
+    setIsConfirmDialogOpen(false);
+  };
+
   return (
     <div className="flex items-end">
       {/* Left Scroll Button */}
@@ -86,7 +95,8 @@ export const OrderTabsList = ({
               <Button
                 onClick={(e) => {
                   e.stopPropagation();
-                  onDeleteTab(index);
+                  setIsConfirmDialogOpen(true);
+                  setTabDeleteIndex(index);
                 }}
                 className={`p-1 h-6 w-6 bg-transparent ${activeTab === index ? "text-black hover:bg-gray-300" : "text-white hover:bg-blue-800"} rounded-full shadow-none`}
               >
@@ -131,6 +141,12 @@ export const OrderTabsList = ({
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
+
+      <ConfirmDeleteDialog
+        isOpen={isConfirmDialogOpen}
+        onClose={() => setIsConfirmDialogOpen(false)}
+        onConfirm={() => handleDeleteTab()}
+      />
     </div>
   );
 };
