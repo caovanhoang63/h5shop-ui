@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import {
   ColumnDef,
   ColumnFiltersState,
@@ -34,60 +34,10 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Spu } from "@/types/spu.ts";
-import { faker } from "@faker-js/faker/locale/en";
-import StatusRow from "@/components/StatusRow.tsx";
-import { Image } from "@/types/image.ts";
-import SpuModal from "@/pages/product/SpuModal.tsx";
 import { MenuVisibilityColumnTable } from "@/components/ButtonVisibilityColumnTable.tsx";
+import { SpuListTable } from "@/types/spu/spuListTable.ts";
 
-function generateMockSpus(count: number = 10): Spu[] {
-  return Array.from({ length: count }, (_, index) => ({
-    id: index + 1,
-    name: faker.commerce.productName(),
-    description: faker.commerce.productDescription(),
-    metadata:
-      Math.random() > 0.5
-        ? {
-            color: faker.color.human(),
-            size: faker.helpers.arrayElement(["S", "M", "L", "XL"]),
-          }
-        : undefined,
-    stock: faker.number.int({ min: 0, max: 100 }),
-    categoryId: faker.number.int({ min: 1, max: 10 }),
-    outOfStock: faker.datatype.boolean(),
-    status: faker.helpers.arrayElement([0, 1, 2]),
-    createdAt: faker.date.past(),
-    updatedAt: faker.date.recent(),
-    images: [
-      {
-        url: "https://images.pexels.com/photos/90946/pexels-photo-90946.jpeg?cs=srgb&dl=pexels-madebymath-90946.jpg",
-        extension: "jpg",
-      },
-      {
-        url: "https://images.pexels.com/photos/90946/pexels-photo-90946.jpeg?cs=srgb&dl=pexels-madebymath-90946.jpg",
-        extension: "jpg",
-      },
-      {
-        url: "https://images.pexels.com/photos/90946/pexels-photo-90946.jpeg?cs=srgb&dl=pexels-madebymath-90946.jpg",
-        extension: "jpg",
-      },
-      {
-        url: "https://img.freepik.com/free-photo/organic-cosmetic-product-with-dreamy-aesthetic-fresh-background_23-2151382816.jpg",
-        extension: "jpg",
-      },
-      {
-        url: "https://img.freepik.com/free-photo/organic-cosmetic-product-with-dreamy-aesthetic-fresh-background_23-2151382816.jpg",
-        extension: "jpg",
-      },
-    ] as Image[],
-  }));
-}
-
-// Example usage
-const data = generateMockSpus(25);
-
-export const columns: ColumnDef<Spu>[] = [
+export const spuColumns: ColumnDef<SpuListTable>[] = [
   {
     id: "select",
     header: ({ table }) => (
@@ -124,7 +74,7 @@ export const columns: ColumnDef<Spu>[] = [
         <img
           className={"w-8"}
           alt={"ảnh sản phẩm"}
-          src={images?.[0].url || "image-placeholder.png"}
+          src={images?.[0]?.url || "image-placeholder.png"}
         ></img>
       );
     },
@@ -146,7 +96,7 @@ export const columns: ColumnDef<Spu>[] = [
     cell: ({ row }) => <div className="lowercase">{row.getValue("name")}</div>,
   },
   {
-    accessorKey: "stock",
+    accessorKey: "brandName",
     header: ({ column }) => {
       return (
         <Button
@@ -154,19 +104,51 @@ export const columns: ColumnDef<Spu>[] = [
           variant="ghost"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
-          Tồn kho
+          Thương hiệu
           <ArrowUpDown />
         </Button>
       );
     },
-    cell: ({ row }) => <div className="lowercase">{row.getValue("stock")}</div>,
+    cell: ({ row }) => (
+      <div className="lowercase">{row.getValue("brandName")}</div>
+    ),
   },
   {
-    accessorKey: "status",
-    header: "Trạng thái",
-    cell: ({ row }) => <StatusRow status={row.getValue("status")} />,
+    accessorKey: "categoryName",
+    header: ({ column }) => {
+      return (
+        <Button
+          className="p-0"
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Nhóm hàng
+          <ArrowUpDown />
+        </Button>
+      );
+    },
+    cell: ({ row }) => (
+      <div className="lowercase">{row.getValue("categoryName")}</div>
+    ),
   },
-
+  {
+    accessorKey: "description",
+    header: ({ column }) => {
+      return (
+        <Button
+          className="p-0"
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Mô tả
+          <ArrowUpDown />
+        </Button>
+      );
+    },
+    cell: ({ row }) => (
+      <div className="lowercase">{row.getValue("description")}</div>
+    ),
+  },
   {
     id: "actions",
     enableHiding: false,
@@ -201,10 +183,14 @@ export const columns: ColumnDef<Spu>[] = [
 
 interface DataTableDemoProps {
   columnVisible: MenuVisibilityColumnTable[];
+  spuListTable: SpuListTable[];
+  onSelectedRow: (spuId: number) => void;
 }
 
 export const DataTableDemo: React.FC<DataTableDemoProps> = ({
   columnVisible,
+  spuListTable,
+  onSelectedRow,
 }) => {
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
@@ -219,17 +205,15 @@ export const DataTableDemo: React.FC<DataTableDemoProps> = ({
       }, {} as VisibilityState),
     );
   const [rowSelection, setRowSelection] = React.useState({});
-  const [isOpenSpuModal, setIsOpenSpuModal] = useState(false);
 
-  const [selectedSpu, setSelectedSpu] = useState<Spu | undefined>(undefined);
   const table = useReactTable({
     initialState: {
       pagination: {
         pageSize: 10,
       },
     },
-    data,
-    columns,
+    data: spuListTable,
+    columns: spuColumns,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
     getCoreRowModel: getCoreRowModel(),
@@ -257,11 +241,6 @@ export const DataTableDemo: React.FC<DataTableDemoProps> = ({
 
   return (
     <div className="w-full">
-      <SpuModal
-        isOpen={isOpenSpuModal}
-        onOpenChange={setIsOpenSpuModal}
-        spu={selectedSpu}
-      ></SpuModal>
       <div className="rounded-md border">
         <Table>
           <TableHeader>
@@ -290,8 +269,7 @@ export const DataTableDemo: React.FC<DataTableDemoProps> = ({
                   onClick={(event) => {
                     event.preventDefault();
                     event.stopPropagation();
-                    setIsOpenSpuModal(true);
-                    setSelectedSpu(row.original);
+                    onSelectedRow(row.original.id);
                     console.log("Open");
                   }}
                   key={row.id}
@@ -310,7 +288,7 @@ export const DataTableDemo: React.FC<DataTableDemoProps> = ({
             ) : (
               <TableRow>
                 <TableCell
-                  colSpan={columns.length}
+                  colSpan={spuColumns.length}
                   className="h-24 text-center"
                 >
                   No results.
