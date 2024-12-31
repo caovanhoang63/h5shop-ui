@@ -1,48 +1,42 @@
-import {
-  InventoryReport,
-  InventoryReportDetails,
-  InventoryReportCreate,
-} from "@/types/inventoryReport.ts";
 import axiosInstance from "@/axiosSetup.ts";
+import { StockInDetails, StockInItemTable } from "@/types/stockIn.ts";
 
-interface ResponseInventoryReport {
-  data: InventoryReport[];
+interface ResponseStockInTable {
+  data: StockInItemTable[];
   extra?: never;
   paging?: never;
 }
-interface ResponseInventoryReportDetail {
-  data: InventoryReportDetails;
+interface ResponseStockInDetail {
+  data: StockInDetails;
   extra?: never;
   paging?: never;
 }
 
-interface ResponseInventoryReportCreate {
+/*interface ResponseInventoryReportCreate {
   data: number;
   extra?: never;
   paging?: never;
-}
-export interface InventoryReportFilter {
-  lk_warehouseMan1?: string | null;
+}*/
+export interface StockInFilter {
+  lk_providerName?: string | null;
   ltUpdatedAt?: Date | null;
   gtUpdatedAt?: Date | null;
   status?: [] | null;
   lk_Id?: string | null;
 }
-export async function getInventoryReports(
-  filters: InventoryReportFilter,
-): Promise<ResponseInventoryReport> {
+export async function getStockInTableApi(
+  filters: StockInFilter,
+): Promise<ResponseStockInTable> {
   try {
-    const params: InventoryReportFilter = {};
-    if (filters.lk_warehouseMan1)
-      params.lk_warehouseMan1 = filters.lk_warehouseMan1;
+    const params: StockInFilter = {};
+    if (filters.lk_providerName)
+      params.lk_providerName = filters.lk_providerName;
     if (filters.ltUpdatedAt) params.ltUpdatedAt = filters.ltUpdatedAt;
     if (filters.gtUpdatedAt) params.gtUpdatedAt = filters.gtUpdatedAt;
     if (filters.status) params.status = filters.status;
     if (filters.lk_Id) params.lk_Id = filters.lk_Id;
-
-    console.log(params);
-    const response = await axiosInstance.get<ResponseInventoryReport>(
-      "v1/inventory/table",
+    const response = await axiosInstance.get<ResponseStockInTable>(
+      "v1/stock-in/list",
       { params: params },
     );
     return response.data;
@@ -52,12 +46,12 @@ export async function getInventoryReports(
   }
 }
 
-export async function getInventoryReportDetailById(
+export async function getStockInDetailById(
   reportId: number,
-): Promise<ResponseInventoryReportDetail> {
+): Promise<ResponseStockInDetail> {
   try {
-    const response = await axiosInstance.get<ResponseInventoryReportDetail>(
-      `v1/inventory/${reportId}/details`,
+    const response = await axiosInstance.get<ResponseStockInDetail>(
+      `v1/stock-in/details/${reportId}`,
     );
     return response.data;
   } catch (error) {
@@ -65,7 +59,7 @@ export async function getInventoryReportDetailById(
     throw error;
   }
 }
-export async function createInventoryReport(
+/*export async function createInventoryReport(
   body: InventoryReportCreate,
 ): Promise<ResponseInventoryReportCreate> {
   try {
@@ -78,4 +72,4 @@ export async function createInventoryReport(
     console.error("Fetch error:", error);
     throw error;
   }
-}
+}*/
