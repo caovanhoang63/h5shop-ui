@@ -15,7 +15,6 @@ import StockInAddPage from "@/pages/inventory/stockIn/StockInAddPage.tsx";
 import LoginPage from "@/pages/login/LoginPage.tsx";
 import { useEffect } from "react";
 
-
 export const MainRoute = () => {
   const navigate = useNavigate();
 
@@ -26,25 +25,6 @@ export const MainRoute = () => {
     }
   }, [navigate]);
   return (
-
-    <BrowserRouter>
-      <Routes>
-        <Route path="login" element={<LoginPage />} />
-        <Route path="/" element={<RootLayout />}>
-          <Route index element={<DashBoardPage />} />
-          <Route path={"product"} element={<ProductPage />} />
-          <Route path={"inventory"} element={<InventoryPage />} />
-          <Route path={"stock-takes"} element={<InventoryCheckPage />} />
-          <Route path={"partner"} element={<PartnerPage />} />
-          <Route path={"stock-in"} element={<StockInPage />} />
-          <Route path={"stock-in/new"} element={<StockInAddPage />} />
-        </Route>
-        <Route path="/sale" element={<SalePage />} />
-        <Route path="/error" element={<ErrorPage />} />
-        <Route path="*" element={<NotFoundPage />} />
-      </Routes>
-    </BrowserRouter>
-
     <Routes>
       <Route path="login" element={<LoginPage />} />
       <Route path="/" element={<RootLayout />}>
@@ -54,12 +34,11 @@ export const MainRoute = () => {
         <Route path={"stock-takes"} element={<InventoryCheckPage />} />
         <Route path={"partner"} element={<PartnerPage />} />
         <Route path={"stock-in"} element={<StockInPage />} />
-          <Route path={"stock-in/new"} element={<StockInAddPage />} />
+        <Route path={"stock-in/new"} element={<StockInAddPage />} />
       </Route>
       <Route path="/sale" element={<SalePage />} />
       <Route path="/error" element={<ErrorPage />} />
       <Route path="*" element={<NotFoundPage />} />
     </Routes>
-
   );
 };
