@@ -440,7 +440,10 @@ export default function SpuModal({
               </Button>
             )}
             {!isAdd && (
-              <Button className={"bg-green-500 hover:bg-green-600"}>
+              <Button
+                className={"bg-green-500 hover:bg-green-600"}
+                onClick={() => mapSpuUpsert()}
+              >
                 <FileInput />
                 Lưu
               </Button>

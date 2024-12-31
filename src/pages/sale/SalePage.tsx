@@ -1,147 +1,47 @@
-﻿import {
-  ArrowRightLeft,
-  ChevronDown,
-  ChevronLeft,
-  ChevronRight,
-  CirclePlus,
-  Filter,
-  Image,
-  Images,
-  List,
-  Pen,
-  Search,
-  X,
-} from "lucide-react";
+﻿import { Filter, List, Pen, Search } from "lucide-react";
 import { Input } from "@/components/ui/input.tsx";
 import { ChangeEvent, useCallback, useEffect, useRef, useState } from "react";
 import { Card } from "@/components/ui/card.tsx";
 import { OrderItemCard } from "@/pages/sale/components/OrderItemCard.tsx";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button.tsx";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu.tsx";
-import { SpuCard1, SpuCard2 } from "@/pages/sale/components/SpuCard.tsx";
+import { SkuCard } from "@/pages/sale/components/SkuCard.tsx";
+import { OrderTabsList, Tab } from "@/pages/sale/components/OrderTabsList.tsx";
+import { getListSku } from "@/pages/sale/api/skuApi.ts";
+import { SkuGetDetail } from "@/types/sku/skuGetDetail.ts";
+import { Pagination } from "@/pages/sale/components/Pagination.tsx";
+import { OrderGetDetail, OrderItem } from "@/types/order/orderGetDetail.ts";
+import { getListOrder, OrderStatus } from "@/pages/sale/api/orderApi.ts";
 
 export default function SalePage() {
+  // Input
   const [searchValue, setSearchValue] = useState("");
   const [orderDescription, setOrderDescription] = useState("");
   const [searchCustomer, setSearchCustomer] = useState("");
 
-  const [tabs, setTabs] = useState([
-    {
-      type: "sale",
-      number: 1,
-      orderItems: [
-        {
-          id: "DT000020",
-          name: "Xiaomi Redmi Note 13 Pro 128GB",
-          quantity: 2,
-          originalPrice: 200000,
-          discount: {
-            type: "percent",
-            value: 10,
-          },
-        },
-        {
-          id: "DT000020",
-          name: "Xiaomi Redmi Note 13 Pro 128GB",
-          quantity: 2,
-          originalPrice: 200000,
-          discount: {
-            type: "percent",
-            value: 10,
-          },
-        },
-        {
-          id: "DT000020",
-          name: "Xiaomi Redmi Note 13 Pro 128GB",
-          quantity: 2,
-          originalPrice: 200000,
-          discount: {
-            type: "percent",
-            value: 10,
-          },
-        },
-        {
-          id: "DT000020",
-          name: "Xiaomi Redmi Note 13 Pro 128GB",
-          quantity: 2,
-          originalPrice: 200000,
-          discount: {
-            type: "percent",
-            value: 10,
-          },
-        },
-        {
-          id: "DT000020",
-          name: "Xiaomi Redmi Note 13 Pro 128GB",
-          quantity: 2,
-          originalPrice: 200000,
-          discount: {
-            type: "percent",
-            value: 10,
-          },
-        },
-        {
-          id: "DT000020",
-          name: "Xiaomi Redmi Note 13 Pro 128GB",
-          quantity: 2,
-          originalPrice: 200000,
-          discount: {
-            type: "percent",
-            value: 10,
-          },
-        },
-      ],
-    },
-    {
-      type: "sale",
-      number: 2,
-      orderItems: [
-        {
-          id: "DT000020",
-          name: "Xiaomi Redmi Note 13 Pro 128GB",
-          quantity: 2,
-          originalPrice: 200000,
-          discount: {
-            type: "percent",
-            value: 10,
-          },
-        },
-      ],
-    },
-  ]);
+  // Order tabs
+  const [tabs, setTabs] = useState<Tab[]>([]);
   const [activeTab, setActiveTab] = useState(0);
   const [totalPrice, setTotalPrice] = useState(0);
   const [numberOfItems, setNumberOfItems] = useState(0);
   const tabListRef = useRef<HTMLDivElement>(null);
   const [isOverflowing, setIsOverflowing] = useState(false);
 
-  const [spuListType, setSpuListType] = useState(false);
-  const spus = [
-    { id: "1", name: "Xiaomi Redmi Note 13 Pro 128GB", price: 100000 },
-    { id: "2", name: "Product 2", price: 150000 },
-    { id: "3", name: "Product 3", price: 200000 },
-    { id: "4", name: "Xiaomi Redmi Note 13 Pro 128GB", price: 100000 },
-    { id: "5", name: "Product 2", price: 150000 },
-    { id: "6", name: "Product 3", price: 200000 },
-    { id: "7", name: "Xiaomi Redmi Note 13 Pro 128GB", price: 100000 },
-    { id: "8", name: "Product 2", price: 150000 },
-    { id: "9", name: "Product 3", price: 200000 },
-    { id: "10", name: "Xiaomi Redmi Note 13 Pro 128GB", price: 100000 },
-    { id: "11", name: "Product 2", price: 150000 },
-    { id: "12", name: "Product 3", price: 200000 },
-    { id: "13", name: "Xiaomi Redmi Note 13 Pro 128GB", price: 100000 },
-    { id: "14", name: "Product 2", price: 150000 },
-    { id: "15", name: "Product 3", price: 200000 },
-    { id: "16", name: "Xiaomi Redmi Note 13 Pro 128GB", price: 100000 },
-    { id: "17", name: "Product 2", price: 150000 },
-    { id: "18", name: "Product 3", price: 200000 },
-  ];
+  // Sku list
+  const [skuData, setSkuData] = useState<SkuGetDetail[]>([]);
+  // const [loading, setLoading] = useState(false);
+  // const [error, setError] = useState<string | null>(null);
+
+  // Pagination
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(10);
+  const [totalPages, setTotalPages] = useState(1);
+  const skuListRef = useRef<HTMLDivElement>(null);
+
+  // Filter states
+  const brandId = 0;
+  const categoryId = 0;
+  // const [brandId, setBrandId] = useState(0);
+  // const [categoryId, setCategoryId] = useState(0);
 
   // Check if the tabs list is overflowing
   const checkOverflow = () => {
@@ -177,18 +77,17 @@ export default function SalePage() {
   };
 
   const updateTotalPrice = useCallback(() => {
-    const activeOrderItems = tabs[activeTab].orderItems;
+    if (!tabs[activeTab]) return;
+
+    const activeOrderItems = tabs[activeTab].order.items || [];
     let total = 0;
     let itemCount = 0;
 
     activeOrderItems.forEach((item) => {
-      const discountAmount =
-        item.discount.type === "percent"
-          ? (item.originalPrice * item.discount.value) / 100
-          : item.discount.value;
-      const finalPrice = item.originalPrice - discountAmount;
-      total += finalPrice * item.quantity;
-      itemCount += item.quantity;
+      const discountAmount = item.discount || 0;
+      const finalPrice = item.unitPrice - discountAmount;
+      total += finalPrice * item.amount;
+      itemCount += item.amount;
     });
 
     setTotalPrice(total);
@@ -200,7 +99,12 @@ export default function SalePage() {
     setSearchValue(e.target.value);
   };
   const handleDescriptionChange = (e: ChangeEvent<HTMLInputElement>) => {
+    if (!tabs[activeTab]) return;
     setOrderDescription(e.target.value);
+
+    const updatedTabs = [...tabs];
+    updatedTabs[activeTab].order.description = e.target.value;
+    setTabs(updatedTabs);
   };
   const handleSearchCustomer = (e: ChangeEvent<HTMLInputElement>) => {
     setSearchCustomer(e.target.value);
@@ -219,9 +123,20 @@ export default function SalePage() {
   };
 
   // Tabs stuff
-  const addTab = (type: string) => {
+  const addTab = () => {
     const number = handleTabNumber();
-    const newTab = { type, number, orderItems: [] };
+    const order: OrderGetDetail = {
+      id: 0,
+      customerId: 0,
+      sellerId: 0,
+      status: 1,
+      orderType: "retail",
+      description: "",
+      createAt: new Date(),
+      updateAt: new Date(),
+      items: [],
+    };
+    const newTab = { number, order };
     setTabs((prevTabs) => [...prevTabs, newTab]);
 
     setActiveTab(tabs.length);
@@ -232,11 +147,6 @@ export default function SalePage() {
         behavior: "smooth",
       });
     }
-  };
-  const changeTabType = (index: number, type: string) => {
-    const updatedTabs = [...tabs];
-    updatedTabs[index].type = type;
-    setTabs(updatedTabs);
   };
   const deleteTab = (index: number) => {
     const updatedTabs = tabs.filter((_, i) => i !== index);
@@ -253,9 +163,9 @@ export default function SalePage() {
       setActiveTab((prevActiveTab) => prevActiveTab - 1);
     }
 
-    // If there are no tabs left, create a new tab (sale type by default)
+    // If there are no tabs left, create a new tab
     if (updatedTabs.length === 0) {
-      addTab("sale");
+      addTab();
       setActiveTab(0);
     }
   };
@@ -264,56 +174,160 @@ export default function SalePage() {
   };
 
   // Items stuff
-  const handleOrderItemIncrease = (index: number) => {
+  const updateOrderItem = (index: number, changes: Partial<OrderItem>) => {
+    if (!tabs[activeTab]?.order.items[index]) return;
     const updatedTabs = [...tabs];
-    updatedTabs[activeTab].orderItems[index].quantity += 1;
+    const item = updatedTabs[activeTab].order.items[index];
+    updatedTabs[activeTab].order.items[index] = { ...item, ...changes };
     setTabs(updatedTabs);
     updateTotalPrice();
   };
+  const handleOrderItemIncrease = (index: number) =>
+    updateOrderItem(index, {
+      amount: tabs[activeTab].order.items[index].amount + 1,
+    });
   const handleOrderItemDecrease = (index: number) => {
-    const updatedTabs = [...tabs];
-    if (updatedTabs[activeTab].orderItems[index].quantity > 1) {
-      updatedTabs[activeTab].orderItems[index].quantity -= 1;
-      setTabs(updatedTabs);
-      updateTotalPrice();
+    if (tabs[activeTab].order.items[index].amount > 1) {
+      updateOrderItem(index, {
+        amount: tabs[activeTab].order.items[index].amount - 1,
+      });
     }
   };
   const handleOrderItemRemove = (index: number) => {
     const updatedTabs = [...tabs];
-    updatedTabs[activeTab].orderItems = updatedTabs[
+    updatedTabs[activeTab].order.items = updatedTabs[
       activeTab
-    ].orderItems.filter((_, i) => i !== index);
-    setTabs(updatedTabs);
-    updateTotalPrice();
-  };
-  const handleOrderItemOriginalPriceChange = (
-    index: number,
-    newPrice: number,
-  ) => {
-    const updatedTabs = [...tabs];
-    updatedTabs[activeTab].orderItems[index].originalPrice = newPrice;
-    setTabs(updatedTabs);
-    updateTotalPrice();
-  };
-  const handleOrderItemDiscountChange = (
-    index: number,
-    newDiscount: { type: string; value: number },
-  ) => {
-    const updatedTabs = [...tabs];
-    updatedTabs[activeTab].orderItems[index].discount = newDiscount;
+    ].order.items.filter((_, i) => i !== index);
     setTabs(updatedTabs);
     updateTotalPrice();
   };
 
-  // Spu
-  const handleSpuListType = () => {
-    setSpuListType((prevState) => !prevState);
+  const handleOrderItemDiscountChange = (
+    index: number,
+    newDiscount: number,
+  ) => {
+    const updatedTabs = [...tabs];
+    updatedTabs[activeTab].order.items[index].discount = newDiscount;
+    setTabs(updatedTabs);
+    updateTotalPrice();
   };
+
+  // Handle page navigation
+  const handleNextPage = () => {
+    setPage((prev) => Math.min(prev + 1, totalPages));
+  };
+
+  const handlePreviousPage = () => {
+    setPage((prev) => Math.max(prev - 1, 1));
+  };
+
+  const adjustLimit = () => {
+    const container = skuListRef.current;
+    if (container) {
+      const containerWidth = container.offsetWidth;
+      const containerHeight = container.offsetHeight;
+
+      const cardWidth = 192;
+      const cardHeight = 96;
+
+      const itemsPerRow = Math.max(1, Math.floor(containerWidth / cardWidth));
+      const rowsPerPage = Math.max(1, Math.floor(containerHeight / cardHeight));
+
+      const newLimit = itemsPerRow * rowsPerPage;
+      setLimit(newLimit);
+    }
+  };
+
+  // Fetch
+  const fetchSkus = async () => {
+    // setLoading(true);
+    // setError(null);
+    try {
+      const response = await getListSku(brandId, categoryId, page, limit);
+      setSkuData(response.data); // Set the SKU data from the `data` field
+      const totalPages = Math.ceil(
+        response.paging.total / response.paging.limit,
+      ); // Calculate total pages
+      setTotalPages(totalPages);
+
+      // console.log("Fetched SKU data:", response);
+    } catch (error) {
+      console.log("Fetch error:", error);
+      // setError("Failed to fetch SKU data.");
+    }
+    // finally {
+    //   setLoading(false);
+    // }
+  };
+  const fetchOrders = async () => {
+    try {
+      const response = await getListOrder(OrderStatus.PENDING); // Fetch all orders
+      // console.log("Fetched orders:", response);
+      const transformedTabs: Tab[] = response.data.map(
+        (order: OrderGetDetail) => ({
+          number: order.id,
+          order,
+        }),
+      );
+      setTabs(transformedTabs);
+      if (transformedTabs.length > 0) {
+        setActiveTab(0); // Set the first tab as active if orders exist
+      }
+    } catch (error) {
+      console.log("Fetch error:", error);
+    }
+  };
+
+  // Set up ResizeObserver to monitor container size
+  useEffect(() => {
+    const container = skuListRef.current;
+
+    if (!container) return;
+
+    const observer = new ResizeObserver(() => {
+      adjustLimit();
+    });
+
+    observer.observe(container);
+
+    return () => {
+      observer.disconnect();
+    };
+  }, []);
+
+  // Fetch data on component mount and when filters or page changes
+  useEffect(() => {
+    fetchSkus();
+  }, [brandId, categoryId, page, limit]);
+
+  useEffect(() => {
+    fetchOrders(); // Fetch orders on component mount
+  }, []);
+
+  useEffect(() => {
+    if (tabs[activeTab]) {
+      setOrderDescription(tabs[activeTab].order.description || "");
+    }
+  }, [tabs, activeTab]);
+
+  useEffect(() => {
+    if (tabs.length === 0) {
+      addTab();
+    }
+  }, [tabs]);
+
+  // Adjust the current page if it exceeds the new total pages
+  useEffect(() => {
+    if (page > totalPages) {
+      setPage(totalPages);
+    }
+  }, [totalPages, page]);
 
   useEffect(() => {
     updateTotalPrice();
   }, [tabs, activeTab, updateTotalPrice]);
 
+  // Tabs overflow
   useEffect(() => {
     checkOverflow(); // Initial check for overflow
 
@@ -342,115 +356,16 @@ export default function SalePage() {
 
         {/* Tabs list */}
         <div className="flex flex-row ml-4 items-end w-auto">
-          <div className="flex items-center">
-            {/* Left scroll button */}
-            {isOverflowing && (
-              <Button
-                onClick={() => scrollTabs("left")}
-                className="bg-transparent text-white p-1 hover:bg-blue-800"
-              >
-                <ChevronLeft className="h-6 w-6" />
-              </Button>
-            )}
-            <Tabs
-              value={`tab-${activeTab}`}
-              onValueChange={(value) =>
-                handleTabChange(parseInt(value.split("-")[1]))
-              }
-            >
-              <TabsList
-                ref={tabListRef}
-                className="flex p-0 bg-primary justify-start overflow-x-auto max-w-[35vw] rounded-none rounded-t-lg"
-                style={{
-                  scrollbarWidth: "none", // Firefox
-                  minHeight: "fit-content",
-                }}
-              >
-                {tabs.map((tab, index) => (
-                  <div
-                    key={index}
-                    className={`flex items-center cursor-pointer px-1 py-2 rounded-none rounded-t-lg 
-          ${activeTab === index ? "bg-white text-white" : "bg-transparent text-white hover:bg-blue-700"}`}
-                    onClick={(e) => e.stopPropagation()} // Prevent tab selection when clicking on buttons
-                    style={{ minWidth: "fit-content" }}
-                  >
-                    {/* Type toggle button */}
-                    {activeTab === index && (
-                      <Button
-                        onClick={(e) => {
-                          e.stopPropagation(); // Prevent tab selection when toggling type
-                          changeTabType(
-                            index,
-                            tab.type === "sale" ? "order" : "sale",
-                          );
-                        }}
-                        className={`ml-2 p-1 h-6 w-6 bg-transparent ${activeTab === index ? "text-black hover:bg-gray-300" : "text-white hover:bg-blue-800"} rounded-full shadow-none`}
-                      >
-                        <ArrowRightLeft />
-                      </Button>
-                    )}
-
-                    {/* Tab trigger */}
-                    <TabsTrigger
-                      value={`tab-${index}`}
-                      className="p-1 flex rounded-none rounded-t-lg text-background data-[state=active]:shadow-none transition-transform"
-                    >
-                      <span>
-                        {tab.type === "sale" ? "Hoá đơn " : "Đặt hàng "}{" "}
-                        {tab.number.toString()}
-                      </span>
-                    </TabsTrigger>
-
-                    {/* Delete button */}
-                    <Button
-                      onClick={(e) => {
-                        e.stopPropagation(); // Prevent tab selection when deleting tab
-                        deleteTab(index);
-                      }}
-                      className={`p-1 h-6 w-6 bg-transparent ${activeTab === index ? "text-black hover:bg-gray-300" : "text-white hover:bg-blue-800"} rounded-full shadow-none`}
-                    >
-                      <X className="w-4 h-4" />
-                    </Button>
-                  </div>
-                ))}
-              </TabsList>
-            </Tabs>
-            {/* Right Scroll Button */}
-            {isOverflowing && (
-              <Button
-                onClick={() => scrollTabs("right")}
-                className="bg-transparent text-white p-1 hover:bg-blue-800"
-              >
-                <ChevronRight className="h-6 w-6" />
-              </Button>
-            )}
-          </div>
-
-          {/* Plus button to add new tab */}
-          <div className="flex p-2">
-            <Button
-              onClick={() => addTab("sale")}
-              className="p-1 h-7 w-7 bg-primary text-white rounded-full shadow-none hover:bg-blue-800"
-            >
-              <CirclePlus />
-            </Button>
-            {/* Dropdown to choose tab type */}
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button className="p-1 h-7 w-7 bg-primary text-white rounded-full shadow-none hover:bg-blue-800">
-                  <ChevronDown />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent className="bg-white shadow-md rounded-md p-2">
-                <DropdownMenuItem onClick={() => addTab("sale")}>
-                  Thêm hoá đơn
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => addTab("order")}>
-                  Thêm đặt hàng
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
+          <OrderTabsList
+            tabs={tabs}
+            activeTab={activeTab}
+            onTabChange={handleTabChange}
+            onDeleteTab={deleteTab}
+            onAddTab={addTab}
+            isOverflowing={isOverflowing}
+            scrollTabs={scrollTabs}
+            tabListRef={tabListRef}
+          />
         </div>
       </div>
 
@@ -459,22 +374,24 @@ export default function SalePage() {
         {/* Left Section */}
         <div className="p-2 w-full md:w-[55%] flex flex-col h-full">
           {/* Order items */}
-          <div className="flex flex-col flex-grow p-2 space-y-4 overflow-y-auto h-[0px]">
-            {tabs[activeTab].orderItems.map((item, index) => (
+          <div className="flex flex-col flex-grow p-2 space-y-2 overflow-y-auto h-[0px]">
+            {tabs[activeTab]?.order.items.length === 0 && (
+              <div className="text-center text-gray-500">
+                No items in this order.
+              </div>
+            )}
+            {tabs[activeTab]?.order?.items.map((item, index) => (
               <OrderItemCard
-                key={item.id} // Ensure each card has a unique key
+                key={item.skuId} // Ensure each card has a unique key
                 index={index + 1} // Optionally use 1-based indexing
-                id={item.id}
-                name={item.name}
-                quantity={item.quantity}
-                originalPrice={item.originalPrice}
-                discount={item.discount}
+                id={item.skuId}
+                name={"item name"}
+                quantity={item.amount}
+                originalPrice={item.unitPrice}
+                discount={item.discount || 0}
                 onDecreament={() => handleOrderItemDecrease(index)} // Decrease quantity for this item
                 onIncreament={() => handleOrderItemIncrease(index)} // Increase quantity for this item
                 onRemove={() => handleOrderItemRemove(index)} // Remove this item from the order
-                onOriginalPriceChange={(newPrice) =>
-                  handleOrderItemOriginalPriceChange(index, newPrice)
-                } // Change item's original price
                 onDiscountChange={(newDiscount) =>
                   handleOrderItemDiscountChange(index, newDiscount)
                 } // Change item's discount
@@ -531,50 +448,32 @@ export default function SalePage() {
                 <Button className="p-1 h-7 w-7 bg-transparent text-black rounded-full shadow-none hover:bg-blue-200 hover:text-blue-800">
                   <Filter />
                 </Button>
-                <Button
-                  className="p-1 h-7 w-7 bg-transparent text-black rounded-full shadow-none hover:bg-blue-200 hover:text-blue-800"
-                  onClick={handleSpuListType}
-                >
-                  {spuListType ? <Images /> : <Image />}
-                </Button>
               </div>
             </div>
 
             {/*SPU list*/}
             <div
-              className="p-0 flex flex-wrap gap-2 overflow-y-auto items-start content-start"
+              ref={skuListRef}
+              className="p-2 flex flex-wrap gap-2 items-start content-start"
               style={{
-                maxHeight: "calc(100vh - 210px)", // Adjust based on your header/footer height
+                height: "calc(100vh - 210px)", // Adjust based on your header/footer height
               }}
             >
-              {spus.map((spu) => (
-                <div key={spu.id}>
-                  {spuListType ? (
-                    <SpuCard2 name={spu.name} price={spu.price} />
-                  ) : (
-                    <SpuCard1 name={spu.name} price={spu.price} />
-                  )}
+              {skuData.map((sku) => (
+                <div key={sku.id}>
+                  <SkuCard {...sku} />
                 </div>
               ))}
             </div>
 
             {/*Action*/}
             <div className="flex flex-row p-2 items-center mt-auto gap-10">
-              {/*<div className="flex flex-row gap-2">*/}
-              {/*  <Button*/}
-              {/*    className="p-1 h-6 w-6 bg-gray-200 text-gray-600 hover:bg-gray-300 rounded-full shadow-none"*/}
-              {/*  >*/}
-              {/*    <ChevronLeft />*/}
-              {/*  </Button>*/}
-              {/*  <span>*/}
-              {/*    {currentPage}/{totalPages}*/}
-              {/*  </span>*/}
-              {/*  <Button*/}
-              {/*    className="p-1 h-6 w-6 bg-gray-200 text-gray-600 hover:bg-gray-300 rounded-full shadow-none"*/}
-              {/*  >*/}
-              {/*    <ChevronRight />*/}
-              {/*  </Button>*/}
-              {/*</div>*/}
+              <Pagination
+                page={page}
+                totalPages={totalPages}
+                onNext={handleNextPage}
+                onPrevious={handlePreviousPage}
+              />
               <Button className="p-4 w-full h-12">THANH TOÁN</Button>
             </div>
           </Card>
