@@ -28,3 +28,12 @@ export interface StockInItemTable {
   createdAt: Date | null;
   updatedAt: Date | null;
 }
+
+export interface StockInItemAdd {
+  id: number;
+  name: string;
+  stockQuantity: number;
+  actualQuantity?: number;
+  variance?: number;
+  varianceValue?: number;
+}

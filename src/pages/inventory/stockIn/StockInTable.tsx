@@ -37,21 +37,6 @@ import { MenuVisibilityColumnTable } from "@/components/ButtonVisibilityColumnTa
 import { StockInDetails, StockInItemTable } from "@/types/stockIn.ts";
 import StockInDetailModal from "@/pages/inventory/stockIn/StockInDetailModal.tsx";
 import { getStockInDetailById } from "@/pages/inventory/stockIn/api/stockInApi.ts";
-/*function generateMockSpus(count: number = 10): InventoryReport[] {
-  return Array.from({ length: count }, (_, index) => ({
-    id: index + 1,
-    amount: faker.number.int({ min: 0, max: 100 }),
-    warehouseMan: faker.number.int({ min: 0, max: 100 }),
-    inventoryDif: faker.number.int({ min: 0, max: 100 }),
-    status: faker.helpers.arrayElement([0, 1, 2]),
-    note: faker.lorem.sentence(),
-    createdAt: faker.date.past(),
-    updatedAt: faker.date.recent(),
-  }));
-}*/
-
-// Example usage
-//const data = generateMockSpus(25);
 
 interface IColorMap {
   [key: number]: string;

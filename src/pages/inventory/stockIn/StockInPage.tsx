@@ -160,7 +160,7 @@ export const StockInPage = () => {
           />
         </div>
         <div className={"flex space-x-2"}>
-          <Link to={"/stock-in/add"}>
+          <Link to={"/stock-in/new"}>
             <Button className={"bg-green-500"}>
               <Plus />
               Nhập hàng

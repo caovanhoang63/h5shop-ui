@@ -39,6 +39,8 @@ export async function getInventoryReports(
     if (filters.gtUpdatedAt) params.gtUpdatedAt = filters.gtUpdatedAt;
     if (filters.status) params.status = filters.status;
     if (filters.lk_Id) params.lk_Id = filters.lk_Id;
+
+    console.log(params);
     const response = await axiosInstance.get<ResponseInventoryReport>(
       "v1/inventory/table",
       { params: params },
