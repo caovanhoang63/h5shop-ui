@@ -107,8 +107,15 @@ export function EmployeeTable({
     },
     {
       accessorKey: "status",
-      header: "Trạng thái ",
-      cell: ({ row }: { row: unknown }) => <div>{row.getValue("status")}</div>,
+      header: "Trạng thái",
+      cell: ({ row }: { row: unknown }) => {
+        const status = row.getValue("status");
+        return (
+          <div className={status === 1 ? "text-green-500" : "text-red-500"}>
+            {status === 1 ? "Đang làm việc" : "Đã nghỉ"}
+          </div>
+        );
+      },
     },
     {
       id: "actions",
