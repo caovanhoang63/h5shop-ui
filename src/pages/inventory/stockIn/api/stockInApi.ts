@@ -28,6 +28,12 @@ export interface StockInFilter {
   status?: [] | null;
   lk_Id?: string | null;
 }
+
+interface ResponseSearchSku {
+  data?: never;
+  extra?: never;
+  paging?: never;
+}
 export async function getStockInTableApi(
   filters: StockInFilter,
 ): Promise<ResponseStockInTable> {
@@ -67,6 +73,23 @@ export async function createStockInReport(
     const response = await axiosInstance.post<ResponseStockInReportCreate>(
       "v1/stock-in/create",
       body,
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Fetch error:", error);
+    throw error;
+  }
+}
+
+export async function searchSku(query: string): Promise<ResponseSearchSku> {
+  try {
+    const response = await axiosInstance.get<ResponseSearchSku>(
+      "v1/sku/search-detail",
+      {
+        params: {
+          lkName: query,
+        },
+      },
     );
     return response.data;
   } catch (error) {

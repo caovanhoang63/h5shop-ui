@@ -12,14 +12,18 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Link, useNavigate } from "react-router-dom";
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import {
   StockInCreate,
   StockInItemAdd,
   StockInItemSearch,
 } from "@/types/stockIn/stockIn.ts";
-import { createStockInReport } from "@/pages/inventory/stockIn/api/stockInApi.ts";
+import {
+  createStockInReport,
+  searchSku,
+} from "@/pages/inventory/stockIn/api/stockInApi.ts";
 import { formatCurrency } from "@/utils/convert.ts";
+import _ from "lodash";
 
 export default function StockInAddPage() {
   const rawData: StockInItemAdd[] = [];
@@ -27,20 +31,15 @@ export default function StockInAddPage() {
   const navigate = useNavigate();
   const searchData = [
     {
-      id: 5,
-      code: "PK000016",
-      name: "Tai nghe Bluetooth Sony",
-      amount: 100,
-      price: 1200000,
-    },
-    {
-      id: 6,
-      code: "PK000017",
-      name: "Cáp sạc Lightning Apple",
-      amount: 200,
-      price: 1200000,
+      id: 0,
+      code: "",
+      name: "",
+      amount: 0,
+      price: 0,
+      url: "",
     },
   ];
+
   const [items, setItems] = React.useState<StockInItemAdd[]>(
     rawData.map((item) => ({
       ...item,
@@ -50,19 +49,37 @@ export default function StockInAddPage() {
   );
   const [searchQuery, setSearchQuery] = useState("");
   const [filteredProducts, setFilteredProducts] = useState(searchData);
+
+  const debouncedSearch = useCallback(
+    _.debounce(async (query: string) => {
+      if (query.trim() === "") {
+        setFilteredProducts(searchData);
+      } else {
+        try {
+          const response = await searchSku(query);
+          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+          // @ts-expect-error
+          const searchResponse = response.data.map((item) => ({
+            id: item.id,
+            name: item.name,
+            code: item.code,
+            amount: item.amount,
+            price: item.price,
+          }));
+          setFilteredProducts(searchResponse);
+        } catch (error) {
+          console.error(error);
+        }
+      }
+    }, 2000),
+    [searchData],
+  );
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const query = e.target.value;
     setSearchQuery(query);
-
-    if (query.trim() === "") {
-      setFilteredProducts(searchData);
-    } else {
-      const filtered = searchData.filter((product) =>
-        product.name.toLowerCase().includes(query.toLowerCase()),
-      );
-      setFilteredProducts(filtered);
-    }
+    debouncedSearch(query);
   };
+
   const handleAddItem = (product: StockInItemSearch) => {
     setItems((prevItems) => {
       setSearchQuery("");
@@ -152,8 +169,9 @@ export default function StockInAddPage() {
                     className="p-2 hover:bg-gray-100 cursor-pointer"
                     onClick={() => handleAddItem(product)}
                   >
-                    <span className="font-medium">{product.name}</span> -{" "}
-                    <span className="text-gray-500">{product.code}</span>
+                    <span className="text-gray-500">{product.id}</span>
+                    {" - "}
+                    <span className="font-medium">{product.name}</span>
                   </div>
                 ))}
               </div>
