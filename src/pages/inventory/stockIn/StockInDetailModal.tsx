@@ -8,7 +8,7 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Save, XCircle } from "lucide-react";
+import { FileDown, Save, XCircle } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -40,6 +40,18 @@ export default function StockInDetailModal({
   const formatCurrency = (amount: number) => {
     const numberPrice = Number(amount);
     return numberPrice.toLocaleString("en-US");
+  };
+
+  const totalStock = () => {
+    if (stockItem)
+      return stockItem.items.reduce((total, item) => total + item.amount, 0);
+    return 0;
+  };
+
+  const totalPrice = () => {
+    if (stockItem)
+      return stockItem.items.reduce((total, item) => total + item.price, 0);
+    return 0;
   };
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
@@ -119,8 +131,8 @@ export default function StockInDetailModal({
               </Table>
             </ScrollArea>
             <div className="space-y-2 text-right">
-              <div>Tổng thực tế: 0</div>
-              <div>Tổng chênh lệch: 0</div>
+              <div>Tổng số lượng: {formatCurrency(totalStock())}</div>
+              <div>Tổng giá trị: {formatCurrency(totalPrice())}</div>
             </div>
           </div>
         </div>
@@ -129,10 +141,10 @@ export default function StockInDetailModal({
             <Save className="w-4 h-4 mr-2" />
             Lưu
           </Button>
-          {/*<Button variant="secondary">
+          <Button variant="secondary">
             <FileDown className="w-4 h-4 mr-2" />
-            Xuất file
-          </Button>*/}
+            In tem mã
+          </Button>
           <Button variant="destructive" onClick={() => onOpenChange(false)}>
             <XCircle className="w-4 h-4 mr-2" />
             Hủy bỏ

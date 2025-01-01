@@ -24,6 +24,7 @@ import {
 } from "@/pages/inventory/stockIn/api/stockInApi.ts";
 import { formatCurrency } from "@/utils/convert.ts";
 import _ from "lodash";
+import { toast } from "react-toastify";
 
 export default function StockInAddPage() {
   const rawData: StockInItemAdd[] = [];
@@ -124,6 +125,14 @@ export default function StockInAddPage() {
   };
   const handleComplete = async () => {
     if (items.length === 0) {
+      toast.warning("Không có sản phẩm nào  !", {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+      });
       return;
     }
     const report: StockInCreate = {
@@ -138,9 +147,25 @@ export default function StockInAddPage() {
     };
     try {
       const response = await createStockInReport(report);
+      toast.success("Nhập hàng thành công!", {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+      });
       console.log("Báo cáo nhập kho đã được tạo:", response);
       navigate("/stock-in");
     } catch (error) {
+      toast.error("Nhập hàng thất bại!", {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+      });
       console.error("Lỗi khi tạo báo cáo kiểm kho:", error);
     }
   };
@@ -149,7 +174,7 @@ export default function StockInAddPage() {
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-4 ">
-          <Link to="/inventory" className="hover:opacity-80">
+          <Link to="/stock-in" className="hover:opacity-80">
             <ArrowLeft className="h-6 w-6" />
           </Link>
           <h1 className="text-xl font-semibold">Nhập hàng</h1>

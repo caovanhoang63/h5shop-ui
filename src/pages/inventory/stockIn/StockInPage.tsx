@@ -33,6 +33,7 @@ import {
   StockInFilter,
 } from "@/pages/inventory/stockIn/api/stockInApi.ts";
 import { StockInItemTable } from "@/types/stockIn/stockIn.ts";
+import { toast } from "react-toastify";
 
 export const StockInPage = () => {
   const [stockInReport, setStockInReport] = useState<StockInItemTable[]>([]);
@@ -119,6 +120,14 @@ export const StockInPage = () => {
       console.log("api", response.data);
       setStockInReport(response.data);
     } catch (error) {
+      toast.error("Lỗi hệ thống!", {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+      });
       console.log(error);
     }
   };
