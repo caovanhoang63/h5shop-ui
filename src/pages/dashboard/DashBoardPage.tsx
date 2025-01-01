@@ -20,6 +20,25 @@ import {
 } from "@/components/ui/select.tsx";
 
 export const DashBoardPage = () => {
+  // const [paging, setPaging] = useState<Paging>({
+  //   page: 1,
+  //   limit: 10,
+  // });
+  //
+  // const [filter, setFilter] = useState<IAuditFilter>({
+  //   action: [],
+  //   objectType: [],
+  // });
+  // const [auditLog, setAuditLog] = useState<Audit[]>([]);
+  // useEffect(() => {
+  //   getAudit(filter, paging)
+  //     .then((res) => {})
+  //     .catch((e) => {
+  //       console.error(e);
+  //       toast.error(e.response.data.message);
+  //     });
+  // }, [paging, filter]);
+
   return (
     <div className="flex space-x-5 p-5">
       <div className={"space-y-5 flex-grow "}>
