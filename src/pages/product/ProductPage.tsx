@@ -66,7 +66,6 @@ export default function ProductPage() {
   });
 
   useEffect(() => {
-    setIsLoading(true);
     // Fetch data
     fetchBrands();
     fetchCategories();

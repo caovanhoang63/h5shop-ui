@@ -21,7 +21,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card.tsx";
-import { useEffect, useState } from "react";
+import { Fragment, useEffect, useState } from "react";
 import { ScrollArea } from "@/components/ui/scroll-area.tsx";
 import { BanIcon, FileInput, Plus, Trash2Icon } from "lucide-react";
 import { ItemAttrSku } from "@/pages/product/ItemAttrSku.tsx";
@@ -100,7 +100,9 @@ export default function SpuModal({
       setImage(undefined);
       setSpuDetail(undefined);
     } else {
-      fetchSpuDetail(spuIdSelected as number);
+      if (spuIdSelected && spuIdSelected > 0) {
+        fetchSpuDetail(spuIdSelected);
+      }
     }
   }, [isOpen]);
 
@@ -256,244 +258,247 @@ export default function SpuModal({
       });
   };
 
-  if (isLoading) {
-    return <LoadingAnimation></LoadingAnimation>;
-  }
-
   return (
-    <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-screen-xl min-h-[calc(100vh-30%)] flex flex-col">
-        <DialogHeader>
-          <DialogTitle>Chi tiết sản phẩm</DialogTitle>
-        </DialogHeader>
-        <Tabs defaultValue="spu" className="grow">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="spu">Thông tin chung</TabsTrigger>
-            <TabsTrigger value="attr">Thuộc tính</TabsTrigger>
-            <TabsTrigger value="sku">Sản phẩm</TabsTrigger>
-          </TabsList>
+    <Fragment>
+      {isLoading && <LoadingAnimation />}
+      <Dialog open={isOpen} onOpenChange={onOpenChange}>
+        <DialogContent className="max-w-screen-xl min-h-[calc(100vh-30%)] flex flex-col">
+          <DialogHeader>
+            <DialogTitle>Chi tiết sản phẩm</DialogTitle>
+          </DialogHeader>
+          <Tabs defaultValue="spu" className="grow">
+            <TabsList className="grid w-full grid-cols-3">
+              <TabsTrigger value="spu">Thông tin chung</TabsTrigger>
+              <TabsTrigger value="attr">Thuộc tính</TabsTrigger>
+              <TabsTrigger value="sku">Sản phẩm</TabsTrigger>
+            </TabsList>
 
-          <TabsContent value="spu">
-            <Card>
-              <CardContent className="space-y-2 space-x-12 flex flex-row mt-6">
-                <div>
-                  <InputUploadImage
-                    height={"320px"}
-                    width={"320px"}
-                    image={image}
-                    setImage={setImage}
-                  />
-                </div>
-                <div className={"flex flex-row flex-1 space-x-12"}>
-                  <div className={"flex flex-col flex-1 space-y-5"}>
-                    <div className={"flex flex-row items-center"}>
-                      <Label className={"w-5/12"} htmlFor="name">
-                        Tên sản phẩm
-                      </Label>
-                      <Input
-                        id="name"
-                        value={name}
-                        onChange={(e) => setName(e.target.value)}
-                      />
+            <TabsContent value="spu">
+              <Card>
+                <CardContent className="space-y-2 space-x-12 flex flex-row mt-6">
+                  <div>
+                    <InputUploadImage
+                      height={"320px"}
+                      width={"320px"}
+                      image={image}
+                      setImage={setImage}
+                    />
+                  </div>
+                  <div className={"flex flex-row flex-1 space-x-12"}>
+                    <div className={"flex flex-col flex-1 space-y-5"}>
+                      <div className={"flex flex-row items-center"}>
+                        <Label className={"w-5/12"} htmlFor="name">
+                          Tên sản phẩm
+                        </Label>
+                        <Input
+                          id="name"
+                          value={name}
+                          onChange={(e) => setName(e.target.value)}
+                        />
+                      </div>
+                      <div className={"flex flex-row items-center"}>
+                        <Label className={"w-5/12"} htmlFor="name">
+                          Thương hiệu
+                        </Label>
+                        <Select
+                          onValueChange={(value) => {
+                            console.log(value);
+                            setBrandId(parseInt(value));
+                          }}
+                          value={brandId?.toString()}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder={"Chọn thương hiệu"}>
+                              {listBrands.find((brand) => brand.id === brandId)
+                                ?.name || "Chọn thương hiệu"}
+                            </SelectValue>
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectGroup>
+                              <SelectLabel>Thương hiệu</SelectLabel>
+                              {listBrands.map((brand) => (
+                                <SelectItem
+                                  value={brand.id.toString()}
+                                  key={brand.id}
+                                >
+                                  {brand.name}
+                                </SelectItem>
+                              ))}
+                            </SelectGroup>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className={"flex flex-row items-center"}>
+                        <Label className={"w-5/12"} htmlFor="name">
+                          Nhóm hàng
+                        </Label>
+                        <CardCategorySelect
+                          listCategories={listCategories}
+                          isAdd={true}
+                          setParentId={handleSetCategory}
+                          parentIdSelected={categoryId}
+                        />
+                      </div>
+                      <div className={"flex flex-row items-center"}>
+                        <Label className={"w-5/12"}>Vị trí</Label>
+                        <Input
+                          value={metadata.position}
+                          onChange={(e) => {
+                            setMetadata({
+                              ...metadata,
+                              position: e.target.value,
+                            });
+                          }}
+                        />
+                      </div>
                     </div>
-                    <div className={"flex flex-row items-center"}>
-                      <Label className={"w-5/12"} htmlFor="name">
-                        Thương hiệu
-                      </Label>
-                      <Select
-                        onValueChange={(value) => {
-                          console.log(value);
-                          setBrandId(parseInt(value));
-                        }}
-                        value={brandId?.toString()}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder={"Chọn thương hiệu"}>
-                            {listBrands.find((brand) => brand.id === brandId)
-                              ?.name || "Chọn thương hiệu"}
-                          </SelectValue>
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectGroup>
-                            <SelectLabel>Thương hiệu</SelectLabel>
-                            {listBrands.map((brand) => (
-                              <SelectItem
-                                value={brand.id.toString()}
-                                key={brand.id}
-                              >
-                                {brand.name}
-                              </SelectItem>
-                            ))}
-                          </SelectGroup>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className={"flex flex-row items-center"}>
-                      <Label className={"w-5/12"} htmlFor="name">
-                        Nhóm hàng
-                      </Label>
-                      <CardCategorySelect
-                        listCategories={listCategories}
-                        isAdd={true}
-                        setParentId={handleSetCategory}
-                        parentIdSelected={categoryId}
-                      />
-                    </div>
-                    <div className={"flex flex-row items-center"}>
-                      <Label className={"w-5/12"}>Vị trí</Label>
-                      <Input
-                        value={metadata.position}
-                        onChange={(e) => {
-                          setMetadata({
-                            ...metadata,
-                            position: e.target.value,
-                          });
-                        }}
-                      />
+                    <div className={"flex flex-col flex-1 space-y-5"}>
+                      <div className={"flex flex-row items-center"}>
+                        <Label className={"w-6/12"} htmlFor="name">
+                          Giá vốn (VND)
+                        </Label>
+                        <Input id="name" disabled={true} />
+                      </div>
+                      <div className={"flex flex-row items-center"}>
+                        <Label className={"w-6/12"} htmlFor="name">
+                          Giá bán (VND)
+                        </Label>
+                        <Input id="name" disabled={true} />
+                      </div>
+                      <div className={"flex flex-row items-center"}>
+                        <Label className={"w-6/12"} htmlFor="name">
+                          Tổng mức tồn kho
+                        </Label>
+                        <Input id="name" disabled={true} />
+                      </div>
+                      <div className={"flex flex-row items-center"}>
+                        <Label className={"w-6/12"}>Mô tả</Label>
+                        <Input
+                          value={description}
+                          onChange={(e) => setDescription(e.target.value)}
+                        />
+                      </div>
                     </div>
                   </div>
-                  <div className={"flex flex-col flex-1 space-y-5"}>
-                    <div className={"flex flex-row items-center"}>
-                      <Label className={"w-6/12"} htmlFor="name">
-                        Giá vốn (VND)
-                      </Label>
-                      <Input id="name" disabled={true} />
+                </CardContent>
+              </Card>
+            </TabsContent>
+            <TabsContent value="attr">
+              <Card>
+                <CardHeader>
+                  <Label style={{ fontSize: "16px" }}>
+                    Danh sách thuộc tính
+                  </Label>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {attrs.map((_, index) => (
+                    <ItemAttrSku
+                      key={index}
+                      onDeleted={() => handleDeleteAttr(index)}
+                      attribute={attrs[index]}
+                      indexAttr={index}
+                      setAttribute={(index, attribute) => {
+                        setAttrs((prev) =>
+                          prev.map((item, i) =>
+                            i === index ? attribute : item,
+                          ),
+                        );
+                      }}
+                    />
+                  ))}
+                </CardContent>
+                <CardFooter>
+                  <Button
+                    className={"bg-green-500 hover:bg-green-600"}
+                    onClick={() => handleAddAttr()}
+                  >
+                    <Plus />
+                    Thêm thuộc tính
+                  </Button>
+                </CardFooter>
+              </Card>
+            </TabsContent>
+            <TabsContent value="sku">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Danh sách sản phẩm</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-20">
+                  <ScrollArea style={{ height: "360px" }}>
+                    <div className={"flex flex-col p-4 space-y-20"}>
+                      {skus.map((item, index) => (
+                        <ItemSku
+                          key={index}
+                          onDeleted={() => handleDeleteSku(index)}
+                          attribute={attrs}
+                          indexSku={index}
+                          sku={item}
+                          setSku={(index, sku) => {
+                            setSkus((prev) =>
+                              prev.map((item, i) => (i === index ? sku : item)),
+                            );
+                          }}
+                        />
+                      ))}
                     </div>
-                    <div className={"flex flex-row items-center"}>
-                      <Label className={"w-6/12"} htmlFor="name">
-                        Giá bán (VND)
-                      </Label>
-                      <Input id="name" disabled={true} />
-                    </div>
-                    <div className={"flex flex-row items-center"}>
-                      <Label className={"w-6/12"} htmlFor="name">
-                        Tổng mức tồn kho
-                      </Label>
-                      <Input id="name" disabled={true} />
-                    </div>
-                    <div className={"flex flex-row items-center"}>
-                      <Label className={"w-6/12"}>Mô tả</Label>
-                      <Input
-                        value={description}
-                        onChange={(e) => setDescription(e.target.value)}
-                      />
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-          <TabsContent value="attr">
-            <Card>
-              <CardHeader>
-                <Label style={{ fontSize: "16px" }}>Danh sách thuộc tính</Label>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {attrs.map((_, index) => (
-                  <ItemAttrSku
-                    key={index}
-                    onDeleted={() => handleDeleteAttr(index)}
-                    attribute={attrs[index]}
-                    indexAttr={index}
-                    setAttribute={(index, attribute) => {
-                      setAttrs((prev) =>
-                        prev.map((item, i) => (i === index ? attribute : item)),
-                      );
-                    }}
-                  />
-                ))}
-              </CardContent>
-              <CardFooter>
+                  </ScrollArea>
+                </CardContent>
+                <CardFooter>
+                  <Button
+                    className={"bg-green-500 hover:bg-green-600"}
+                    onClick={() => handleAddSku()}
+                  >
+                    <Plus />
+                    Thêm sản phẩm
+                  </Button>
+                </CardFooter>
+              </Card>
+            </TabsContent>
+          </Tabs>
+          <DialogFooter className="">
+            <div className={"flex flex-row space-x-2 justify-end"}>
+              {isAdd && (
                 <Button
                   className={"bg-green-500 hover:bg-green-600"}
-                  onClick={() => handleAddAttr()}
+                  onClick={() => mapSpuUpsert()}
                 >
                   <Plus />
-                  Thêm thuộc tính
+                  Thêm mới
                 </Button>
-              </CardFooter>
-            </Card>
-          </TabsContent>
-          <TabsContent value="sku">
-            <Card>
-              <CardHeader>
-                <CardTitle>Danh sách sản phẩm</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-20">
-                <ScrollArea style={{ height: "360px" }}>
-                  <div className={"flex flex-col p-4 space-y-20"}>
-                    {skus.map((item, index) => (
-                      <ItemSku
-                        key={index}
-                        onDeleted={() => handleDeleteSku(index)}
-                        attribute={attrs}
-                        indexSku={index}
-                        sku={item}
-                        setSku={(index, sku) => {
-                          setSkus((prev) =>
-                            prev.map((item, i) => (i === index ? sku : item)),
-                          );
-                        }}
-                      />
-                    ))}
-                  </div>
-                </ScrollArea>
-              </CardContent>
-              <CardFooter>
+              )}
+              {!isAdd && (
                 <Button
                   className={"bg-green-500 hover:bg-green-600"}
-                  onClick={() => handleAddSku()}
+                  onClick={() => mapSpuUpsert()}
                 >
-                  <Plus />
-                  Thêm sản phẩm
+                  <FileInput />
+                  Lưu
                 </Button>
-              </CardFooter>
-            </Card>
-          </TabsContent>
-        </Tabs>
-        <DialogFooter className="">
-          <div className={"flex flex-row space-x-2 justify-end"}>
-            {isAdd && (
+              )}
+              {!isAdd && (
+                <Button
+                  className={"bg-red-500 hover:bg-red-600"}
+                  onClick={() => {
+                    if (spuIdSelected) {
+                      CallApiDeleteSpu(spuIdSelected);
+                    }
+                  }}
+                >
+                  <Trash2Icon />
+                  Xóa
+                </Button>
+              )}
               <Button
-                className={"bg-green-500 hover:bg-green-600"}
-                onClick={() => mapSpuUpsert()}
+                className={"bg-gray-500 hover:bg-gray-600"}
+                onClick={() => onOpenChange(false)}
               >
-                <Plus />
-                Thêm mới
+                <BanIcon />
+                Bỏ qua
               </Button>
-            )}
-            {!isAdd && (
-              <Button
-                className={"bg-green-500 hover:bg-green-600"}
-                onClick={() => mapSpuUpsert()}
-              >
-                <FileInput />
-                Lưu
-              </Button>
-            )}
-            {!isAdd && (
-              <Button
-                className={"bg-red-500 hover:bg-red-600"}
-                onClick={() => {
-                  if (spuIdSelected) {
-                    CallApiDeleteSpu(spuIdSelected);
-                  }
-                }}
-              >
-                <Trash2Icon />
-                Xóa
-              </Button>
-            )}
-            <Button
-              className={"bg-gray-500 hover:bg-gray-600"}
-              onClick={() => onOpenChange(false)}
-            >
-              <BanIcon />
-              Bỏ qua
-            </Button>
-          </div>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+            </div>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </Fragment>
   );
 }
