@@ -128,7 +128,7 @@ export const CardCategoryFilter = ({
                 <Search className="absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 transform" />
                 <Input
                   className={"pl-9"}
-                  placeholder={"Theo mã, tên hàng"}
+                  placeholder={"Theo nhóm hàng"}
                   value={searchText}
                   onChange={(e) => setSearchText(e.target.value)}
                 />
@@ -137,7 +137,7 @@ export const CardCategoryFilter = ({
                 className="group flex items-center justify-start hover:bg-gray-100 hover:cursor-pointer"
                 style={{ height: "30px" }}
                 onClick={() => {
-                  setIdCategorySelected(0);
+                  handleClickCategory(0);
                 }}
               >
                 {idCategorySelected === 0 ? (

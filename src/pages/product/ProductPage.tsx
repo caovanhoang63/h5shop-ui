@@ -18,6 +18,7 @@ import { Category } from "@/types/category/category.ts";
 import SpuModal from "@/pages/product/SpuModal.tsx";
 import { SpuListTable } from "@/types/spu/spuListTable.ts";
 import { getSpuListTable } from "@/pages/product/api/spuApi.ts";
+import { SpuFilter } from "@/types/spu/spuFilter.ts";
 
 export default function ProductPage() {
   const [fields, setFields] = useState<MenuVisibilityColumnTable[]>([
@@ -37,12 +38,21 @@ export default function ProductPage() {
   const [spuList, setSpuList] = useState<SpuListTable[]>([]);
   const [spuIdSelected, setSpuIdSelected] = useState<number>();
   const [isAdd, setIsAdd] = useState<boolean>(true);
+  const [spuFilter, setSpuFilter] = useState<SpuFilter>({
+    name: "",
+    page: 1,
+    limit: 10,
+  });
 
   useEffect(() => {
     fetchBrands();
     fetchCategories();
-    fetchSpuListTable();
   }, []);
+
+  useEffect(() => {
+    fetchSpuListTable();
+    console.log(spuFilter);
+  }, [spuFilter]);
 
   const fetchBrands = async () => {
     try {
@@ -55,7 +65,7 @@ export default function ProductPage() {
 
   const fetchSpuListTable = async () => {
     try {
-      const response = await getSpuListTable();
+      const response = await getSpuListTable(spuFilter);
       console.log(response);
       setSpuList(response.data);
     } catch (error) {
@@ -77,6 +87,7 @@ export default function ProductPage() {
     console.log(brandSelected);
     console.log(brandId);
     setBrandSelected(brandId);
+    setSpuFilter({ ...spuFilter, brandId: Number(brandId) });
   };
 
   const handleCheckField = (key: string, visible: boolean) => {
@@ -100,6 +111,7 @@ export default function ProductPage() {
   const handleChangeCategory = (categoryId: number) => {
     console.log(categorySelected);
     setCategorySelected(categoryId);
+    setSpuFilter({ ...spuFilter, categoryId: categoryId });
   };
 
   return (
@@ -110,7 +122,14 @@ export default function ProductPage() {
       <div className={"col-span-4 w-full flex  justify-between"}>
         <div className="relative flex items-center max-w-80">
           <Search className="absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 transform" />
-          <Input className={"pl-9"} placeholder={"Theo mã, tên hàng"} />
+          <Input
+            className={"pl-9"}
+            placeholder={"Theo mã, tên hàng"}
+            value={spuFilter.name}
+            onChange={(e) =>
+              setSpuFilter({ ...spuFilter, name: e.target.value })
+            }
+          />
         </div>
         <div className={"flex space-x-2"}>
           <Button

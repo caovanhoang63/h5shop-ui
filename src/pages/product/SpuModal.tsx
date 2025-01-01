@@ -29,7 +29,9 @@ import { ItemSku } from "@/pages/product/ItemSku.tsx";
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
+  SelectLabel,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select.tsx";
@@ -43,7 +45,11 @@ import {
   SkuCreate,
   SpuUpsert,
 } from "@/types/spu/spuUpsert.ts";
-import { getSpuDetail, upsertSpuDetail } from "@/pages/product/api/spuApi.ts";
+import {
+  deleteSpu,
+  getSpuDetail,
+  upsertSpuDetail,
+} from "@/pages/product/api/spuApi.ts";
 import { Image } from "@/types/image.ts";
 import { SpuDetail } from "@/types/spu/spuGetDetail.ts";
 import { deleteSkuAttr } from "@/pages/product/api/skuAttrApi.ts";
@@ -141,6 +147,14 @@ export default function SpuModal({
       const response = await getSpuDetail(id);
       console.log(response.data);
       setSpuDetail(response.data.spuDetail);
+    } catch (error) {
+      console.error("Error: ", error);
+    }
+  };
+
+  const CallApiDeleteSpu = async (id: number) => {
+    try {
+      await deleteSpu(id);
     } catch (error) {
       console.error("Error: ", error);
     }
@@ -265,12 +279,6 @@ export default function SpuModal({
                   <div className={"flex flex-col flex-1 space-y-5"}>
                     <div className={"flex flex-row items-center"}>
                       <Label className={"w-5/12"} htmlFor="name">
-                        Mã vạch
-                      </Label>
-                      <Input id="name" />
-                    </div>
-                    <div className={"flex flex-row items-center"}>
-                      <Label className={"w-5/12"} htmlFor="name">
                         Tên sản phẩm
                       </Label>
                       <Input
@@ -291,17 +299,23 @@ export default function SpuModal({
                         value={brandId?.toString()}
                       >
                         <SelectTrigger>
-                          <SelectValue placeholder={"Chọn thương hiệu"} />
+                          <SelectValue placeholder={"Chọn thương hiệu"}>
+                            {listBrands.find((brand) => brand.id === brandId)
+                              ?.name || "Chọn thương hiệu"}
+                          </SelectValue>
                         </SelectTrigger>
                         <SelectContent>
-                          {listBrands.map((brand) => (
-                            <SelectItem
-                              value={brand.id.toString()}
-                              key={brand.id}
-                            >
-                              {brand.name}
-                            </SelectItem>
-                          ))}
+                          <SelectGroup>
+                            <SelectLabel>Thương hiệu</SelectLabel>
+                            {listBrands.map((brand) => (
+                              <SelectItem
+                                value={brand.id.toString()}
+                                key={brand.id}
+                              >
+                                {brand.name}
+                              </SelectItem>
+                            ))}
+                          </SelectGroup>
                         </SelectContent>
                       </Select>
                     </div>
@@ -449,7 +463,14 @@ export default function SpuModal({
               </Button>
             )}
             {!isAdd && (
-              <Button className={"bg-red-500 hover:bg-red-600"}>
+              <Button
+                className={"bg-red-500 hover:bg-red-600"}
+                onClick={() => {
+                  if (spuIdSelected) {
+                    CallApiDeleteSpu(spuIdSelected);
+                  }
+                }}
+              >
                 <Trash2Icon />
                 Xóa
               </Button>

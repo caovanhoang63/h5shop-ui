@@ -7,7 +7,7 @@ import {
 } from "@/components/ui/accordion.tsx";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group.tsx";
 import { Label } from "@/components/ui/label.tsx";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { CirclePlus } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area.tsx";
 import BrandModal from "@/pages/product/BrandModal.tsx";
@@ -26,6 +26,22 @@ export const CardBrandFilter = ({
   const [isOpenModalAdd, setIsOpenModalAdd] = useState<boolean>(false);
   const [isOpenModalUpdate, setIsOpenModalUpdate] = useState<boolean>(false);
   const [brandEdit, setBrandEdit] = useState<Brand>({ id: 0, name: "" });
+  const [listBrandCpn, setListBrandCpn] = useState<Brand[]>([
+    {
+      id: 0,
+      name: "Tất cả",
+    },
+  ]);
+
+  useEffect(() => {
+    setListBrandCpn([
+      {
+        id: 0,
+        name: "Tất cả",
+      },
+      ...listBrands,
+    ]);
+  }, [listBrands]);
 
   // fetch brand from API
 
@@ -90,7 +106,7 @@ export const CardBrandFilter = ({
             <AccordionContent className={"space-y-2"}>
               <ScrollArea style={{ height: "200px" }}>
                 <RadioGroup defaultValue="0">
-                  {listBrands.map((brand, index) => (
+                  {listBrandCpn.map((brand, index) => (
                     <div
                       key={index}
                       className="group flex items-center space-x-2"
