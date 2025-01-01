@@ -32,7 +32,7 @@ import {
   getStockInTableApi,
   StockInFilter,
 } from "@/pages/inventory/stockIn/api/stockInApi.ts";
-import { StockInItemTable } from "@/types/stockIn.ts";
+import { StockInItemTable } from "@/types/stockIn/stockIn.ts";
 
 export const StockInPage = () => {
   const [stockInReport, setStockInReport] = useState<StockInItemTable[]>([]);

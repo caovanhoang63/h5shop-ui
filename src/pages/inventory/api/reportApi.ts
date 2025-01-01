@@ -2,7 +2,7 @@ import {
   InventoryReport,
   InventoryReportDetails,
   InventoryReportCreate,
-} from "@/types/inventoryReport.ts";
+} from "@/types/inventory/inventoryReport.ts";
 import axiosInstance from "@/axiosSetup.ts";
 
 interface ResponseInventoryReport {

@@ -1,5 +1,5 @@
 import axiosInstance from "@/axiosSetup.ts";
-import { StockInDetails, StockInItemTable } from "@/types/stockIn.ts";
+import { StockInDetails, StockInItemTable } from "@/types/stockIn/stockIn.ts";
 
 interface ResponseStockInTable {
   data: StockInItemTable[];

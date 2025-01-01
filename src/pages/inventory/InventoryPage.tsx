@@ -15,7 +15,7 @@ import Container from "@/layouts/components/Container.tsx";
 import { InventoryTable } from "./InventoryTable.tsx";
 import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { InventoryReport } from "@/types/inventoryReport.ts";
+import { InventoryReport } from "@/types/inventory/inventoryReport.ts";
 import {
   getInventoryReports,
   InventoryReportFilter,

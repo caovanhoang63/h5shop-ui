@@ -36,7 +36,7 @@ import {
 import {
   InventoryReport,
   InventoryReportDetails,
-} from "@/types/inventoryReport.ts";
+} from "@/types/inventory/inventoryReport.ts";
 import InventoryReportDetailModal from "@/pages/inventory/InventoryReportDetailModal.tsx";
 import { getInventoryReportDetailById } from "@/pages/inventory/api/reportApi.ts";
 import { MenuVisibilityColumnTable } from "@/components/ButtonVisibilityColumnTable.tsx";

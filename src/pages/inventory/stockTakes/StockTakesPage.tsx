@@ -12,10 +12,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Link, useNavigate } from "react-router-dom";
-import { InventoryItemStockTake } from "@/types/inventoryItemStockTake.ts";
+import { InventoryItemStockTake } from "@/types/inventory/inventoryItemStockTake.ts";
 import { useState } from "react";
 import { createInventoryReport } from "@/pages/inventory/api/reportApi.ts";
-import { InventoryReportCreate } from "@/types/inventoryReport.ts";
+import { InventoryReportCreate } from "@/types/inventory/inventoryReport.ts";
 
 export default function InventoryCheckPage() {
   const rawData: InventoryItemStockTake[] = [];

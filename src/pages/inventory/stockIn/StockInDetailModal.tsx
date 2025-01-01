@@ -17,7 +17,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog.tsx";
 import { ScrollArea } from "@/components/ui/scroll-area.tsx";
-import { StockInDetails } from "@/types/stockIn.ts";
+import { StockInDetails } from "@/types/stockIn/stockIn.ts";
 
 interface IStockInDetailModalProps {
   isOpen: boolean;
