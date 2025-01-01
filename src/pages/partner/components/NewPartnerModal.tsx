@@ -53,7 +53,7 @@ export default function NewPartnerModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-screen-xl min-h-[calc(100vh-30%)] flex flex-col">
+      <DialogContent className="max-w-screen-xl min-h-[calc(100vh-50%)] flex flex-col">
         <DialogHeader>
           <DialogTitle>Thêm nhà cung cấp</DialogTitle>
         </DialogHeader>

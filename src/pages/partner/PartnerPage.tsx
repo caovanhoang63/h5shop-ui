@@ -1,5 +1,5 @@
 import Container from "@/layouts/components/Container.tsx";
-import { FileInput, Plus, Search } from "lucide-react";
+import { Plus, Search } from "lucide-react";
 import { Input } from "@/components/ui/input.tsx";
 import { Button } from "@/components/ui/button.tsx";
 import { Card, CardContent } from "@/components/ui/card.tsx";
@@ -20,12 +20,10 @@ import {
 import NewPartnerModal from "@/pages/partner/components/NewPartnerModal.tsx";
 import { listProvider } from "@/pages/partner/api/providerApi.ts";
 import { Provider, ProviderFilter } from "@/types/provider.ts";
-import { LoadingAnimation } from "@/components/ui/LoadingAnimation.tsx";
 import { ExportButton } from "@/components/ExportButton.tsx";
 
 export default function PartnerPage() {
   const [isOpenNewPartnerModal, setIsOpenNewPartnerModal] = useState(false);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [providerData, setProviderData] = useState<Provider[]>([]);
   const [providerFilter, setProviderFilter] = useState<ProviderFilter>({});
@@ -65,7 +63,6 @@ export default function PartnerPage() {
     getProviderTableData();
   }, [providerFilter]);
   const getProviderTableData = async () => {
-    setIsLoading(true);
     try {
       console.log("filter: ", providerFilter);
       const response = await listProvider(providerFilter);
@@ -75,16 +72,11 @@ export default function PartnerPage() {
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-expect-error
       setError(error.response.data.message);
-    } finally {
-      setIsLoading(false);
     }
   };
   useEffect(() => {
     getProviderTableData();
   }, []);
-  if (isLoading) {
-    return <LoadingAnimation></LoadingAnimation>;
-  }
 
   if (error) {
     return <div>{error}</div>;
@@ -127,11 +119,7 @@ export default function PartnerPage() {
             <Plus />
             Nhà cung cấp
           </Button>
-          <Button className={"bg-green-500"}>
-            <FileInput />
-            Import
-          </Button>
-          <ExportButton data={providerData} />
+          <ExportButton data={providerData} fileName={"Provider"} />
           <ButtonVisibilityColumnTable
             menus={fields}
             onCheckChange={handleCheckField}
