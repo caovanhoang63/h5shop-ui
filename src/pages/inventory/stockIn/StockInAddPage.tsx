@@ -12,13 +12,16 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Link, useNavigate } from "react-router-dom";
-import { InventoryItemStockTake } from "@/types/inventory/inventoryItemStockTake.ts";
 import { useState } from "react";
-import { createInventoryReport } from "@/pages/inventory/api/reportApi.ts";
-import { InventoryReportCreate } from "@/types/inventory/inventoryReport.ts";
+import {
+  StockInCreate,
+  StockInItemAdd,
+  StockInItemSearch,
+} from "@/types/stockIn/stockIn.ts";
+import { createStockInReport } from "@/pages/inventory/stockIn/api/stockInApi.ts";
 
 export default function StockInAddPage() {
-  const rawData: InventoryItemStockTake[] = [];
+  const rawData: StockInItemAdd[] = [];
   const [note, setNote] = useState("");
   const navigate = useNavigate();
   const searchData = [
@@ -26,21 +29,22 @@ export default function StockInAddPage() {
       id: 5,
       code: "PK000016",
       name: "Tai nghe Bluetooth Sony",
-      stockQuantity: 100,
+      amount: 100,
+      price: 1200000,
     },
     {
       id: 6,
       code: "PK000017",
       name: "Cáp sạc Lightning Apple",
-      stockQuantity: 200,
+      amount: 200,
+      price: 1200000,
     },
   ];
-  const [items, setItems] = React.useState<InventoryItemStockTake[]>(
+  const [items, setItems] = React.useState<StockInItemAdd[]>(
     rawData.map((item) => ({
       ...item,
-      actualQuantity: 0,
-      variance: 0,
-      varianceValue: 0,
+      price: 0,
+      amount: 0,
     })),
   );
   const [searchQuery, setSearchQuery] = useState("");
@@ -58,7 +62,7 @@ export default function StockInAddPage() {
       setFilteredProducts(filtered);
     }
   };
-  const handleAddItem = (product: InventoryItemStockTake) => {
+  const handleAddItem = (product: StockInItemSearch) => {
     setItems((prevItems) => {
       setSearchQuery("");
       const exists = prevItems.some((item) => item.id === product.id);
@@ -69,9 +73,9 @@ export default function StockInAddPage() {
         ...prevItems,
         {
           ...product,
-          actualQuantity: 0,
-          variance: 0,
-          varianceValue: 0,
+          amount: 0,
+          price: product.price || 0,
+          totalPrice: 0,
         },
       ];
     });
@@ -79,45 +83,41 @@ export default function StockInAddPage() {
   const handleRemoveItem = (id: number) => {
     setItems((prevItems) => prevItems.filter((item) => item.id !== id));
   };
-  const handleActualQuantityChange = (id: number, actualQuantity: number) => {
+  const calculateTotalActualQuantity = () => {
+    return items.reduce((total, item) => total + item.amount, 0);
+  };
+  const handleAmountChange = (id: number, amount: number) => {
     setItems((prevItems) =>
       prevItems.map((item) =>
         item.id === id
           ? {
               ...item,
-              actualQuantity,
-              variance: actualQuantity - item.stockQuantity,
-              varianceValue: (actualQuantity - item.stockQuantity) * 10,
+              amount,
             }
           : item,
       ),
     );
   };
-  const calculateTotalActualQuantity = () => {
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-expect-error
-    return items.reduce((total, item) => total + item.actualQuantity, 0);
-  };
-
   const handleComplete = async () => {
-    const report: InventoryReportCreate = {
-      warehouseMan1: 8,
-      note: note,
+    if (items.length === 0) {
+      return;
+    }
+    const report: StockInCreate = {
+      warehouseMen: 8,
+      providerId: 1,
       items: items.map((item) => ({
         skuId: item.id,
-        amount: item.stockQuantity,
-        inventoryDif: item.variance ?? 0,
+        amount: item.amount,
+        totalPrice: item.totalPrice,
       })),
     };
 
     try {
-      const response = await createInventoryReport(report);
-      console.log("Báo cáo kiểm kho đã được tạo:", response);
+      const response = await createStockInReport(report);
+      console.log("Báo cáo nhập kho đã được tạo:", response);
       navigate("/stock-in");
-      // Xử lý khi tạo báo cáo thành công, ví dụ: điều hướng đến trang khác
     } catch (error) {
       console.error("Lỗi khi tạo báo cáo kiểm kho:", error);
-      // Xử lý lỗi, ví dụ: hiển thị thông báo lỗi cho người dùng
     }
   };
   return (
@@ -170,6 +170,7 @@ export default function StockInAddPage() {
                 <TableHead>Tên hàng</TableHead>
                 <TableHead className="text-center">Số lượng</TableHead>
                 <TableHead className="text-center">Đơn giá</TableHead>
+                <TableHead className="text-center">Tổng giá trị</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -189,18 +190,24 @@ export default function StockInAddPage() {
                     <Input
                       type="number"
                       placeholder="SL"
-                      className="shadow-none w-fit p-0 text-center"
-                      value={item.actualQuantity}
+                      className="shadow-none w-fit text-center"
+                      value={item.amount}
                       onChange={(e) =>
-                        handleActualQuantityChange(
-                          item.id,
-                          Number(e.target.value),
-                        )
+                        handleAmountChange(item.id, Number(e.target.value))
                       }
                     />
                   </TableCell>
+
+                  <TableCell className="">
+                    <Input
+                      type="text"
+                      placeholder="Đơn giá"
+                      className="shadow-none w-fit text-center"
+                      value={item.price}
+                    />
+                  </TableCell>
                   <TableCell className="text-center">
-                    {item.stockQuantity}
+                    {(item.totalPrice = item.price * item.amount)}
                   </TableCell>
                 </TableRow>
               ))}
@@ -227,6 +234,10 @@ export default function StockInAddPage() {
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-gray-500">Tổng SL thực tế</span>
+                <span>{calculateTotalActualQuantity()}</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-gray-500">Tổng tiền hàng</span>
                 <span>{calculateTotalActualQuantity()}</span>
               </div>
             </div>
