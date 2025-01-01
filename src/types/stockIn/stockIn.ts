@@ -36,7 +36,7 @@ export interface StockInCreate {
 interface StockInDetailCreate {
   skuId: number;
   amount: number;
-  price: number;
+  costPrice: number;
   totalPrice: number;
 }
 
@@ -45,7 +45,7 @@ export interface StockInItemAdd {
   code?: string;
   name?: string;
   amount: number;
-  price: number;
+  costPrice: number;
   totalPrice: number;
 }
 

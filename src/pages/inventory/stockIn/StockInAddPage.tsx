@@ -92,7 +92,7 @@ export default function StockInAddPage() {
         {
           ...product,
           amount: 0,
-          price: product.price || 0,
+          costPrice: product.price || 0,
           totalPrice: 0,
         },
       ];
@@ -105,7 +105,10 @@ export default function StockInAddPage() {
     return items.reduce((total, item) => total + item.amount, 0);
   };
   const calculateTotalPrice = () => {
-    return items.reduce((total, item) => total + item.price, 0);
+    return items.reduce(
+      (total, item) => total + item.costPrice * item.amount,
+      0,
+    );
   };
   const handleAmountChange = (id: number, amount: number) => {
     setItems((prevItems) =>
@@ -129,7 +132,7 @@ export default function StockInAddPage() {
       items: items.map((item) => ({
         skuId: item.id,
         amount: item.amount,
-        price: item.price,
+        costPrice: item.costPrice,
         totalPrice: item.totalPrice,
       })),
     };
@@ -225,12 +228,12 @@ export default function StockInAddPage() {
                       type="text"
                       placeholder="Đơn giá"
                       className="shadow-none w-fit text-center"
-                      value={formatCurrency(item.price)}
+                      value={formatCurrency(item.costPrice)}
                     />
                   </TableCell>
                   <TableCell className="text-center">
                     {formatCurrency(
-                      (item.totalPrice = item.price * item.amount),
+                      (item.totalPrice = item.costPrice * item.amount),
                     )}
                   </TableCell>
                 </TableRow>
