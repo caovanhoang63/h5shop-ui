@@ -116,6 +116,7 @@ export default function NewPartnerModal({
                     Số nợ
                   </Label>
                   <Input
+                    type={"number"}
                     id="debt"
                     onChange={(e) => {
                       const newValue = e.target.value;

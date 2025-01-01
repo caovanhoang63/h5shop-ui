@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import {
   Dialog,
   DialogContent,
@@ -9,8 +10,6 @@ import { Button } from "@/components/ui/button.tsx";
 import { Label } from "@/components/ui/label.tsx";
 import { Input } from "@/components/ui/input.tsx";
 import { BanIcon, FileInput } from "lucide-react";
-import { useState } from "react";
-import { EmployeeCreate } from "@/types/employee/employee.ts";
 import {
   Select,
   SelectContent,
@@ -20,6 +19,24 @@ import {
 } from "@/components/ui/select";
 import { createEmployee } from "@/pages/employee/api/employeeApi.ts";
 import { toast } from "react-toastify";
+import { useForm } from "react-hook-form";
+import * as yup from "yup";
+import { yupResolver } from "@hookform/resolvers/yup";
+
+const validationSchema = yup
+  .object({
+    firstName: yup.string().required("Tên nhân viên không được để trống"),
+    lastName: yup.string().required("Họ nhân viên không được để trống"),
+    phoneNumber: yup.string().required("Số điện thoại không được để trống"),
+    email: yup
+      .string()
+      .email("Email không hợp lệ")
+      .required("Email không được để trống"),
+    gender: yup.string().required("Giới tính không được để trống"),
+    address: yup.string().required("Địa chỉ không được để trống"),
+    dateOfBirth: yup.string().required("Ngày sinh không được để trống"),
+  })
+  .required();
 
 interface INewEmployeeModalProps {
   isOpen: boolean;
@@ -30,18 +47,39 @@ export default function NewEmployeeModal({
   isOpen,
   onOpenChange,
 }: INewEmployeeModalProps) {
-  const [createEmployeeRequest, setcreateEmployeeRequest] =
-    useState<EmployeeCreate>();
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    setValue,
+    reset,
+  } = useForm({
+    resolver: yupResolver(validationSchema),
+  });
 
-  async function onSubmit() {
+  useEffect(() => {
+    if (!isOpen) {
+      reset({
+        firstName: "",
+        lastName: "",
+        phoneNumber: "",
+        email: "",
+        gender: "",
+        address: "",
+        dateOfBirth: "",
+      });
+    }
+  }, [isOpen, reset]);
+
+  const onSubmit = handleSubmit(async (data) => {
     try {
-      const response = await createEmployee(
-        createEmployeeRequest as EmployeeCreate,
-      );
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-expect-error
+      const response = await createEmployee(data);
       console.log(response.data);
       toast.success("Tạo nhân viên thành công!", {
         position: "top-right",
-        autoClose: 3000, // Tự động đóng sau 3 giây
+        autoClose: 3000,
         hideProgressBar: false,
         closeOnClick: true,
         pauseOnHover: true,
@@ -53,14 +91,14 @@ export default function NewEmployeeModal({
       console.log(e);
       toast.error("Tạo nhân viên thất bại!", {
         position: "top-right",
-        autoClose: 3000, // Tự động đóng sau 3 giây
+        autoClose: 3000,
         hideProgressBar: false,
         closeOnClick: true,
         pauseOnHover: true,
         draggable: true,
       });
     }
-  }
+  });
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
@@ -69,167 +107,127 @@ export default function NewEmployeeModal({
           <DialogTitle>Thêm nhân viên mới</DialogTitle>
         </DialogHeader>
         <div className="grow">
-          <div className="space-y-2 space-x-12 flex flex-row mt-6">
-            <div className={"flex flex-row flex-1 space-x-12"}>
-              <div className={"flex flex-col flex-1 space-y-5"}>
-                <div className={"flex flex-row items-center"}>
-                  <Label className={"w-5/12"} htmlFor="firstName">
-                    Tên nhân viên
-                  </Label>
-                  <Input
-                    id="firstName"
-                    onChange={(e) => {
-                      const newValue = e.target.value;
-                      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                      // @ts-expect-error
-                      setcreateEmployeeRequest((prev) => ({
-                        ...prev,
-                        firstName: newValue,
-                      }));
-                      console.log(newValue);
-                    }}
-                  />
+          <form onSubmit={onSubmit}>
+            <div className="space-y-2 space-x-12 flex flex-row mt-6">
+              <div className={"flex flex-row flex-1 space-x-12"}>
+                <div className={"flex flex-col flex-1 space-y-5"}>
+                  <div className={"flex flex-col"}>
+                    <Label className={"w-full mb-2"} htmlFor="firstName">
+                      Tên nhân viên
+                    </Label>
+                    <Input id="firstName" {...register("firstName")} />
+                    {errors.firstName && (
+                      <p className="text-red-500 mt-1">
+                        {errors.firstName.message}
+                      </p>
+                    )}
+                  </div>
+                  <div className={"flex flex-col"}>
+                    <Label className={"w-full mb-2"} htmlFor="phoneNumber">
+                      Số điện thoại
+                    </Label>
+                    <Input id="phoneNumber" {...register("phoneNumber")} />
+                    {errors.phoneNumber && (
+                      <p className="text-red-500 mt-1">
+                        {errors.phoneNumber.message}
+                      </p>
+                    )}
+                  </div>
+                  <div className={"flex flex-col"}>
+                    <Label className={"w-full mb-2"} htmlFor="email">
+                      Email
+                    </Label>
+                    <Input id="email" {...register("email")} />
+                    {errors.email && (
+                      <p className="text-red-500 mt-1">
+                        {errors.email.message}
+                      </p>
+                    )}
+                  </div>
+                  <div className="flex flex-col">
+                    <Label className="w-full mb-2" htmlFor="gender">
+                      Giới tính
+                    </Label>
+                    <Select
+                      onValueChange={(value) => setValue("gender", value)}
+                    >
+                      <SelectTrigger id="gender">
+                        <SelectValue placeholder="Chọn giới tính" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="male">Nam</SelectItem>
+                        <SelectItem value="female">Nữ</SelectItem>
+                        <SelectItem value="other">Khác</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    {errors.gender && (
+                      <p className="text-red-500 mt-1">
+                        {errors.gender.message}
+                      </p>
+                    )}
+                  </div>
                 </div>
-                <div className={"flex flex-row items-center"}>
-                  <Label className={"w-5/12"} htmlFor="phoneNumber">
-                    Số điện thoại
-                  </Label>
-                  <Input
-                    id="phoneNumber"
-                    onChange={(e) => {
-                      const newValue = e.target.value;
-                      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                      // @ts-expect-error
-                      setcreateEmployeeRequest((prev) => ({
-                        ...prev,
-                        phoneNumber: newValue,
-                      }));
-                      console.log(newValue);
-                    }}
-                  />
-                </div>
-                <div className={"flex flex-row items-center"}>
-                  <Label className={"w-5/12"} htmlFor="email">
-                    Email
-                  </Label>
-                  <Input
-                    id="email"
-                    onChange={(e) => {
-                      const newValue = e.target.value;
-                      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                      // @ts-expect-error
-                      setcreateEmployeeRequest((prev) => ({
-                        ...prev,
-                        email: newValue,
-                      }));
-                      console.log(newValue);
-                    }}
-                  />
-                </div>
-                <div className="flex flex-row items-center">
-                  <Label className="w-5/12" htmlFor="gender">
-                    Giới tính
-                  </Label>
-                  <Select
-                    onValueChange={(value) => {
-                      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                      // @ts-expect-error
-                      setcreateEmployeeRequest((prev) => ({
-                        ...prev,
-                        gender: value,
-                      }));
-                      console.log(value);
-                    }}
-                  >
-                    <SelectTrigger id="gender">
-                      <SelectValue placeholder="Chọn giới tính" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="male">Nam</SelectItem>
-                      <SelectItem value="female">Nữ</SelectItem>
-                      <SelectItem value="other">Khác</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-              <div className={"flex flex-col flex-1 space-y-5"}>
-                <div className={"flex flex-row items-center"}>
-                  <Label className={"w-5/12"} htmlFor="lastName">
-                    Họ nhân viên
-                  </Label>
-                  <Input
-                    id="lastName"
-                    onChange={(e) => {
-                      const newValue = e.target.value;
-                      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                      // @ts-expect-error
-                      setcreateEmployeeRequest((prev) => ({
-                        ...prev,
-                        lastName: newValue,
-                      }));
-                      console.log(newValue);
-                    }}
-                  />
-                </div>
-                <div className={"flex flex-row items-center"}>
-                  <Label className={"w-5/12"} htmlFor="address">
-                    Địa chỉ
-                  </Label>
-                  <Input
-                    id="address"
-                    onChange={(e) => {
-                      const newValue = e.target.value;
-                      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                      // @ts-expect-error
-                      setcreateEmployeeRequest((prev) => ({
-                        ...prev,
-                        address: newValue,
-                      }));
-                      console.log(newValue);
-                    }}
-                  />
-                </div>
-                <div className={"flex flex-row items-center"}>
-                  <Label className={"w-5/12"} htmlFor="dateOfBirth">
-                    Ngày sinh
-                  </Label>
-                  <Input
-                    id="dateOfBirth"
-                    type="date"
-                    onChange={(e) => {
-                      const newValue = e.target.value;
-                      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                      // @ts-expect-error
-                      setcreateEmployeeRequest((prev) => ({
-                        ...prev,
-                        dateOfBirth: newValue,
-                      }));
-                      console.log(newValue);
-                    }}
-                  />
+                <div className={"flex flex-col flex-1 space-y-5"}>
+                  <div className={"flex flex-col"}>
+                    <Label className={"w-full mb-2"} htmlFor="lastName">
+                      Họ nhân viên
+                    </Label>
+                    <Input id="lastName" {...register("lastName")} />
+                    {errors.lastName && (
+                      <p className="text-red-500 mt-1">
+                        {errors.lastName.message}
+                      </p>
+                    )}
+                  </div>
+                  <div className={"flex flex-col"}>
+                    <Label className={"w-full mb-2"} htmlFor="address">
+                      Địa chỉ
+                    </Label>
+                    <Input id="address" {...register("address")} />
+                    {errors.address && (
+                      <p className="text-red-500 mt-1">
+                        {errors.address.message}
+                      </p>
+                    )}
+                  </div>
+                  <div className={"flex flex-col"}>
+                    <Label className={"w-full mb-2"} htmlFor="dateOfBirth">
+                      Ngày sinh
+                    </Label>
+                    <Input
+                      id="dateOfBirth"
+                      type="date"
+                      {...register("dateOfBirth")}
+                    />
+                    {errors.dateOfBirth && (
+                      <p className="text-red-500 mt-1">
+                        {errors.dateOfBirth.message}
+                      </p>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
+            <DialogFooter className="mt-6">
+              <div className={"flex flex-row space-x-2 justify-end"}>
+                <Button
+                  className={"bg-green-500 hover:bg-green-600"}
+                  type="submit"
+                >
+                  <FileInput />
+                  Lưu
+                </Button>
+                <Button
+                  className={"bg-gray-500 hover:bg-gray-600"}
+                  onClick={() => onOpenChange(false)}
+                >
+                  <BanIcon />
+                  Bỏ qua
+                </Button>
+              </div>
+            </DialogFooter>
+          </form>
         </div>
-        <DialogFooter className="">
-          <div className={"flex flex-row space-x-2 justify-end"}>
-            <Button
-              className={"bg-green-500 hover:bg-green-600"}
-              onClick={onSubmit}
-            >
-              <FileInput />
-              Lưu
-            </Button>
-            <Button
-              className={"bg-gray-500 hover:bg-gray-600"}
-              onClick={() => onOpenChange(false)}
-            >
-              <BanIcon />
-              Bỏ qua
-            </Button>
-          </div>
-        </DialogFooter>
       </DialogContent>
     </Dialog>
   );
