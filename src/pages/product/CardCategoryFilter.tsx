@@ -14,23 +14,23 @@ import {
 } from "lucide-react";
 import { Input } from "@/components/ui/input.tsx";
 import { ScrollArea } from "@/components/ui/scroll-area.tsx";
-import CategoryModal from "@/pages/product/CategoryModal.tsx";
 import { Category } from "@/types/category/category.ts";
 
 export interface ICardCategoryFilterProps {
   listCategories: Category[];
   setCategorySelected: (id: number) => void;
+  onClickEdit: (item: Category) => void;
+  onClickAdd: () => void;
 }
 
 export const CardCategoryFilter = ({
   listCategories,
   setCategorySelected,
+  onClickEdit,
+  onClickAdd,
 }: ICardCategoryFilterProps) => {
   const [idCategorySelected, setIdCategorySelected] = useState<number>();
   const [searchText, setSearchText] = useState<string>("");
-  const [isOpenModalAdd, setIsOpenModalAdd] = useState<boolean>(false);
-  const [isOpenModalUpdate, setIsOpenModalUpdate] = useState<boolean>(false);
-  const [categoryUpdate, setCategoryUpdate] = useState<Category>();
 
   const handleClickCategory = (id: number) => {
     setIdCategorySelected(id);
@@ -75,28 +75,12 @@ export const CardCategoryFilter = ({
   const filteredCategories = filterCategories(listCategories, searchText);
 
   const handleClickEditItem = (item: Category) => {
-    console.log(item);
-    setCategoryUpdate(item);
-    setIsOpenModalUpdate(true);
+    onClickEdit(item);
   };
 
   return (
     <Card>
       {/*Modal add*/}
-      <CategoryModal
-        isOpen={isOpenModalAdd}
-        onOpenChange={setIsOpenModalAdd}
-        isAdd={true}
-        listCategories={listCategories}
-      />
-      {/*Modal update*/}
-      <CategoryModal
-        isOpen={isOpenModalUpdate}
-        onOpenChange={setIsOpenModalUpdate}
-        isAdd={false}
-        listCategories={listCategories}
-        category={categoryUpdate}
-      />
       <CardContent>
         <Accordion type="single" collapsible>
           <AccordionItem value="item-1">
@@ -115,7 +99,7 @@ export const CardCategoryFilter = ({
                     marginRight: "6px",
                   }}
                   onClick={(e) => {
-                    setIsOpenModalAdd(true);
+                    onClickAdd();
                     e.preventDefault();
                   }}
                 >

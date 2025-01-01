@@ -54,6 +54,7 @@ import { Image } from "@/types/image.ts";
 import { SpuDetail } from "@/types/spu/spuGetDetail.ts";
 import { deleteSkuAttr } from "@/pages/product/api/skuAttrApi.ts";
 import { deleteSku } from "@/pages/product/api/skuApi.ts";
+import { LoadingAnimation } from "@/components/ui/LoadingAnimation.tsx";
 
 interface ISpuModalProps {
   isOpen: boolean;
@@ -72,6 +73,7 @@ export default function SpuModal({
   listBrands,
   spuIdSelected,
 }: ISpuModalProps) {
+  const [isLoading, setIsLoading] = useState<boolean>(false);
   const [id, setId] = useState<number>();
   const [name, setName] = useState<string>("");
   const [brandId, setBrandId] = useState<number>();
@@ -120,9 +122,12 @@ export default function SpuModal({
 
   const CallApiUpsertSpuDetail = async (spu: SpuUpsert) => {
     try {
+      setIsLoading(true);
       await upsertSpuDetail(spu);
+      setIsLoading(false);
     } catch (error) {
       console.error("Error: ", error);
+      throw error;
     }
   };
 
@@ -144,9 +149,11 @@ export default function SpuModal({
 
   const fetchSpuDetail = async (id: number) => {
     try {
+      setIsLoading(true);
       const response = await getSpuDetail(id);
       console.log(response.data);
       setSpuDetail(response.data.spuDetail);
+      setIsLoading(false);
     } catch (error) {
       console.error("Error: ", error);
     }
@@ -154,7 +161,9 @@ export default function SpuModal({
 
   const CallApiDeleteSpu = async (id: number) => {
     try {
+      setIsLoading(true);
       await deleteSpu(id);
+      setIsLoading(false);
     } catch (error) {
       console.error("Error: ", error);
     }
@@ -250,6 +259,10 @@ export default function SpuModal({
         console.error("Error: ", error);
       });
   };
+
+  if (isLoading) {
+    return <LoadingAnimation></LoadingAnimation>;
+  }
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
