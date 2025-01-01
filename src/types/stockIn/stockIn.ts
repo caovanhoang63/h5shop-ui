@@ -36,6 +36,7 @@ export interface StockInCreate {
 interface StockInDetailCreate {
   skuId: number;
   amount: number;
+  price: number;
   totalPrice: number;
 }
 

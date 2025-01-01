@@ -19,6 +19,7 @@ import {
   StockInItemSearch,
 } from "@/types/stockIn/stockIn.ts";
 import { createStockInReport } from "@/pages/inventory/stockIn/api/stockInApi.ts";
+import { formatCurrency } from "@/utils/convert.ts";
 
 export default function StockInAddPage() {
   const rawData: StockInItemAdd[] = [];
@@ -86,13 +87,16 @@ export default function StockInAddPage() {
   const calculateTotalActualQuantity = () => {
     return items.reduce((total, item) => total + item.amount, 0);
   };
+  const calculateTotalPrice = () => {
+    return items.reduce((total, item) => total + item.price, 0);
+  };
   const handleAmountChange = (id: number, amount: number) => {
     setItems((prevItems) =>
       prevItems.map((item) =>
         item.id === id
           ? {
               ...item,
-              amount,
+              amount: amount,
             }
           : item,
       ),
@@ -108,10 +112,10 @@ export default function StockInAddPage() {
       items: items.map((item) => ({
         skuId: item.id,
         amount: item.amount,
+        price: item.price,
         totalPrice: item.totalPrice,
       })),
     };
-
     try {
       const response = await createStockInReport(report);
       console.log("Báo cáo nhập kho đã được tạo:", response);
@@ -203,11 +207,13 @@ export default function StockInAddPage() {
                       type="text"
                       placeholder="Đơn giá"
                       className="shadow-none w-fit text-center"
-                      value={item.price}
+                      value={formatCurrency(item.price)}
                     />
                   </TableCell>
                   <TableCell className="text-center">
-                    {(item.totalPrice = item.price * item.amount)}
+                    {formatCurrency(
+                      (item.totalPrice = item.price * item.amount),
+                    )}
                   </TableCell>
                 </TableRow>
               ))}
@@ -238,7 +244,7 @@ export default function StockInAddPage() {
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-gray-500">Tổng tiền hàng</span>
-                <span>{calculateTotalActualQuantity()}</span>
+                <span>{formatCurrency(calculateTotalPrice())}</span>
               </div>
             </div>
 
