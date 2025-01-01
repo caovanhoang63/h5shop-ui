@@ -18,4 +18,5 @@ export interface EmployeeCreate {
   lastName: string;
   email: string;
   dateOfBirth: Date;
+  gender: "male" | "female" | "other";
 }
