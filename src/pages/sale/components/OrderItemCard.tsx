@@ -54,7 +54,7 @@ export function OrderItemCard({
       : currentDiscountValue;
 
   // Calculate the final price
-  const finalPrice = safeOriginalPrice - computedDiscount;
+  const finalPrice = safeOriginalPrice * quantity - computedDiscount;
 
   const handleDescriptionChange = useCallback(
     (e: ChangeEvent<HTMLInputElement>) => {

@@ -9,8 +9,21 @@ import { OrderTabsList, Tab } from "@/pages/sale/components/OrderTabsList.tsx";
 import { getListSku } from "@/pages/sale/api/skuApi.ts";
 import { SkuGetDetail } from "@/types/sku/skuGetDetail.ts";
 import { Pagination } from "@/pages/sale/components/Pagination.tsx";
-import { OrderGetDetail, OrderItem } from "@/types/order/orderGetDetail.ts";
-import { getListOrder, OrderStatus } from "@/pages/sale/api/orderApi.ts";
+import { OrderGetDetail } from "@/types/order/orderGetDetail.ts";
+import {
+  addOrderItem,
+  createOrder,
+  deleteOrder,
+  deleteOrderItem,
+  getListOrder,
+  OrderStatus,
+  updateOrderItemApi,
+} from "@/pages/sale/api/orderApi.ts";
+import { OrderType } from "@/types/order/order.ts";
+import { OrderItem } from "@/types/orderItem/orderItem.ts";
+import { OrderCreate } from "@/types/order/orderCreate.ts";
+import { OrderItemCreate } from "@/types/orderItem/orderItemCreate.ts";
+import { OrderItemUpdate } from "@/types/orderItem/orderItemUpdate.ts";
 
 export default function SalePage() {
   // Input
@@ -25,6 +38,8 @@ export default function SalePage() {
   const [numberOfItems, setNumberOfItems] = useState(0);
   const tabListRef = useRef<HTMLDivElement>(null);
   const [isOverflowing, setIsOverflowing] = useState(false);
+  const isAddingTab = useRef(false);
+  const isInitalized = useRef(false);
 
   // Sku list
   const [skuData, setSkuData] = useState<SkuGetDetail[]>([]);
@@ -110,45 +125,65 @@ export default function SalePage() {
     setSearchCustomer(e.target.value);
   };
 
-  const handleTabNumber = (): number => {
-    let num = 1;
-    const existingTabNumbers = tabs.map((tab) => tab.number);
-
-    // Find the next available tab number
-    while (existingTabNumbers.includes(num)) {
-      num += 1;
-    }
-
-    return num;
-  };
+  // const handleTabNumber = (): number => {
+  //   let num = 1;
+  //   const existingTabNumbers = tabs.map((tab) => tab.number);
+  //
+  //   // Find the next available tab number
+  //   while (existingTabNumbers.includes(num)) {
+  //     num += 1;
+  //   }
+  //
+  //   return num;
+  // };
 
   // Tabs stuff
-  const addTab = () => {
-    const number = handleTabNumber();
-    const order: OrderGetDetail = {
-      id: 0,
-      customerId: 0,
-      sellerId: 0,
-      status: 1,
-      orderType: "retail",
-      description: "",
-      createAt: new Date(),
-      updateAt: new Date(),
-      items: [],
-    };
-    const newTab = { number, order };
-    setTabs((prevTabs) => [...prevTabs, newTab]);
+  const addTab = async () => {
+    if (isAddingTab.current) return;
+    isAddingTab.current = true;
 
-    setActiveTab(tabs.length);
-    if (tabListRef.current) {
-      const { scrollWidth, offsetWidth } = tabListRef.current;
-      tabListRef.current.scrollTo({
-        left: scrollWidth + offsetWidth,
-        behavior: "smooth",
+    try {
+      const newOrder = await fetchCreateOrder({
+        customerId: 0, // Replace with actual customer ID if available
+        sellerId: 0, // Replace with actual seller ID
+        orderType: OrderType.Retail,
       });
+
+      // Add the new order as a tab
+      const newTab: Tab = {
+        number: newOrder.id,
+        order: {
+          ...newOrder,
+          items: [], // No items yet
+        },
+      };
+
+      setTabs((prevTabs) => {
+        const updatedTabs = [...prevTabs, newTab];
+        if (updatedTabs.length === 1) {
+          setActiveTab(0);
+        } else setActiveTab(tabs.length);
+        return updatedTabs;
+      });
+
+      // Scroll to the new tab
+      if (tabListRef.current) {
+        const { scrollWidth, offsetWidth } = tabListRef.current;
+        tabListRef.current.scrollTo({
+          left: scrollWidth + offsetWidth,
+          behavior: "smooth",
+        });
+      }
+
+      isAddingTab.current = false;
+    } catch (error) {
+      console.error("Error creating a new order:", error);
+      alert("Failed to create a new order. Please try again.");
     }
   };
   const deleteTab = (index: number) => {
+    fetchDeleteOrder(tabs[index].order.id);
+
     const updatedTabs = tabs.filter((_, i) => i !== index);
     setTabs(updatedTabs);
 
@@ -166,15 +201,11 @@ export default function SalePage() {
     // If there are no tabs left, create a new tab
     if (updatedTabs.length === 0) {
       addTab();
-      setActiveTab(0);
     }
-  };
-  const handleTabChange = (index: number) => {
-    setActiveTab(index); // Update the active tab when a new tab is selected
   };
 
   // Items stuff
-  const updateOrderItem = (index: number, changes: Partial<OrderItem>) => {
+  const updateOrderItem = (index: number, changes: OrderItem) => {
     if (!tabs[activeTab]?.order.items[index]) return;
     const updatedTabs = [...tabs];
     const item = updatedTabs[activeTab].order.items[index];
@@ -182,18 +213,33 @@ export default function SalePage() {
     setTabs(updatedTabs);
     updateTotalPrice();
   };
-  const handleOrderItemIncrease = (index: number) =>
-    updateOrderItem(index, {
-      amount: tabs[activeTab].order.items[index].amount + 1,
-    });
-  const handleOrderItemDecrease = (index: number) => {
+  const handleOrderItemIncrease = async (index: number) => {
+    const orderItem = await fetchUpdateOrderItem(
+      tabs[activeTab].order.id,
+      tabs[activeTab].order.items[index].skuId,
+      {
+        amount: tabs[activeTab].order.items[index].amount + 1,
+      },
+    );
+    updateOrderItem(index, orderItem);
+  };
+  const handleOrderItemDecrease = async (index: number) => {
     if (tabs[activeTab].order.items[index].amount > 1) {
-      updateOrderItem(index, {
-        amount: tabs[activeTab].order.items[index].amount - 1,
-      });
+      const orderItem = await fetchUpdateOrderItem(
+        tabs[activeTab].order.id,
+        tabs[activeTab].order.items[index].skuId,
+        {
+          amount: tabs[activeTab].order.items[index].amount - 1,
+        },
+      );
+      updateOrderItem(index, orderItem);
     }
   };
   const handleOrderItemRemove = (index: number) => {
+    fetchDeleteOrderItem(
+      tabs[activeTab].order.id,
+      tabs[activeTab].order.items[index].skuId,
+    );
     const updatedTabs = [...tabs];
     updatedTabs[activeTab].order.items = updatedTabs[
       activeTab
@@ -210,6 +256,35 @@ export default function SalePage() {
     updatedTabs[activeTab].order.items[index].discount = newDiscount;
     setTabs(updatedTabs);
     updateTotalPrice();
+  };
+
+  const handleSkuClick = async (sku: SkuGetDetail) => {
+    try {
+      const activeOrder = tabs[activeTab]?.order;
+
+      if (!activeOrder) {
+        alert("Please create a new order before adding items.");
+        return;
+      }
+
+      // Add the clicked SKU to the existing order
+      const orderItem = await fetchAddOrderItem({
+        orderId: activeOrder.id,
+        skuId: sku.id,
+        amount: 1,
+        discount: 0,
+      });
+
+      // Update the active tab with the new item
+      const updatedTabs = [...tabs];
+      updatedTabs[activeTab].order.items.push(orderItem);
+      setTabs(updatedTabs);
+
+      updateTotalPrice(); // Update total price and item count
+    } catch (error) {
+      console.error("Error handling SKU click:", error);
+      alert("Failed to add item. Please try again.");
+    }
   };
 
   // Handle page navigation
@@ -260,6 +335,7 @@ export default function SalePage() {
     // }
   };
   const fetchOrders = async () => {
+    isInitalized.current = true;
     try {
       const response = await getListOrder(OrderStatus.PENDING); // Fetch all orders
       // console.log("Fetched orders:", response);
@@ -273,8 +349,61 @@ export default function SalePage() {
       if (transformedTabs.length > 0) {
         setActiveTab(0); // Set the first tab as active if orders exist
       }
+      isInitalized.current = false;
     } catch (error) {
       console.log("Fetch error:", error);
+    }
+  };
+
+  const fetchCreateOrder = async (orderCreate: OrderCreate) => {
+    try {
+      const response = await createOrder(orderCreate);
+      return response.data;
+    } catch (error) {
+      console.error("Create order error:", error);
+      throw error;
+    }
+  };
+
+  const fetchAddOrderItem = async (orderItem: OrderItemCreate) => {
+    try {
+      const response = await addOrderItem(orderItem);
+      return response.data;
+    } catch (error) {
+      console.error("Add order item error:", error);
+      throw error;
+    }
+  };
+
+  const fetchDeleteOrder = async (orderId: number) => {
+    try {
+      await deleteOrder(orderId);
+    } catch (error) {
+      console.error("Delete order error:", error);
+      throw error;
+    }
+  };
+
+  const fetchDeleteOrderItem = async (orderId: number, skuId: number) => {
+    try {
+      await deleteOrderItem(orderId, skuId);
+    } catch (error) {
+      console.error("Delete order item error:", error);
+      throw error;
+    }
+  };
+
+  const fetchUpdateOrderItem = async (
+    orderId: number,
+    skuId: number,
+    orderItem: OrderItemUpdate,
+  ) => {
+    try {
+      const response = await updateOrderItemApi(orderId, skuId, orderItem);
+      return response.data;
+    } catch (error) {
+      console.error("Update order item error:", error);
+      throw error;
     }
   };
 
@@ -311,8 +440,14 @@ export default function SalePage() {
   }, [tabs, activeTab]);
 
   useEffect(() => {
-    if (tabs.length === 0) {
-      addTab();
+    if (tabs.length === 0 && !isInitalized.current) {
+      (async () => {
+        try {
+          await addTab();
+        } catch (error) {
+          console.error("Error adding tab on initial load:", error);
+        }
+      })();
     }
   }, [tabs]);
 
@@ -359,7 +494,10 @@ export default function SalePage() {
           <OrderTabsList
             tabs={tabs}
             activeTab={activeTab}
-            onTabChange={handleTabChange}
+            onTabChange={(index) => {
+              setActiveTab(index);
+              console.log(index);
+            }}
             onDeleteTab={deleteTab}
             onAddTab={addTab}
             isOverflowing={isOverflowing}
@@ -377,7 +515,7 @@ export default function SalePage() {
           <div className="flex flex-col flex-grow p-2 space-y-2 overflow-y-auto h-[0px]">
             {tabs[activeTab]?.order.items.length === 0 && (
               <div className="text-center text-gray-500">
-                No items in this order.
+                Chưa có sản phầm nào trong đơn hàng
               </div>
             )}
             {tabs[activeTab]?.order?.items.map((item, index) => (
@@ -460,7 +598,7 @@ export default function SalePage() {
               }}
             >
               {skuData.map((sku) => (
-                <div key={sku.id}>
+                <div key={sku.id} onClick={() => handleSkuClick(sku)}>
                   <SkuCard {...sku} />
                 </div>
               ))}
