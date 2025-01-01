@@ -10,22 +10,22 @@ import { Label } from "@/components/ui/label.tsx";
 import { useEffect, useState } from "react";
 import { CirclePlus } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area.tsx";
-import BrandModal from "@/pages/product/BrandModal.tsx";
 import { Brand } from "@/types/brand/brand.ts";
 
 interface ICatalogProductProps {
   onChange: (value: string) => void;
   listBrands: Brand[];
+  onClickEdit?: (item: Brand) => void;
+  onClickAdd?: () => void;
 }
 
 export const CardBrandFilter = ({
   onChange,
   listBrands,
+  onClickEdit,
+  onClickAdd,
 }: ICatalogProductProps) => {
   const [brandSelected, setBrandSelected] = useState<string>("0");
-  const [isOpenModalAdd, setIsOpenModalAdd] = useState<boolean>(false);
-  const [isOpenModalUpdate, setIsOpenModalUpdate] = useState<boolean>(false);
-  const [brandEdit, setBrandEdit] = useState<Brand>({ id: 0, name: "" });
   const [listBrandCpn, setListBrandCpn] = useState<Brand[]>([
     {
       id: 0,
@@ -51,32 +51,8 @@ export const CardBrandFilter = ({
     onChange(brandId);
   };
 
-  const handleOpenModalAdd = () => {
-    setIsOpenModalAdd(true);
-  };
-
-  const handleOpenModalUpdate = () => {
-    setIsOpenModalUpdate(true);
-  };
-
-  const handleCloseModal = () => {
-    setIsOpenModalAdd(false);
-    setIsOpenModalUpdate(false);
-  };
-
   return (
     <Card>
-      <BrandModal
-        isOpen={isOpenModalAdd}
-        onOpenChange={handleCloseModal}
-        isAdd={true}
-      />
-      <BrandModal
-        isOpen={isOpenModalUpdate}
-        onOpenChange={handleCloseModal}
-        isAdd={false}
-        brandUpdate={brandEdit}
-      />
       <CardContent>
         <Accordion type="single" collapsible>
           <AccordionItem value="item-1">
@@ -96,7 +72,9 @@ export const CardBrandFilter = ({
                   }}
                   onClick={(e) => {
                     e.stopPropagation();
-                    handleOpenModalAdd();
+                    if (onClickAdd) {
+                      onClickAdd();
+                    }
                   }}
                 >
                   <CirclePlus className="w-5 h-5" />
@@ -134,8 +112,7 @@ export const CardBrandFilter = ({
                         }}
                         onClick={(e) => {
                           e.stopPropagation();
-                          handleOpenModalUpdate();
-                          setBrandEdit(brand);
+                          if (onClickEdit) onClickEdit(brand);
                         }}
                       >
                         ✎

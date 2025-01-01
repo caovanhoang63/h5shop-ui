@@ -22,6 +22,7 @@ import { SpuFilter } from "@/types/spu/spuFilter.ts";
 import { Paging } from "@/types/paging.ts";
 import { LoadingAnimation } from "@/components/ui/LoadingAnimation.tsx";
 import CategoryModal from "@/pages/product/CategoryModal.tsx";
+import BrandModal from "@/pages/product/BrandModal.tsx";
 
 export default function ProductPage() {
   const [fields, setFields] = useState<MenuVisibilityColumnTable[]>([
@@ -32,9 +33,17 @@ export default function ProductPage() {
     { label: "Nhóm hàng", key: "categoryName", visible: true },
     { label: "Mô tả", key: "description", visible: true },
   ]);
-  const [isOpenModalAdd, setIsOpenModalAdd] = useState<boolean>(false);
-  const [isOpenModalUpdate, setIsOpenModalUpdate] = useState<boolean>(false);
+  const [isOpenModalCategoryAdd, setIsOpenModalCategoryAdd] =
+    useState<boolean>(false);
+  const [isOpenModalCategoryUpdate, setIsOpenModalCategoryUpdate] =
+    useState<boolean>(false);
   const [categoryUpdate, setCategoryUpdate] = useState<Category>();
+
+  const [isOpenModalBrandAdd, setIsOpenModalBrandAdd] =
+    useState<boolean>(false);
+  const [isOpenModalBrandUpdate, setIsOpenModalBrandUpdate] =
+    useState<boolean>(false);
+  const [brandEdit, setBrandEdit] = useState<Brand>({ id: 0, name: "" });
 
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [brandSelected, setBrandSelected] = useState<string>("0");
@@ -140,15 +149,33 @@ export default function ProductPage() {
   const handleClickEditCategory = (item: Category) => {
     console.log(item);
     setCategoryUpdate(item);
-    setIsOpenModalUpdate(true);
+    setIsOpenModalCategoryUpdate(true);
+  };
+
+  const handleClickEditBrand = (item: Brand) => {
+    setBrandEdit(item);
+    setIsOpenModalBrandUpdate(true);
   };
 
   const handleCategoryActionSuccess = () => {
     fetchCategories();
   };
 
+  const handleBrandActionSuccess = () => {
+    fetchBrands();
+  };
+
+  const handleCloseBrandModal = () => {
+    setIsOpenModalBrandAdd(false);
+    setIsOpenModalBrandUpdate(false);
+  };
+
   const handleClickAddCategory = () => {
-    setIsOpenModalAdd(true);
+    setIsOpenModalCategoryAdd(true);
+  };
+
+  const handleClickAddBrand = () => {
+    setIsOpenModalBrandAdd(true);
   };
 
   return (
@@ -208,6 +235,8 @@ export default function ProductPage() {
           <CardBrandFilter
             onChange={handleChangedBrand}
             listBrands={listBrands}
+            onClickEdit={handleClickEditBrand}
+            onClickAdd={handleClickAddBrand}
           />
         </div>
         <div className={"col-span-4"}>
@@ -228,20 +257,32 @@ export default function ProductPage() {
           spuIdSelected={spuIdSelected}
         />
         <CategoryModal
-          isOpen={isOpenModalAdd}
-          onOpenChange={setIsOpenModalAdd}
+          isOpen={isOpenModalCategoryAdd}
+          onOpenChange={setIsOpenModalCategoryAdd}
           isAdd={true}
           listCategories={listCategories}
           actionSuccess={handleCategoryActionSuccess}
         />
-        {/*Modal update*/}
         <CategoryModal
-          isOpen={isOpenModalUpdate}
-          onOpenChange={setIsOpenModalUpdate}
+          isOpen={isOpenModalCategoryUpdate}
+          onOpenChange={setIsOpenModalCategoryUpdate}
           isAdd={false}
           listCategories={listCategories}
           category={categoryUpdate}
           actionSuccess={handleCategoryActionSuccess}
+        />
+        <BrandModal
+          isOpen={isOpenModalBrandAdd}
+          onOpenChange={handleCloseBrandModal}
+          isAdd={true}
+          actionSuccess={handleBrandActionSuccess}
+        />
+        <BrandModal
+          isOpen={isOpenModalBrandUpdate}
+          onOpenChange={handleCloseBrandModal}
+          isAdd={false}
+          brandUpdate={brandEdit}
+          actionSuccess={handleBrandActionSuccess}
         />
       </Container>
     </Fragment>
