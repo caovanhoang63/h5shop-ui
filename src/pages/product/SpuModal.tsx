@@ -88,7 +88,7 @@ export default function SpuModal({
 
   useEffect(() => {
     // clear data when open modal
-    if (!isOpen) {
+    if (isOpen && isAdd) {
       setId(undefined);
       setName("");
       setBrandId(undefined);
@@ -99,14 +99,10 @@ export default function SpuModal({
       setAttrs([]);
       setImage(undefined);
       setSpuDetail(undefined);
+    } else {
+      fetchSpuDetail(spuIdSelected as number);
     }
   }, [isOpen]);
-
-  useEffect(() => {
-    if (spuIdSelected && !isAdd) {
-      fetchSpuDetail(spuIdSelected);
-    }
-  }, [spuIdSelected]);
 
   useEffect(() => {
     setId(spuDetail?.id);
