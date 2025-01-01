@@ -9,31 +9,50 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion.tsx";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   ButtonVisibilityColumnTable,
   MenuVisibilityColumnTable,
 } from "@/components/ButtonVisibilityColumnTable.tsx";
-import { LoadingAnimation } from "@/components/ui/LoadingAnimation.tsx";
 import { ExportButton } from "@/components/ExportButton.tsx";
 import { CheckBoxWithText } from "@/components/CheckBoxWithText.tsx";
 import NewEmployeeModal from "@/pages/employee/component/NewEmployeeModal.tsx";
+import { EmployeeTable } from "@/pages/employee/EmployeeTable.tsx";
+import { Employee, EmployeeFilter } from "@/types/employee/employee.ts";
+import { getEmployee } from "@/pages/employee/api/employeeApi.ts";
 
 export function EmployeePage() {
+  const [employeeData, setEmployeeData] = useState<Employee[]>();
   const [isOpenNewEmployeeModal, setIsOpenNewEmployeeModal] = useState(false);
-  const [isLoading] = useState<boolean>(false);
+  const [filters, setFilters] = useState<EmployeeFilter>({
+    lk_first_name: null,
+    status: [],
+  });
   const [error] = useState<string | null>(null);
   const [fields, setFields] = useState<MenuVisibilityColumnTable[]>([
     { label: "Mã nhân viên", key: "id", visible: true },
     { label: "Tên nhân viên", key: "firstName", visible: true },
     { label: "Họ nhân viên", key: "lastName", visible: true },
     { label: "Số điện thoại", key: "phoneNumber", visible: true },
-    { label: "Email", key: "emal", visible: true },
+    { label: "Email", key: "email", visible: true },
     { label: "Ngày sinh", key: "dateOfBirth", visible: true },
     { label: "Giới tính", key: "gender", visible: true },
     { label: "Trạng thái", key: "status", visible: true },
     { label: "Action", key: "actions", visible: true },
   ]);
+
+  const fetchEmployeeData = async () => {
+    try {
+      const response = await getEmployee(filters);
+      console.log(response.data);
+      setEmployeeData(response.data);
+    } catch (e) {
+      console.log(e);
+    }
+  };
+  useEffect(() => {
+    fetchEmployeeData();
+  }, [filters]);
 
   const handleCheckField = (key: string, visible: boolean) => {
     setFields((prevFields) =>
@@ -43,9 +62,24 @@ export function EmployeePage() {
     );
   };
 
-  if (isLoading) {
+  const handleStatusChange = (status: number, isChecked: boolean) => {
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-expect-error
+    setFilters((prevFilters) => {
+      const newStatus = isChecked
+        ? // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+          // @ts-expect-error
+          [...prevFilters.status, status]
+        : // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+          // @ts-expect-error
+          prevFilters.status.filter((s) => s !== status);
+      return { ...prevFilters, status: newStatus };
+    });
+  };
+
+  /*if (isLoading) {
     return <LoadingAnimation></LoadingAnimation>;
-  }
+  }*/
 
   if (error) {
     return <div>{error}</div>;
@@ -65,7 +99,13 @@ export function EmployeePage() {
           <Input
             className={"pl-9"}
             placeholder={"Theo tên nhân viên"}
-            value=""
+            value={filters.lk_first_name || ""}
+            onChange={(e) => {
+              setFilters((prevFilters) => ({
+                ...prevFilters,
+                lk_first_name: e.target.value,
+              }));
+            }}
           />
         </div>
         <div className={"flex space-x-2"}>
@@ -78,11 +118,7 @@ export function EmployeePage() {
             <Plus />
             Thêm nhân viên
           </Button>
-          {/*<Button className={"bg-green-500"}>
-            <FileInput />
-            Import
-          </Button>*/}
-          <ExportButton data={[]} />
+          <ExportButton data={employeeData || []} fileName={`Employee`} />
           <ButtonVisibilityColumnTable
             menus={fields}
             onCheckChange={handleCheckField}
@@ -99,18 +135,18 @@ export function EmployeePage() {
                 </AccordionTrigger>
                 <AccordionContent className={"pb-2 space-y-2"}>
                   <CheckBoxWithText
-                    id={"draft"}
-                    onCheckChange={(value) => {
-                      console.log("draft", value);
-                    }}
+                    id={"working"}
+                    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                    // @ts-expect-error
+                    onCheckChange={(value) => handleStatusChange(1, value)}
                   >
                     Đang làm việc
                   </CheckBoxWithText>
                   <CheckBoxWithText
-                    id={"serial"}
-                    onCheckChange={(value) => {
-                      console.log("draft", value);
-                    }}
+                    id={"resigned"}
+                    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                    // @ts-expect-error
+                    onCheckChange={(value) => handleStatusChange(0, value)}
                   >
                     Đã nghỉ
                   </CheckBoxWithText>
@@ -121,11 +157,10 @@ export function EmployeePage() {
         </Card>
       </div>
       <div className={"col-span-4"}>
-        {/*<PartnerDataTable
-          refreshData={refreshData}
-          providerTableData={providerData}
+        <EmployeeTable
+          dataEmployee={employeeData || []}
           columnVisible={fields}
-        ></PartnerDataTable>*/}
+        ></EmployeeTable>
       </div>
     </Container>
   );
