@@ -2,5 +2,5 @@
   customerId: number;
   sellerId: number;
   orderType: string;
-  description: string;
+  description?: string;
 }

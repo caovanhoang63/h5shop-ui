@@ -1,6 +1,13 @@
-﻿import { Filter, List, Pen, Search } from "lucide-react";
+﻿import { Filter, List, Pen, Plus, Search } from "lucide-react";
 import { Input } from "@/components/ui/input.tsx";
-import { ChangeEvent, useCallback, useEffect, useRef, useState } from "react";
+import {
+  ChangeEvent,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { Card } from "@/components/ui/card.tsx";
 import { OrderItemCard } from "@/pages/sale/components/OrderItemCard.tsx";
 import { Button } from "@/components/ui/button.tsx";
@@ -9,14 +16,76 @@ import { OrderTabsList, Tab } from "@/pages/sale/components/OrderTabsList.tsx";
 import { getListSku } from "@/pages/sale/api/skuApi.ts";
 import { SkuGetDetail } from "@/types/sku/skuGetDetail.ts";
 import { Pagination } from "@/pages/sale/components/Pagination.tsx";
-import { OrderGetDetail, OrderItem } from "@/types/order/orderGetDetail.ts";
-import { getListOrder, OrderStatus } from "@/pages/sale/api/orderApi.ts";
+import { OrderGetDetail } from "@/types/order/orderGetDetail.ts";
+import {
+  addOrderItem,
+  createOrder,
+  deleteOrder,
+  deleteOrderItem,
+  getListOrder,
+  OrderStatus,
+  updateOrderItemApi,
+} from "@/pages/sale/api/orderApi.ts";
+import { OrderType } from "@/types/order/order.ts";
+import { OrderItem } from "@/types/orderItem/orderItem.ts";
+import { OrderCreate } from "@/types/order/orderCreate.ts";
+import { OrderItemCreate } from "@/types/orderItem/orderItemCreate.ts";
+import { OrderItemUpdate } from "@/types/orderItem/orderItemUpdate.ts";
+import PaymentDialog from "@/pages/sale/components/PaymentDialog.tsx";
+import { CreateCustomerModal } from "@/pages/sale/components/CustomerModal.tsx";
+import { toast } from "react-toastify";
+import { listCustomer } from "@/pages/sale/api/customerApi.ts";
+import { CustomerListFilter } from "@/types/customer/customerListFilter.ts";
+import _ from "lodash";
 
 export default function SalePage() {
   // Input
   const [searchValue, setSearchValue] = useState("");
   const [orderDescription, setOrderDescription] = useState("");
+
+  // Customer
   const [searchCustomer, setSearchCustomer] = useState("");
+  const [searchCustomerResult, setSearchCustomerResult] = useState<
+    [
+      {
+        id: number;
+        name: string;
+        phoneNumber: string;
+      },
+    ]
+  >();
+  const [selectedCustomer, setSelectedCustomer] = useState<
+    | {
+        id: number;
+        name: string;
+        phoneNumber: string;
+      }
+    | undefined
+  >();
+  const debounceSearchCustomer = useMemo(
+    () =>
+      _.debounce(async (query: string) => {
+        if (query.trim() === "") {
+          setSearchCustomerResult(undefined);
+        } else {
+          try {
+            const response = await fetchSearchCustomer(query);
+            console.log(response);
+            const searchResponse = response.map((item) => ({
+              id: item.id,
+              name: item.lastName + " " + item.firstName,
+              phoneNumber: item.phoneNumber,
+            }));
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            // @ts-expect-error
+            setSearchCustomerResult(searchResponse);
+          } catch (error) {
+            console.error(error);
+          }
+        }
+      }, 1000),
+    [],
+  );
 
   // Order tabs
   const [tabs, setTabs] = useState<Tab[]>([]);
@@ -25,6 +94,8 @@ export default function SalePage() {
   const [numberOfItems, setNumberOfItems] = useState(0);
   const tabListRef = useRef<HTMLDivElement>(null);
   const [isOverflowing, setIsOverflowing] = useState(false);
+  const isAddingTab = useRef(false);
+  const isInitalized = useRef(false);
 
   // Sku list
   const [skuData, setSkuData] = useState<SkuGetDetail[]>([]);
@@ -42,6 +113,10 @@ export default function SalePage() {
   const categoryId = 0;
   // const [brandId, setBrandId] = useState(0);
   // const [categoryId, setCategoryId] = useState(0);
+
+  // Dialog
+  const [isPaymentDialogOpen, setIsPaymentDialogOpen] = useState(false);
+  const [isCustomerCreateOpen, setIsCustomerCreateOpen] = useState(false);
 
   // Check if the tabs list is overflowing
   const checkOverflow = () => {
@@ -84,8 +159,7 @@ export default function SalePage() {
     let itemCount = 0;
 
     activeOrderItems.forEach((item) => {
-      const discountAmount = item.discount || 0;
-      const finalPrice = item.unitPrice - discountAmount;
+      const finalPrice = item.unitPrice;
       total += finalPrice * item.amount;
       itemCount += item.amount;
     });
@@ -106,49 +180,79 @@ export default function SalePage() {
     updatedTabs[activeTab].order.description = e.target.value;
     setTabs(updatedTabs);
   };
-  const handleSearchCustomer = (e: ChangeEvent<HTMLInputElement>) => {
-    setSearchCustomer(e.target.value);
+  const handleSearchCustomer = async (e: ChangeEvent<HTMLInputElement>) => {
+    const query = e.target.value;
+    setSearchCustomer(query);
+
+    debounceSearchCustomer(query);
   };
 
-  const handleTabNumber = (): number => {
-    let num = 1;
-    const existingTabNumbers = tabs.map((tab) => tab.number);
-
-    // Find the next available tab number
-    while (existingTabNumbers.includes(num)) {
-      num += 1;
-    }
-
-    return num;
-  };
+  // const handleTabNumber = (): number => {
+  //   let num = 1;
+  //   const existingTabNumbers = tabs.map((tab) => tab.number);
+  //
+  //   // Find the next available tab number
+  //   while (existingTabNumbers.includes(num)) {
+  //     num += 1;
+  //   }
+  //
+  //   return num;
+  // };
 
   // Tabs stuff
-  const addTab = () => {
-    const number = handleTabNumber();
-    const order: OrderGetDetail = {
-      id: 0,
-      customerId: 0,
-      sellerId: 0,
-      status: 1,
-      orderType: "retail",
-      description: "",
-      createAt: new Date(),
-      updateAt: new Date(),
-      items: [],
-    };
-    const newTab = { number, order };
-    setTabs((prevTabs) => [...prevTabs, newTab]);
+  const addTab = async () => {
+    if (isAddingTab.current) return;
+    isAddingTab.current = true;
+    console.log(selectedCustomer);
+    try {
+      const newOrder = await fetchCreateOrder({
+        customerId: 0, // Replace with actual customer ID if available
+        sellerId: 0, // Replace with actual seller ID
+        orderType: OrderType.Retail,
+      });
 
-    setActiveTab(tabs.length);
-    if (tabListRef.current) {
-      const { scrollWidth, offsetWidth } = tabListRef.current;
-      tabListRef.current.scrollTo({
-        left: scrollWidth + offsetWidth,
-        behavior: "smooth",
+      // Add the new order as a tab
+      const newTab: Tab = {
+        number: newOrder.id,
+        order: {
+          ...newOrder,
+          items: [], // No items yet
+        },
+      };
+
+      setTabs((prevTabs) => {
+        const updatedTabs = [...prevTabs, newTab];
+        if (updatedTabs.length === 1) {
+          setActiveTab(0);
+        } else setActiveTab(tabs.length);
+        return updatedTabs;
+      });
+
+      // Scroll to the new tab
+      if (tabListRef.current) {
+        const { scrollWidth, offsetWidth } = tabListRef.current;
+        tabListRef.current.scrollTo({
+          left: scrollWidth + offsetWidth,
+          behavior: "smooth",
+        });
+      }
+
+      isAddingTab.current = false;
+    } catch (error) {
+      console.error("Error creating a new order:", error);
+      toast.error("Tạo đơn hàng thất bại, thử lại", {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
       });
     }
   };
   const deleteTab = (index: number) => {
+    fetchDeleteOrder(tabs[index].order.id);
+
     const updatedTabs = tabs.filter((_, i) => i !== index);
     setTabs(updatedTabs);
 
@@ -166,15 +270,11 @@ export default function SalePage() {
     // If there are no tabs left, create a new tab
     if (updatedTabs.length === 0) {
       addTab();
-      setActiveTab(0);
     }
-  };
-  const handleTabChange = (index: number) => {
-    setActiveTab(index); // Update the active tab when a new tab is selected
   };
 
   // Items stuff
-  const updateOrderItem = (index: number, changes: Partial<OrderItem>) => {
+  const updateOrderItem = (index: number, changes: OrderItem) => {
     if (!tabs[activeTab]?.order.items[index]) return;
     const updatedTabs = [...tabs];
     const item = updatedTabs[activeTab].order.items[index];
@@ -182,18 +282,33 @@ export default function SalePage() {
     setTabs(updatedTabs);
     updateTotalPrice();
   };
-  const handleOrderItemIncrease = (index: number) =>
-    updateOrderItem(index, {
-      amount: tabs[activeTab].order.items[index].amount + 1,
-    });
-  const handleOrderItemDecrease = (index: number) => {
+  const handleOrderItemIncrease = async (index: number) => {
+    const orderItem = await fetchUpdateOrderItem(
+      tabs[activeTab].order.id,
+      tabs[activeTab].order.items[index].skuId,
+      {
+        amount: tabs[activeTab].order.items[index].amount + 1,
+      },
+    );
+    updateOrderItem(index, orderItem);
+  };
+  const handleOrderItemDecrease = async (index: number) => {
     if (tabs[activeTab].order.items[index].amount > 1) {
-      updateOrderItem(index, {
-        amount: tabs[activeTab].order.items[index].amount - 1,
-      });
+      const orderItem = await fetchUpdateOrderItem(
+        tabs[activeTab].order.id,
+        tabs[activeTab].order.items[index].skuId,
+        {
+          amount: tabs[activeTab].order.items[index].amount - 1,
+        },
+      );
+      updateOrderItem(index, orderItem);
     }
   };
   const handleOrderItemRemove = (index: number) => {
+    fetchDeleteOrderItem(
+      tabs[activeTab].order.id,
+      tabs[activeTab].order.items[index].skuId,
+    );
     const updatedTabs = [...tabs];
     updatedTabs[activeTab].order.items = updatedTabs[
       activeTab
@@ -202,14 +317,46 @@ export default function SalePage() {
     updateTotalPrice();
   };
 
-  const handleOrderItemDiscountChange = (
-    index: number,
-    newDiscount: number,
-  ) => {
-    const updatedTabs = [...tabs];
-    updatedTabs[activeTab].order.items[index].discount = newDiscount;
-    setTabs(updatedTabs);
-    updateTotalPrice();
+  const handleSkuClick = async (sku: SkuGetDetail) => {
+    try {
+      const activeOrder = tabs[activeTab]?.order;
+
+      if (!activeOrder) {
+        toast.error("Xin hãy tạo đơn hàng trước khi thêm sản phẩm", {
+          position: "top-right",
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+        });
+        return;
+      }
+
+      // Add the clicked SKU to the existing order
+      const orderItem = await fetchAddOrderItem({
+        orderId: activeOrder.id,
+        skuId: sku.id,
+        amount: 1,
+      });
+
+      // Update the active tab with the new item
+      const updatedTabs = [...tabs];
+      updatedTabs[activeTab].order.items.push(orderItem);
+      setTabs(updatedTabs);
+
+      updateTotalPrice(); // Update total price and item count
+    } catch (error) {
+      console.error("Error handling SKU click:", error);
+      toast.error("Thêm sản phẩm thất bại, thử lại", {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+      });
+    }
   };
 
   // Handle page navigation
@@ -260,6 +407,7 @@ export default function SalePage() {
     // }
   };
   const fetchOrders = async () => {
+    isInitalized.current = true;
     try {
       const response = await getListOrder(OrderStatus.PENDING); // Fetch all orders
       // console.log("Fetched orders:", response);
@@ -273,8 +421,75 @@ export default function SalePage() {
       if (transformedTabs.length > 0) {
         setActiveTab(0); // Set the first tab as active if orders exist
       }
+      isInitalized.current = false;
     } catch (error) {
       console.log("Fetch error:", error);
+    }
+  };
+
+  const fetchCreateOrder = async (orderCreate: OrderCreate) => {
+    try {
+      const response = await createOrder(orderCreate);
+      return response.data;
+    } catch (error) {
+      console.error("Create order error:", error);
+      throw error;
+    }
+  };
+
+  const fetchAddOrderItem = async (orderItem: OrderItemCreate) => {
+    try {
+      const response = await addOrderItem(orderItem);
+      return response.data;
+    } catch (error) {
+      console.error("Add order item error:", error);
+      throw error;
+    }
+  };
+
+  const fetchDeleteOrder = async (orderId: number) => {
+    try {
+      await deleteOrder(orderId);
+    } catch (error) {
+      console.error("Delete order error:", error);
+      throw error;
+    }
+  };
+
+  const fetchDeleteOrderItem = async (orderId: number, skuId: number) => {
+    try {
+      await deleteOrderItem(orderId, skuId);
+    } catch (error) {
+      console.error("Delete order item error:", error);
+      throw error;
+    }
+  };
+
+  const fetchUpdateOrderItem = async (
+    orderId: number,
+    skuId: number,
+    orderItem: OrderItemUpdate,
+  ) => {
+    try {
+      const response = await updateOrderItemApi(orderId, skuId, orderItem);
+      return response.data;
+    } catch (error) {
+      console.error("Update order item error:", error);
+      throw error;
+    }
+  };
+
+  const fetchSearchCustomer = async (value: string) => {
+    try {
+      const filter: CustomerListFilter = {
+        lkPhoneNumber: value,
+        status: [1],
+      };
+      const response = await listCustomer(filter);
+      return response.data;
+    } catch (error) {
+      console.error("Search customer error:", error);
+      throw error;
     }
   };
 
@@ -311,8 +526,14 @@ export default function SalePage() {
   }, [tabs, activeTab]);
 
   useEffect(() => {
-    if (tabs.length === 0) {
-      addTab();
+    if (tabs.length === 0 && !isInitalized.current) {
+      (async () => {
+        try {
+          await addTab();
+        } catch (error) {
+          console.error("Error adding tab on initial load:", error);
+        }
+      })();
     }
   }, [tabs]);
 
@@ -359,7 +580,9 @@ export default function SalePage() {
           <OrderTabsList
             tabs={tabs}
             activeTab={activeTab}
-            onTabChange={handleTabChange}
+            onTabChange={(index) => {
+              setActiveTab(index);
+            }}
             onDeleteTab={deleteTab}
             onAddTab={addTab}
             isOverflowing={isOverflowing}
@@ -377,7 +600,7 @@ export default function SalePage() {
           <div className="flex flex-col flex-grow p-2 space-y-2 overflow-y-auto h-[0px]">
             {tabs[activeTab]?.order.items.length === 0 && (
               <div className="text-center text-gray-500">
-                No items in this order.
+                Chưa có sản phầm nào trong đơn hàng
               </div>
             )}
             {tabs[activeTab]?.order?.items.map((item, index) => (
@@ -388,13 +611,9 @@ export default function SalePage() {
                 name={"item name"}
                 quantity={item.amount}
                 originalPrice={item.unitPrice}
-                discount={item.discount || 0}
                 onDecreament={() => handleOrderItemDecrease(index)} // Decrease quantity for this item
                 onIncreament={() => handleOrderItemIncrease(index)} // Increase quantity for this item
                 onRemove={() => handleOrderItemRemove(index)} // Remove this item from the order
-                onDiscountChange={(newDiscount) =>
-                  handleOrderItemDiscountChange(index, newDiscount)
-                } // Change item's discount
               />
             ))}
           </div>
@@ -432,14 +651,45 @@ export default function SalePage() {
           <Card className="p-2 flex flex-col h-full">
             {/*Filter*/}
             <div className="flex flex-row">
-              <div className="relative w-2/3 p-2">
+              <div className="relative w-3/4 p-2 flex items-center">
                 <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 transform bg-background" />
                 <Input
                   value={searchCustomer}
                   onChange={handleSearchCustomer}
-                  className="pl-9 bg-background "
+                  className="pl-9 bg-background flex-grow"
                   placeholder="Tìm khách hàng"
                 />
+                {searchCustomerResult &&
+                  searchCustomerResult.length > 0 &&
+                  searchCustomer.trim() !== "" && (
+                    <div className="absolute top-full mt-2 left-0 w-full bg-white border rounded-lg shadow-md z-50 max-h-60 overflow-y-auto">
+                      {searchCustomerResult.map((provider) => (
+                        <div
+                          key={provider.id}
+                          className="p-2 hover:bg-gray-100 cursor-pointer"
+                          onClick={() => {
+                            setSearchCustomer(
+                              provider.phoneNumber + " - " + provider.name,
+                            );
+                            setSearchCustomerResult(undefined);
+                            setSelectedCustomer(provider);
+                          }}
+                        >
+                          <span className="text-gray-500">
+                            {provider.phoneNumber}
+                          </span>
+                          {" - "}
+                          <span className="font-medium">{provider.name}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                <Button
+                  className="absolute right-3 p-1 h-7 w-7 bg-background text-gray-600 hover:bg-gray-200 rounded-full shadow-none"
+                  onClick={() => setIsCustomerCreateOpen(true)}
+                >
+                  <Plus />
+                </Button>
               </div>
               <div className="flex flex-row flex-grow px-2 w-auto items-center justify-end gap-2">
                 <Button className="p-1 h-7 w-7 bg-transparent text-black rounded-full shadow-none hover:bg-blue-200 hover:text-blue-800">
@@ -460,7 +710,7 @@ export default function SalePage() {
               }}
             >
               {skuData.map((sku) => (
-                <div key={sku.id}>
+                <div key={sku.id} onClick={() => handleSkuClick(sku)}>
                   <SkuCard {...sku} />
                 </div>
               ))}
@@ -474,11 +724,28 @@ export default function SalePage() {
                 onNext={handleNextPage}
                 onPrevious={handlePreviousPage}
               />
-              <Button className="p-4 w-full h-12">THANH TOÁN</Button>
+              <Button
+                className="p-4 w-full h-12"
+                onClick={() => setIsPaymentDialogOpen(true)}
+              >
+                THANH TOÁN
+              </Button>
             </div>
           </Card>
         </div>
       </div>
+
+      <PaymentDialog
+        isOpen={isPaymentDialogOpen}
+        onClose={() => setIsPaymentDialogOpen(false)}
+        customerName={"Mai Hoàng Hưng"}
+        customerPhone={"0123456789"}
+        orderDetails={tabs[activeTab]?.order}
+      />
+      <CreateCustomerModal
+        isOpen={isCustomerCreateOpen}
+        onClose={() => setIsCustomerCreateOpen(false)}
+      />
     </div>
   );
 }
