@@ -2,7 +2,7 @@
 import { Info, Minus, MoreVertical, Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button.tsx";
 import { Input } from "@/components/ui/input.tsx";
-import { ChangeEvent, useCallback, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { NoSpinnerNumberInput } from "@/components/NoSpinnerNumberInput.tsx";
 
 interface OrderItemCardProps {
@@ -10,10 +10,11 @@ interface OrderItemCardProps {
   id: number;
   name: string;
   quantity: number;
+  description?: string;
   originalPrice: number;
-  onDecreament: () => void;
-  onIncreament: () => void;
   onRemove: () => void;
+  onQuantityBlur: (newQuantity: number) => void;
+  onDescriptionBlur: (newDescription: string) => void;
 }
 
 export function OrderItemCard({
@@ -21,24 +22,43 @@ export function OrderItemCard({
   id,
   name,
   quantity,
+  description,
   originalPrice,
-  onDecreament,
-  onIncreament,
   onRemove,
+  onQuantityBlur,
+  onDescriptionBlur,
 }: OrderItemCardProps): JSX.Element {
-  const [itemDescription, setItemDescription] = useState("");
-
+  const [localDescription, setLocalDescription] = useState(description);
+  const [localQuantity, setLocalQuantity] = useState(quantity);
   const safeOriginalPrice = Number(originalPrice) || 0;
+  const quantityInputRef = useRef<HTMLInputElement>(null);
 
   // Calculate the final price
   const finalPrice = safeOriginalPrice * quantity;
 
-  const handleDescriptionChange = useCallback(
-    (e: ChangeEvent<HTMLInputElement>) => {
-      setItemDescription(e.target.value);
+  const handleDescriptionBlur = useCallback(
+    (e: React.FocusEvent<HTMLInputElement>) => {
+      const newDescription = e.target.value;
+      onDescriptionBlur(newDescription);
     },
-    [],
+    [onDescriptionBlur],
   );
+
+  const handleQuantityBlur = useCallback(
+    (e: React.FocusEvent<HTMLInputElement>) => {
+      const newQuantity = parseInt(e.target.value, 10) || 0;
+      onQuantityBlur(newQuantity);
+    },
+    [onQuantityBlur],
+  );
+
+  const preventInputBlur = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault(); // Prevent the button from triggering input blur
+  };
+
+  const focusQuantityInput = () => {
+    quantityInputRef.current?.focus();
+  };
 
   return (
     <Card className="flex flex-col gap-2 p-4 shadow-md rounded-lg hover:border-primary group">
@@ -66,19 +86,29 @@ export function OrderItemCard({
         {/* Quantity */}
         <div className="flex items-center space-x-2">
           <Button
-            onClick={onDecreament}
+            onClick={() => {
+              setLocalQuantity((prevState) => prevState - 1);
+              focusQuantityInput();
+            }}
+            onMouseDown={preventInputBlur}
             className="p-1 h-6 w-6 bg-gray-200 hover:bg-gray-300 opacity-0 group-hover:opacity-100 rounded-full shadow-none"
           >
             <Minus className="w-4 h-4 text-gray-600" />
           </Button>
           <NoSpinnerNumberInput
             type="number"
-            value={quantity}
+            value={localQuantity}
+            ref={quantityInputRef}
             className="w-16 text-sm text-center border-b-2 border-gray-300 focus:border-b-primary focus:outline-none shadow-none rounded-none"
+            onBlur={handleQuantityBlur}
           />
 
           <Button
-            onClick={onIncreament}
+            onClick={() => {
+              setLocalQuantity((prevState) => prevState + 1);
+              focusQuantityInput();
+            }}
+            onMouseDown={preventInputBlur}
             className="p-1 h-6 w-6 bg-gray-200 hover:bg-gray-300 opacity-0 group-hover:opacity-100 rounded-full shadow-none"
           >
             <Plus className="w-4 h-4 text-gray-600" />
@@ -100,10 +130,11 @@ export function OrderItemCard({
 
       <div className="px-10">
         <Input
-          value={itemDescription}
-          onChange={handleDescriptionChange}
+          value={localDescription ? localDescription : ""}
+          onChange={(e) => setLocalDescription(e.target.value)}
           className="bg-white p-2 rounded-md border-0 shadow-none"
           placeholder="Ghi chú..."
+          onBlur={handleDescriptionBlur}
         />
       </div>
     </Card>

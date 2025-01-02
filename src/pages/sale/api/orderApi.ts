@@ -4,7 +4,7 @@ import { OrderCreate } from "@/types/order/orderCreate.ts";
 import { OrderItemCreate } from "@/types/orderItem/orderItemCreate.ts";
 import { Order } from "@/types/order/order.ts";
 import { OrderItem } from "@/types/orderItem/orderItem.ts";
-import { OrderItemUpdate } from "@/types/orderItem/orderItemUpdate.ts";
+import { OrderUpdate } from "@/types/order/orderUpdate.ts";
 
 export enum OrderStatus {
   CANCEL,
@@ -44,15 +44,20 @@ export async function createOrder(order: OrderCreate) {
     const response = await axiosInstance.post<CreateOrderResponse>(
       "/v1/order",
       order,
-      {
-        headers: {
-          Authorization: "",
-        },
-      },
     );
     return response.data;
   } catch (error) {
     console.error("Create order error:", error);
+    throw error;
+  }
+}
+
+export async function updateOrder(id: number, order: OrderUpdate) {
+  try {
+    const response = await axiosInstance.patch<Order>(`/v1/order/${id}`, order);
+    return response.data;
+  } catch (error) {
+    console.error("Update error:", error);
     throw error;
   }
 }
@@ -76,23 +81,6 @@ export async function addOrderItem(item: OrderItemCreate) {
     return response.data;
   } catch (error) {
     console.error("Create order item error:", error);
-    throw error;
-  }
-}
-
-export async function updateOrderItemApi(
-  orderId: number,
-  skuId: number,
-  item: OrderItemUpdate,
-) {
-  try {
-    const response = await axiosInstance.patch<OrderItemResponse>(
-      `/v1/order-item/?orderId=${orderId}&skuId=${skuId}`,
-      item,
-    );
-    return response.data;
-  } catch (error) {
-    console.error("Update error:", error);
     throw error;
   }
 }

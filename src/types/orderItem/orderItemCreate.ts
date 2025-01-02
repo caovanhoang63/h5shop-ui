@@ -3,4 +3,5 @@
   skuId: number;
   amount: number;
   description?: string;
+  unitPrice: number;
 }
