@@ -14,6 +14,7 @@ import { Input } from "@/components/ui/input";
 import { Setting, SettingUpdate } from "@/types/setting/setting";
 import { getSetting, updateSetting } from "@/pages/setting/api/settingApi";
 import Container from "@/layouts/components/Container.tsx";
+import { toast } from "react-toastify";
 
 export function SettingPage() {
   const [page, setPage] = useState(1);
@@ -35,7 +36,7 @@ export function SettingPage() {
 
   useEffect(() => {
     fetchSettingData();
-  }, [page]);
+  }, [page, editingName]);
 
   const formatDate = (dateString: string): string => {
     return new Date(dateString).toLocaleString();
@@ -59,15 +60,16 @@ export function SettingPage() {
       } as SettingUpdate);
       console.log(response.data);
       setEditingName(null);
-      window.location.reload();
+      toast.success("Cập nhật thành công");
     } catch (e) {
       console.error("Error updating setting:", e);
+      toast.error("Cập nhật thất bại");
     }
   };
 
   return (
     <Container>
-      <div className="flex flex-col min-h-[800px]">
+      <div className="flex flex-col ">
         <div className="flex-grow px-2 py-2">
           <Table>
             <TableHeader>
