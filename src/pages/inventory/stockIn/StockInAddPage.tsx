@@ -181,7 +181,7 @@ export default function StockInAddPage() {
     }
     const report: StockInCreate = {
       warehouseMen: 8,
-      providerId: selectedProvider || -1,
+      providerId: selectedProvider || 1,
       items: items.map((item) => ({
         skuId: item.id,
         amount: item.amount,

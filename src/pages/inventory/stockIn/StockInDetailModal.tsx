@@ -18,7 +18,8 @@ import {
 } from "@/components/ui/dialog.tsx";
 import { ScrollArea } from "@/components/ui/scroll-area.tsx";
 import { StockInDetails } from "@/types/stockIn/stockIn.ts";
-
+import jsPDF from "jspdf";
+import JsBarcode from "jsbarcode";
 interface IStockInDetailModalProps {
   isOpen: boolean;
   onOpenChange: (isOpen: boolean) => void;
@@ -29,6 +30,35 @@ export default function StockInDetailModal({
   onOpenChange,
   stockItem,
 }: IStockInDetailModalProps) {
+  const generateBarcode = (text: string): string => {
+    const canvas = document.createElement("canvas");
+    JsBarcode(canvas, text, { format: "CODE128" });
+    return canvas.toDataURL("image/png");
+  };
+
+  const handlePrint = () => {
+    if (!stockItem) return;
+
+    const doc = new jsPDF();
+    let yOffset = 10;
+
+    stockItem.items.forEach((item, index) => {
+      const barcode = generateBarcode(`${stockItem.id}-${item.skuId}`);
+      doc.text(`Lô hàng: ${stockItem.id}`, 10, yOffset);
+      doc.text(`Mã hàng: ${item.skuId}`, 10, yOffset + 10);
+      doc.text(`Tên hàng: ${item.name}`, 10, yOffset + 20);
+      doc.addImage(barcode, "PNG", 10, yOffset + 30, 100, 20);
+
+      yOffset += 60;
+      if ((index + 1) % 4 === 0) {
+        doc.addPage();
+        yOffset = 10;
+      }
+    });
+
+    doc.save(`StockIn_${stockItem.id}.pdf`);
+  };
+
   interface IStatusMap {
     [key: number]: string;
   }
@@ -144,7 +174,7 @@ export default function StockInDetailModal({
             <Save className="w-4 h-4 mr-2" />
             Lưu
           </Button>
-          <Button variant="secondary">
+          <Button variant="secondary" onClick={handlePrint}>
             <FileDown className="w-4 h-4 mr-2" />
             In tem mã
           </Button>
