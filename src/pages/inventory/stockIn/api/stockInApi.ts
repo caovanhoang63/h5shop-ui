@@ -29,7 +29,7 @@ export interface StockInFilter {
   lk_Id?: string | null;
 }
 
-interface ResponseSearchSku {
+interface Response {
   data?: never;
   extra?: never;
   paging?: never;
@@ -39,7 +39,7 @@ export async function getStockInTableApi(
 ): Promise<ResponseStockInTable> {
   try {
     const response = await axiosInstance.get<ResponseStockInTable>(
-      "v1/stock-in/list",
+      "v1/stock-in",
       {
         params: {
           ...filters,
@@ -58,7 +58,7 @@ export async function getStockInDetailById(
 ): Promise<ResponseStockInDetail> {
   try {
     const response = await axiosInstance.get<ResponseStockInDetail>(
-      `v1/stock-in/details/${reportId}`,
+      `v1/stock-in/${reportId}`,
     );
     return response.data;
   } catch (error) {
@@ -71,7 +71,7 @@ export async function createStockInReport(
 ): Promise<ResponseStockInReportCreate> {
   try {
     const response = await axiosInstance.post<ResponseStockInReportCreate>(
-      "v1/stock-in/create",
+      "v1/stock-in",
       body,
     );
     return response.data;
@@ -81,16 +81,32 @@ export async function createStockInReport(
   }
 }
 
-export async function searchSku(query: string): Promise<ResponseSearchSku> {
+export async function searchSku(query: string): Promise<Response> {
   try {
-    const response = await axiosInstance.get<ResponseSearchSku>(
-      "v1/sku/search-detail",
-      {
-        params: {
-          lkName: query,
-        },
+    const response = await axiosInstance.get<Response>("v1/sku/search-detail", {
+      params: {
+        lkName: query,
       },
-    );
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Fetch error:", error);
+    throw error;
+  }
+}
+export async function searchProvider(query: string): Promise<Response> {
+  try {
+    const config = {
+      headers: {
+        authorization: ``,
+      },
+    };
+    const response = await axiosInstance.get<Response>("v1/provider/", {
+      params: {
+        lkName: query,
+      },
+      headers: config.headers,
+    });
     return response.data;
   } catch (error) {
     console.error("Fetch error:", error);

@@ -50,7 +50,10 @@ export default function StockInDetailModal({
 
   const totalPrice = () => {
     if (stockItem)
-      return stockItem.items.reduce((total, item) => total + item.price, 0);
+      return stockItem.items.reduce(
+        (total, item) => total + item.price * item.amount,
+        0,
+      );
     return 0;
   };
   return (
