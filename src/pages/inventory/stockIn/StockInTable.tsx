@@ -34,7 +34,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { MenuVisibilityColumnTable } from "@/components/ButtonVisibilityColumnTable.tsx";
-import { StockInDetails, StockInItemTable } from "@/types/stockIn.ts";
+import { StockInDetails, StockInItemTable } from "@/types/stockIn/stockIn.ts";
 import StockInDetailModal from "@/pages/inventory/stockIn/StockInDetailModal.tsx";
 import { getStockInDetailById } from "@/pages/inventory/stockIn/api/stockInApi.ts";
 

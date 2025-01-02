@@ -8,7 +8,7 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Save, XCircle } from "lucide-react";
+import { FileDown, Save, XCircle } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -17,8 +17,9 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog.tsx";
 import { ScrollArea } from "@/components/ui/scroll-area.tsx";
-import { StockInDetails } from "@/types/stockIn.ts";
-
+import { StockInDetails } from "@/types/stockIn/stockIn.ts";
+import jsPDF from "jspdf";
+import JsBarcode from "jsbarcode";
 interface IStockInDetailModalProps {
   isOpen: boolean;
   onOpenChange: (isOpen: boolean) => void;
@@ -29,6 +30,35 @@ export default function StockInDetailModal({
   onOpenChange,
   stockItem,
 }: IStockInDetailModalProps) {
+  const generateBarcode = (text: string): string => {
+    const canvas = document.createElement("canvas");
+    JsBarcode(canvas, text, { format: "CODE128" });
+    return canvas.toDataURL("image/png");
+  };
+
+  const handlePrint = () => {
+    if (!stockItem) return;
+
+    const doc = new jsPDF();
+    let yOffset = 10;
+
+    stockItem.items.forEach((item, index) => {
+      const barcode = generateBarcode(`${stockItem.id}-${item.skuId}`);
+      doc.text(`Lô hàng: ${stockItem.id}`, 10, yOffset);
+      doc.text(`Mã hàng: ${item.skuId}`, 10, yOffset + 10);
+      doc.text(`Tên hàng: ${item.name}`, 10, yOffset + 20);
+      doc.addImage(barcode, "PNG", 10, yOffset + 30, 100, 20);
+
+      yOffset += 60;
+      if ((index + 1) % 4 === 0) {
+        doc.addPage();
+        yOffset = 10;
+      }
+    });
+
+    doc.save(`StockIn_${stockItem.id}.pdf`);
+  };
+
   interface IStatusMap {
     [key: number]: string;
   }
@@ -40,6 +70,21 @@ export default function StockInDetailModal({
   const formatCurrency = (amount: number) => {
     const numberPrice = Number(amount);
     return numberPrice.toLocaleString("en-US");
+  };
+
+  const totalStock = () => {
+    if (stockItem)
+      return stockItem.items.reduce((total, item) => total + item.amount, 0);
+    return 0;
+  };
+
+  const totalPrice = () => {
+    if (stockItem)
+      return stockItem.items.reduce(
+        (total, item) => total + item.price * item.amount,
+        0,
+      );
+    return 0;
   };
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
@@ -119,8 +164,8 @@ export default function StockInDetailModal({
               </Table>
             </ScrollArea>
             <div className="space-y-2 text-right">
-              <div>Tổng thực tế: 0</div>
-              <div>Tổng chênh lệch: 0</div>
+              <div>Tổng số lượng: {formatCurrency(totalStock())}</div>
+              <div>Tổng giá trị: {formatCurrency(totalPrice())}</div>
             </div>
           </div>
         </div>
@@ -129,10 +174,10 @@ export default function StockInDetailModal({
             <Save className="w-4 h-4 mr-2" />
             Lưu
           </Button>
-          {/*<Button variant="secondary">
+          <Button variant="secondary" onClick={handlePrint}>
             <FileDown className="w-4 h-4 mr-2" />
-            Xuất file
-          </Button>*/}
+            In tem mã
+          </Button>
           <Button variant="destructive" onClick={() => onOpenChange(false)}>
             <XCircle className="w-4 h-4 mr-2" />
             Hủy bỏ
