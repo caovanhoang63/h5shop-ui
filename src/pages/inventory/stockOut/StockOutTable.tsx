@@ -34,9 +34,12 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { MenuVisibilityColumnTable } from "@/components/ButtonVisibilityColumnTable.tsx";
-import { StockInDetails, StockInItemTable } from "@/types/stockIn/stockIn.ts";
-import StockInDetailModal from "@/pages/inventory/stockIn/StockInDetailModal.tsx";
-import { getStockInDetailById } from "@/pages/inventory/stockIn/api/stockInApi.ts";
+import {
+  StockOutDetail,
+  StockOutItemTable,
+} from "@/types/stockOut/stockOut.ts";
+import { getStockOutDetailById } from "@/pages/inventory/stockOut/api/stockOutApi.ts";
+import StockOutDetailModal from "@/pages/inventory/stockOut/StockOutDetailModal.tsx";
 
 interface IColorMap {
   [key: number]: string;
@@ -45,7 +48,9 @@ interface IColorMap {
 interface IStatusMap {
   [key: number]: string;
 }
-
+interface IConvert {
+  [key: string]: string;
+}
 const colorMap: IColorMap = {
   1: "text-success",
   2: "text-warning",
@@ -53,16 +58,21 @@ const colorMap: IColorMap = {
 };
 
 const statusMap: IStatusMap = {
-  1: "Đã nhập hàng",
+  1: "Đã xuất hàng",
   0: "Đã hủy",
   2: "Phiếu tạm",
 };
-
+const typeStockOut: IConvert = {
+  "Returns to Supplier": "Trả hàng nhà cung cấp",
+  Disposal: "Xuất hủy",
+};
 function StatusStockInRow({ status }: { status: number }) {
   return <div className={` ${colorMap[status]}`}>{statusMap[status]}</div>;
 }
-
-const columnsStockIn: ColumnDef<StockInItemTable>[] = [
+function TypeStockOut({ type }: { type: string }) {
+  return <div> {typeStockOut[type]}</div>;
+}
+const columnsStockOut: ColumnDef<StockOutItemTable>[] = [
   {
     id: "select",
     header: ({ table }) => (
@@ -108,13 +118,13 @@ const columnsStockIn: ColumnDef<StockInItemTable>[] = [
       );
     },
     cell: ({ row }) => (
-      <div className="ml-4">
+      <div className="">
         {new Date(row.getValue("updatedAt")).toLocaleDateString()}
       </div>
     ),
   },
   {
-    accessorKey: "providerName",
+    accessorKey: "stockOutReasonName",
     header: ({ column }) => {
       return (
         <Button
@@ -122,13 +132,31 @@ const columnsStockIn: ColumnDef<StockInItemTable>[] = [
           variant="ghost"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
-          Nhà cung cấp
+          Loại xuất hàng
           <ArrowUpDown />
         </Button>
       );
     },
     cell: ({ row }) => (
-      <div className="lowercase ml-4">{row.getValue("providerName")}</div>
+      <TypeStockOut type={row.getValue("stockOutReasonName")} />
+    ),
+  },
+  {
+    accessorKey: "stockOutReasonDescription",
+    header: ({ column }) => {
+      return (
+        <Button
+          className={"p-0 font-bold"}
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Mô tả
+          <ArrowUpDown />
+        </Button>
+      );
+    },
+    cell: ({ row }) => (
+      <div className="">{row.getValue("stockOutReasonDescription")}</div>
     ),
   },
   {
@@ -188,14 +216,14 @@ const columnsStockIn: ColumnDef<StockInItemTable>[] = [
     },
   },
 ];
-interface StockInTableProps {
-  dataStockIn: StockInItemTable[];
+interface StockOutTableProps {
+  dataStockOut: StockOutItemTable[];
   columnVisible: MenuVisibilityColumnTable[];
 }
 export function StockOutTable({
-  dataStockIn,
+  dataStockOut,
   columnVisible,
-}: StockInTableProps) {
+}: StockOutTableProps) {
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     [],
@@ -211,28 +239,28 @@ export function StockOutTable({
   const [isOpenStockTakesModal, setIsOpenStockTakesModal] = useState(false);
 
   const [selectedStockInReport, setSelectedStockInReport] = useState<
-    StockInItemTable | undefined
+    StockOutItemTable | undefined
   >(undefined);
-  const [stockInReportDetails, setStockInReportDetails] = useState<
-    StockInDetails | undefined
+  const [stockOutReportDetails, setStockOutReportDetails] = useState<
+    StockOutDetail | undefined
   >(undefined);
 
-  const getStockInDetails = async (id: number) => {
+  const getStockOutDetail = async (id: number) => {
     try {
-      const response = await getStockInDetailById(id);
-      setStockInReportDetails(response.data);
+      const response = await getStockOutDetailById(id);
+      setStockOutReportDetails(response.data);
     } catch (error) {
       console.error("Error fetching stock in report details:", error);
     }
   };
-  const table = useReactTable<StockInItemTable>({
+  const table = useReactTable<StockOutItemTable>({
     initialState: {
       pagination: {
         pageSize: 10,
       },
     },
-    data: dataStockIn,
-    columns: columnsStockIn,
+    data: dataStockOut,
+    columns: columnsStockOut,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
     getCoreRowModel: getCoreRowModel(),
@@ -258,11 +286,11 @@ export function StockOutTable({
   }, [columnVisible]);
   return (
     <div className="w-full">
-      <StockInDetailModal
+      <StockOutDetailModal
         isOpen={isOpenStockTakesModal}
         onOpenChange={setIsOpenStockTakesModal}
-        stockItem={stockInReportDetails}
-      ></StockInDetailModal>
+        stockItem={stockOutReportDetails}
+      ></StockOutDetailModal>
       <div className="rounded-md border">
         <Table>
           <TableHeader>
@@ -292,10 +320,10 @@ export function StockOutTable({
                     event.preventDefault();
                     event.stopPropagation();
                     const selectedReport = row.original;
-                    setIsOpenStockTakesModal(true);
                     setSelectedStockInReport(selectedReport);
                     console.log(selectedStockInReport);
-                    await getStockInDetails(selectedReport.id);
+                    await getStockOutDetail(selectedReport.id);
+                    setIsOpenStockTakesModal(true);
                   }}
                   key={row.id}
                   data-state={row.getIsSelected() && "selected"}
@@ -313,7 +341,7 @@ export function StockOutTable({
             ) : (
               <TableRow>
                 <TableCell
-                  colSpan={columnsStockIn.length}
+                  colSpan={columnsStockOut.length}
                   className="h-24 text-center"
                 >
                   No results.
