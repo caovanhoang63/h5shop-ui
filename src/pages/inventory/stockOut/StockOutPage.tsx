@@ -12,14 +12,8 @@ import { CheckBoxWithText } from "@/components/CheckBoxWithText.tsx";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group.tsx";
 import { Label } from "@/components/ui/label.tsx";
 import Container from "@/layouts/components/Container.tsx";
-import { InventoryTable } from "./InventoryTable.tsx";
 import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { InventoryReport } from "@/types/inventory/inventoryReport.ts";
-import {
-  getInventoryReports,
-  InventoryReportFilter,
-} from "@/pages/inventory/api/reportApi.ts";
 import {
   ButtonVisibilityColumnTable,
   MenuVisibilityColumnTable,
@@ -33,13 +27,18 @@ import { cn } from "@/lib/utils.ts";
 import { endOfMonth, format, startOfMonth } from "date-fns";
 import { Calendar } from "@/components/ui/calendar";
 import { SelectRangeEventHandler } from "react-day-picker";
+import { StockInTable } from "@/pages/inventory/stockIn/StockInTable.tsx";
+import {
+  getStockInTableApi,
+  StockInFilter,
+} from "@/pages/inventory/stockIn/api/stockInApi.ts";
+import { StockInItemTable } from "@/types/stockIn/stockIn.ts";
+import { toast } from "react-toastify";
 
-export const InventoryPage = () => {
-  const [inventoryReports, setInventoryReports] = useState<InventoryReport[]>(
-    [],
-  );
-  const [filters, setFilters] = useState<InventoryReportFilter>({
-    lk_warehouseMan1: null,
+export const StockOutPage = () => {
+  const [stockInReport, setStockInReport] = useState<StockInItemTable[]>([]);
+  const [filters, setFilters] = useState<StockInFilter>({
+    lk_providerName: null,
     gtUpdatedAt: null,
     ltUpdatedAt: null,
     status: [],
@@ -115,24 +114,30 @@ export const InventoryPage = () => {
       }));
     }
   };
-  const getInventoryReportTable = async () => {
+  const getStockInTable = async () => {
     try {
-      const response = await getInventoryReports(filters);
+      const response = await getStockInTableApi(filters);
       console.log("api", response.data);
-      setInventoryReports(response.data);
+      setStockInReport(response.data);
     } catch (error) {
+      toast.error("Lỗi hệ thống!", {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+      });
       console.log(error);
     }
   };
   useEffect(() => {
-    getInventoryReportTable();
+    getStockInTable();
   }, [filters]);
   const [fields, setFields] = useState<MenuVisibilityColumnTable[]>([
-    { label: "Mã kiểm kho", key: "id", visible: true },
-    { label: "Thời gian cân bằng", key: "updatedAt", visible: true },
-    { label: "SL thực tế", key: "amount", visible: true },
-    { label: "Tổng chênh lệch", key: "inventoryDif", visible: true },
-    { label: "Ghi chú", key: "note", visible: true },
+    { label: "Mã xuất kho", key: "id", visible: true },
+    { label: "Thời gian", key: "updatedAt", visible: true },
+    { label: "Tổng số lượng", key: "totalAmount", visible: true },
     { label: "Trạng thái", key: "status", visible: true },
     /*{ label: "Action", key: "actions", visible: true },*/
   ]);
@@ -148,7 +153,7 @@ export const InventoryPage = () => {
   return (
     <Container className={"grid grid-cols-5 gap-4 grid-flow-row"}>
       <div className={"text-2xl col-span-1 font-bold"}>
-        <p>Phiếu kiểm kho</p>
+        <p>Phiếu xuất hàng</p>
       </div>
       <div className={"col-span-4 w-full flex justify-between"}>
         <div className="relative flex items-center max-w-80">
@@ -164,10 +169,10 @@ export const InventoryPage = () => {
           />
         </div>
         <div className={"flex space-x-2"}>
-          <Link to={"/stock-takes"}>
+          <Link to={"/stock-in/new"}>
             <Button className={"bg-green-500"}>
               <Plus />
-              Kiểm kho
+              Nhập hàng
             </Button>
           </Link>
           <Button className={"bg-green-500"}>
@@ -273,7 +278,7 @@ export const InventoryPage = () => {
                     id={"serial"}
                     onCheckChange={(value) => handleStatusChange("1", !!value)}
                   >
-                    Đã cân bằng kho
+                    Đã nhập hàng
                   </CheckBoxWithText>
                   <CheckBoxWithText
                     id={"service"}
@@ -305,10 +310,10 @@ export const InventoryPage = () => {
         </Card>
       </div>
       <div className={"col-span-4"}>
-        <InventoryTable
+        <StockInTable
           columnVisible={fields}
-          dataInventory={inventoryReports}
-        ></InventoryTable>
+          dataStockIn={stockInReport}
+        ></StockInTable>
       </div>
     </Container>
   );

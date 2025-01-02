@@ -1,5 +1,9 @@
 import axiosInstance from "@/axiosSetup.ts";
-import { StockInDetails, StockInItemTable } from "@/types/stockIn.ts";
+import {
+  StockInCreate,
+  StockInDetails,
+  StockInItemTable,
+} from "@/types/stockIn/stockIn.ts";
 
 interface ResponseStockInTable {
   data: StockInItemTable[];
@@ -12,11 +16,11 @@ interface ResponseStockInDetail {
   paging?: never;
 }
 
-/*interface ResponseInventoryReportCreate {
+interface ResponseStockInReportCreate {
   data: number;
   extra?: never;
   paging?: never;
-}*/
+}
 export interface StockInFilter {
   lk_providerName?: string | null;
   ltUpdatedAt?: Date | null;
@@ -24,20 +28,23 @@ export interface StockInFilter {
   status?: [] | null;
   lk_Id?: string | null;
 }
+
+interface Response {
+  data?: never;
+  extra?: never;
+  paging?: never;
+}
 export async function getStockInTableApi(
   filters: StockInFilter,
 ): Promise<ResponseStockInTable> {
   try {
-    const params: StockInFilter = {};
-    if (filters.lk_providerName)
-      params.lk_providerName = filters.lk_providerName;
-    if (filters.ltUpdatedAt) params.ltUpdatedAt = filters.ltUpdatedAt;
-    if (filters.gtUpdatedAt) params.gtUpdatedAt = filters.gtUpdatedAt;
-    if (filters.status) params.status = filters.status;
-    if (filters.lk_Id) params.lk_Id = filters.lk_Id;
     const response = await axiosInstance.get<ResponseStockInTable>(
-      "v1/stock-in/list",
-      { params: params },
+      "v1/stock-in",
+      {
+        params: {
+          ...filters,
+        },
+      },
     );
     return response.data;
   } catch (error) {
@@ -51,7 +58,7 @@ export async function getStockInDetailById(
 ): Promise<ResponseStockInDetail> {
   try {
     const response = await axiosInstance.get<ResponseStockInDetail>(
-      `v1/stock-in/details/${reportId}`,
+      `v1/stock-in/${reportId}`,
     );
     return response.data;
   } catch (error) {
@@ -59,12 +66,12 @@ export async function getStockInDetailById(
     throw error;
   }
 }
-/*export async function createInventoryReport(
-  body: InventoryReportCreate,
-): Promise<ResponseInventoryReportCreate> {
+export async function createStockInReport(
+  body: StockInCreate,
+): Promise<ResponseStockInReportCreate> {
   try {
-    const response = await axiosInstance.post<ResponseInventoryReportCreate>(
-      "v1/inventory/create",
+    const response = await axiosInstance.post<ResponseStockInReportCreate>(
+      "v1/stock-in",
       body,
     );
     return response.data;
@@ -72,4 +79,37 @@ export async function getStockInDetailById(
     console.error("Fetch error:", error);
     throw error;
   }
-}*/
+}
+
+export async function searchSku(query: string): Promise<Response> {
+  try {
+    const response = await axiosInstance.get<Response>("v1/sku/search-detail", {
+      params: {
+        lkName: query,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Fetch error:", error);
+    throw error;
+  }
+}
+export async function searchProvider(query: string): Promise<Response> {
+  try {
+    const config = {
+      headers: {
+        authorization: ``,
+      },
+    };
+    const response = await axiosInstance.get<Response>("v1/provider/", {
+      params: {
+        lkName: query,
+      },
+      headers: config.headers,
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Fetch error:", error);
+    throw error;
+  }
+}

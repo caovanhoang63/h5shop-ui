@@ -1,5 +1,8 @@
 export interface Paging {
-  page: number;
-  limit: number;
-  total: number;
+
+  total?: number;
+  page?: number;
+  limit?: number;
+  cursor?: number;
+  nextCursor?: number;
 }
