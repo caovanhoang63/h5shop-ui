@@ -67,66 +67,68 @@ export function SettingPage() {
 
   return (
     <Container>
-      <div className="px-2 py-2">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>ID</TableHead>
-              <TableHead>Name</TableHead>
-              <TableHead>Value</TableHead>
-              <TableHead>Created At</TableHead>
-              <TableHead>Updated At</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {settings.map((item) => (
-              <TableRow key={item.id}>
-                <TableCell>{item.id}</TableCell>
-                <TableCell>{item.name}</TableCell>
-                <TableCell>
-                  {editingName === item.name ? (
-                    <Input
-                      value={editValue}
-                      onChange={(e) => setEditValue(e.target.value)}
-                      className="w-full"
-                      type="number"
-                      step="any"
-                    />
-                  ) : (
-                    item.value
-                  )}
-                </TableCell>
-                <TableCell>{formatDate(item.createdAt)}</TableCell>
-                <TableCell>{formatDate(item.updatedAt)}</TableCell>
-                <TableCell>
-                  {item.status === 1 ? "Active" : "Inactive"}
-                </TableCell>
-                <TableCell>
-                  {editingName === item.name ? (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleSave(item.name)}
-                    >
-                      Save
-                    </Button>
-                  ) : (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleEdit(item.name, item.value)}
-                    >
-                      Edit
-                    </Button>
-                  )}
-                </TableCell>
+      <div className="flex flex-col min-h-[800px]">
+        <div className="flex-grow px-2 py-2">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>ID</TableHead>
+                <TableHead>Name</TableHead>
+                <TableHead>Value</TableHead>
+                <TableHead>Created At</TableHead>
+                <TableHead>Updated At</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Actions</TableHead>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-        <div className="flex justify-between items-center mt-4">
+            </TableHeader>
+            <TableBody>
+              {settings.map((item) => (
+                <TableRow key={item.id}>
+                  <TableCell>{item.id}</TableCell>
+                  <TableCell>{item.name}</TableCell>
+                  <TableCell>
+                    {editingName === item.name ? (
+                      <Input
+                        value={editValue}
+                        onChange={(e) => setEditValue(e.target.value)}
+                        className="w-full"
+                        type="number"
+                        step="any"
+                      />
+                    ) : (
+                      item.value
+                    )}
+                  </TableCell>
+                  <TableCell>{formatDate(item.createdAt)}</TableCell>
+                  <TableCell>{formatDate(item.updatedAt)}</TableCell>
+                  <TableCell>
+                    {item.status === 1 ? "Active" : "Inactive"}
+                  </TableCell>
+                  <TableCell>
+                    {editingName === item.name ? (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleSave(item.name)}
+                      >
+                        Save
+                      </Button>
+                    ) : (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleEdit(item.name, item.value)}
+                      >
+                        Edit
+                      </Button>
+                    )}
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
+        <div className="flex justify-between items-center mt-4 px-2 py-2">
           <Button
             onClick={() => setPage((prev) => Math.max(prev - 1, 1))}
             disabled={page === 1}
