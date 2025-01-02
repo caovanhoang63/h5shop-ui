@@ -141,10 +141,11 @@ export default function SpuModal({
     try {
       setIsLoading(true);
       await upsertSpuDetail(spu);
-      setIsLoading(false);
     } catch (error) {
       console.error("Error: ", error);
       throw error;
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -171,9 +172,10 @@ export default function SpuModal({
       const response = await getSpuDetail(id);
       console.log(response.data);
       setSpuDetail(response.data.spuDetail);
-      setIsLoading(false);
     } catch (error) {
       console.error("Error: ", error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -181,9 +183,10 @@ export default function SpuModal({
     try {
       setIsLoading(true);
       await deleteSpu(id);
-      setIsLoading(false);
     } catch (error) {
       console.error("Error: ", error);
+    } finally {
+      setIsLoading(false);
     }
   };
 

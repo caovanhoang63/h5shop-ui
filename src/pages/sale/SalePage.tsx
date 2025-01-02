@@ -83,7 +83,7 @@ export default function SalePage() {
             console.error(error);
           }
         }
-      }, 1000),
+      }, 700),
     [],
   );
 
@@ -386,26 +386,6 @@ export default function SalePage() {
   };
 
   // Fetch
-  const fetchSkus = async () => {
-    // setLoading(true);
-    // setError(null);
-    try {
-      const response = await getListSku(brandId, categoryId, page, limit);
-      setSkuData(response.data); // Set the SKU data from the `data` field
-      const totalPages = Math.ceil(
-        response.paging.total / response.paging.limit,
-      ); // Calculate total pages
-      setTotalPages(totalPages);
-
-      // console.log("Fetched SKU data:", response);
-    } catch (error) {
-      console.log("Fetch error:", error);
-      // setError("Failed to fetch SKU data.");
-    }
-    // finally {
-    //   setLoading(false);
-    // }
-  };
   const fetchOrders = async () => {
     isInitalized.current = true;
     try {
@@ -512,7 +492,22 @@ export default function SalePage() {
 
   // Fetch data on component mount and when filters or page changes
   useEffect(() => {
-    fetchSkus();
+    // setLoading(true);
+    // setError(null);
+    getListSku(brandId, categoryId, page, limit)
+      .then((response) => {
+        setSkuData(response.data); // Set the SKU data from the `data` field
+        const totalPages = Math.ceil(
+          response.paging.total / response.paging.limit,
+        ); // Calculate total pages
+        setTotalPages(totalPages);
+      })
+      .catch((error) => {
+        console.log("Fetch error:", error);
+      })
+      .finally(() => {
+        // setLoading(false);
+      });
   }, [brandId, categoryId, page, limit]);
 
   useEffect(() => {

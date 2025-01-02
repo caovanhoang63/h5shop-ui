@@ -83,9 +83,10 @@ export default function StockInAddPage() {
             console.error(error);
           }
         }
-      }, 2000),
+      }, 700),
     [],
   );
+
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const query = e.target.value;
     setSearchQuery(query);
