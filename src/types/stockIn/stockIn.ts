@@ -28,12 +28,29 @@ export interface StockInItemTable {
   createdAt: Date | null;
   updatedAt: Date | null;
 }
+export interface StockInCreate {
+  warehouseMen: number;
+  providerId: number;
+  items: StockInDetailCreate[];
+}
+interface StockInDetailCreate {
+  skuId: number;
+  amount: number;
+  costPrice: number;
+  totalPrice: number;
+}
 
 export interface StockInItemAdd {
   id: number;
+  code?: string;
+  name?: string;
+  amount: number;
+  costPrice: number;
+  totalPrice: number;
+}
+
+export interface StockInItemSearch {
+  id: number;
   name: string;
-  stockQuantity: number;
-  actualQuantity?: number;
-  variance?: number;
-  varianceValue?: number;
+  price: number;
 }

@@ -12,10 +12,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Link, useNavigate } from "react-router-dom";
-import { InventoryItemStockTake } from "@/types/inventoryItemStockTake.ts";
+import { InventoryItemStockTake } from "@/types/inventory/inventoryItemStockTake.ts";
 import { useState } from "react";
 import { createInventoryReport } from "@/pages/inventory/api/reportApi.ts";
-import { InventoryReportCreate } from "@/types/inventoryReport.ts";
+import { InventoryReportCreate } from "@/types/inventory/inventoryReport.ts";
+import { toast } from "react-toastify";
 
 export default function InventoryCheckPage() {
   const rawData: InventoryItemStockTake[] = [];
@@ -100,6 +101,17 @@ export default function InventoryCheckPage() {
   };
 
   const handleComplete = async () => {
+    if (items.length === 0) {
+      toast.warning("Không có sản phẩm!", {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+      });
+      return;
+    }
     const report: InventoryReportCreate = {
       warehouseMan1: 8,
       note: note,
@@ -113,11 +125,25 @@ export default function InventoryCheckPage() {
     try {
       const response = await createInventoryReport(report);
       console.log("Báo cáo kiểm kho đã được tạo:", response);
+      toast.success("Kiểm kho thành công!", {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+      });
       navigate("/inventory");
-      // Xử lý khi tạo báo cáo thành công, ví dụ: điều hướng đến trang khác
     } catch (error) {
+      toast.error("Kiểm kho thất bại!", {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+      });
       console.error("Lỗi khi tạo báo cáo kiểm kho:", error);
-      // Xử lý lỗi, ví dụ: hiển thị thông báo lỗi cho người dùng
     }
   };
   return (

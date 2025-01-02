@@ -16,7 +16,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog.tsx";
-import { InventoryReportDetails } from "@/types/inventoryReport.ts";
+import { InventoryReportDetails } from "@/types/inventory/inventoryReport.ts";
 import { ScrollArea } from "@/components/ui/scroll-area.tsx";
 
 interface IInventoryReportDetailModalProps {

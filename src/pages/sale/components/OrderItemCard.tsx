@@ -3,13 +3,7 @@ import { Info, Minus, MoreVertical, Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button.tsx";
 import { Input } from "@/components/ui/input.tsx";
 import { ChangeEvent, useCallback, useState } from "react";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu.tsx";
 import { NoSpinnerNumberInput } from "@/components/NoSpinnerNumberInput.tsx";
-import { NoSpinnerFloatInput } from "@/components/NoSpinnerFloatInput.tsx";
 
 interface OrderItemCardProps {
   index: number;
@@ -17,11 +11,9 @@ interface OrderItemCardProps {
   name: string;
   quantity: number;
   originalPrice: number;
-  discount: number;
   onDecreament: () => void;
   onIncreament: () => void;
   onRemove: () => void;
-  onDiscountChange: (newDiscount: number) => void;
 }
 
 export function OrderItemCard({
@@ -30,31 +22,16 @@ export function OrderItemCard({
   name,
   quantity,
   originalPrice,
-  discount,
   onDecreament,
   onIncreament,
   onRemove,
-  onDiscountChange,
 }: OrderItemCardProps): JSX.Element {
   const [itemDescription, setItemDescription] = useState("");
-  const [currentDiscountType, setCurrentDiscountType] = useState<
-    "percent" | "amount"
-  >(discount > 0 && discount <= 100 ? "percent" : "amount");
-  const [currentDiscountValue, setCurrentDiscountValue] = useState<number>(
-    currentDiscountType === "percent"
-      ? (discount / originalPrice) * 100
-      : discount,
-  );
 
   const safeOriginalPrice = Number(originalPrice) || 0;
-  // Calculate the displayed discount in amount format
-  const computedDiscount =
-    currentDiscountType === "percent"
-      ? (safeOriginalPrice * currentDiscountValue) / 100
-      : currentDiscountValue;
 
   // Calculate the final price
-  const finalPrice = safeOriginalPrice - computedDiscount;
+  const finalPrice = safeOriginalPrice * quantity;
 
   const handleDescriptionChange = useCallback(
     (e: ChangeEvent<HTMLInputElement>) => {
@@ -62,39 +39,6 @@ export function OrderItemCard({
     },
     [],
   );
-
-  const handleDiscountChange = useCallback(
-    (e: ChangeEvent<HTMLInputElement>) => {
-      let value = parseFloat(e.target.value) || 0;
-
-      if (currentDiscountType === "percent") {
-        value = Math.min(Math.max(value, 0), 100); // Clamp percent between 0 and 100
-      } else {
-        value = Math.min(Math.max(value, 0), safeOriginalPrice); // Clamp amount to original price
-      }
-
-      setCurrentDiscountValue(value);
-
-      const computedValue =
-        currentDiscountType === "percent"
-          ? (safeOriginalPrice * value) / 100
-          : value;
-      onDiscountChange(computedValue); // Always return the discount as amount
-    },
-    [currentDiscountType, safeOriginalPrice, onDiscountChange],
-  );
-
-  const handleToggleDiscountType = useCallback(() => {
-    const newType = currentDiscountType === "percent" ? "amount" : "percent";
-
-    const newValue =
-      newType === "percent"
-        ? (currentDiscountValue / safeOriginalPrice) * 100
-        : (safeOriginalPrice * currentDiscountValue) / 100;
-
-    setCurrentDiscountType(newType);
-    setCurrentDiscountValue(newValue);
-  }, [currentDiscountType, currentDiscountValue, safeOriginalPrice]);
 
   return (
     <Card className="flex flex-col gap-2 p-4 shadow-md rounded-lg hover:border-primary group">
@@ -144,71 +88,9 @@ export function OrderItemCard({
         {/* Price and Discount */}
         <div className="flex flex-row items-center gap-20">
           <div className="flex flex-col items-end align-middle">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <div className="flex flex-col items-end align-middle cursor-pointer">
-                  <span className="w-24 text-end border-b-2 border-gray-300 text-sm text-gray-700">
-                    {new Intl.NumberFormat("en-US").format(originalPrice)}
-                  </span>
-                  {computedDiscount > 0 && (
-                    <span className="w-24 text-end text-sm text-red-600">
-                      {currentDiscountType === "percent"
-                        ? `- ${new Intl.NumberFormat("en-US").format(currentDiscountValue)}%`
-                        : `- ${new Intl.NumberFormat("en-US").format(computedDiscount)}`}
-                    </span>
-                  )}
-                </div>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent
-                align="center"
-                side="bottom"
-                className="bg-white shadow-md rounded-md p-4 max-w-80 border border-gray-200"
-              >
-                <div className="flex flex-col gap-4">
-                  {/* Original Price */}
-                  <div className="flex flex-row w-60 items-center gap-2">
-                    <span className="text-sm min-w-16 text-gray-600">
-                      Đơn giá
-                    </span>
-                    <span className="text-end w-full">
-                      {new Intl.NumberFormat("en-US").format(originalPrice)}
-                    </span>
-                  </div>
-
-                  {/* Discount */}
-                  <div className="flex flex-row w-60 items-center gap-2">
-                    <span className="text-sm min-w-16 text-gray-600">
-                      Giảm giá
-                    </span>
-                    <NoSpinnerFloatInput
-                      value={currentDiscountValue}
-                      onChange={handleDiscountChange}
-                      className="p-0 text-end border-b-2 border-gray-300 focus:outline-none focus:border-primary rounded-none shadow-none"
-                      placeholder="Nhập giảm giá"
-                    />
-
-                    {/* Discount Type Toggle */}
-                    <Button
-                      variant="outline"
-                      onClick={handleToggleDiscountType}
-                      className="w-12 text-sm text-gray-600"
-                    >
-                      {currentDiscountType === "percent" ? "%" : "VND"}
-                    </Button>
-                  </div>
-
-                  {/* Sale Price */}
-                  <div className="flex flex-row items-center gap-2">
-                    <span className="min-w-16 text-sm text-gray-600">
-                      Giá bán
-                    </span>
-                    <span className="text-end w-full font-semibold text-gray-900">
-                      {finalPrice.toLocaleString()}
-                    </span>
-                  </div>
-                </div>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <span className="w-24 text-end border-b-2 border-gray-300 text-sm text-gray-700">
+              {new Intl.NumberFormat("en-US").format(originalPrice)}
+            </span>
           </div>
           <span className="font-semibold text-gray-900">
             {finalPrice.toLocaleString()}
