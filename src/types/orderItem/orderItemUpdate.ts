@@ -4,5 +4,4 @@
   amount?: number;
   description?: string;
   unitPrice?: number;
-  discount?: number;
 }

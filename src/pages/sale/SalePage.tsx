@@ -1,6 +1,13 @@
-﻿import { Filter, List, Pen, Search } from "lucide-react";
+﻿import { Filter, List, Pen, Plus, Search } from "lucide-react";
 import { Input } from "@/components/ui/input.tsx";
-import { ChangeEvent, useCallback, useEffect, useRef, useState } from "react";
+import {
+  ChangeEvent,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { Card } from "@/components/ui/card.tsx";
 import { OrderItemCard } from "@/pages/sale/components/OrderItemCard.tsx";
 import { Button } from "@/components/ui/button.tsx";
@@ -24,12 +31,61 @@ import { OrderItem } from "@/types/orderItem/orderItem.ts";
 import { OrderCreate } from "@/types/order/orderCreate.ts";
 import { OrderItemCreate } from "@/types/orderItem/orderItemCreate.ts";
 import { OrderItemUpdate } from "@/types/orderItem/orderItemUpdate.ts";
+import PaymentDialog from "@/pages/sale/components/PaymentDialog.tsx";
+import { CreateCustomerModal } from "@/pages/sale/components/CustomerModal.tsx";
+import { toast } from "react-toastify";
+import { listCustomer } from "@/pages/sale/api/customerApi.ts";
+import { CustomerListFilter } from "@/types/customer/customerListFilter.ts";
+import _ from "lodash";
 
 export default function SalePage() {
   // Input
   const [searchValue, setSearchValue] = useState("");
   const [orderDescription, setOrderDescription] = useState("");
+
+  // Customer
   const [searchCustomer, setSearchCustomer] = useState("");
+  const [searchCustomerResult, setSearchCustomerResult] = useState<
+    [
+      {
+        id: number;
+        name: string;
+        phoneNumber: string;
+      },
+    ]
+  >();
+  const [selectedCustomer, setSelectedCustomer] = useState<
+    | {
+        id: number;
+        name: string;
+        phoneNumber: string;
+      }
+    | undefined
+  >();
+  const debounceSearchCustomer = useMemo(
+    () =>
+      _.debounce(async (query: string) => {
+        if (query.trim() === "") {
+          setSearchCustomerResult(undefined);
+        } else {
+          try {
+            const response = await fetchSearchCustomer(query);
+            console.log(response);
+            const searchResponse = response.map((item) => ({
+              id: item.id,
+              name: item.lastName + " " + item.firstName,
+              phoneNumber: item.phoneNumber,
+            }));
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            // @ts-expect-error
+            setSearchCustomerResult(searchResponse);
+          } catch (error) {
+            console.error(error);
+          }
+        }
+      }, 1000),
+    [],
+  );
 
   // Order tabs
   const [tabs, setTabs] = useState<Tab[]>([]);
@@ -57,6 +113,10 @@ export default function SalePage() {
   const categoryId = 0;
   // const [brandId, setBrandId] = useState(0);
   // const [categoryId, setCategoryId] = useState(0);
+
+  // Dialog
+  const [isPaymentDialogOpen, setIsPaymentDialogOpen] = useState(false);
+  const [isCustomerCreateOpen, setIsCustomerCreateOpen] = useState(false);
 
   // Check if the tabs list is overflowing
   const checkOverflow = () => {
@@ -99,8 +159,7 @@ export default function SalePage() {
     let itemCount = 0;
 
     activeOrderItems.forEach((item) => {
-      const discountAmount = item.discount || 0;
-      const finalPrice = item.unitPrice - discountAmount;
+      const finalPrice = item.unitPrice;
       total += finalPrice * item.amount;
       itemCount += item.amount;
     });
@@ -121,8 +180,11 @@ export default function SalePage() {
     updatedTabs[activeTab].order.description = e.target.value;
     setTabs(updatedTabs);
   };
-  const handleSearchCustomer = (e: ChangeEvent<HTMLInputElement>) => {
-    setSearchCustomer(e.target.value);
+  const handleSearchCustomer = async (e: ChangeEvent<HTMLInputElement>) => {
+    const query = e.target.value;
+    setSearchCustomer(query);
+
+    debounceSearchCustomer(query);
   };
 
   // const handleTabNumber = (): number => {
@@ -141,7 +203,7 @@ export default function SalePage() {
   const addTab = async () => {
     if (isAddingTab.current) return;
     isAddingTab.current = true;
-
+    console.log(selectedCustomer);
     try {
       const newOrder = await fetchCreateOrder({
         customerId: 0, // Replace with actual customer ID if available
@@ -178,7 +240,14 @@ export default function SalePage() {
       isAddingTab.current = false;
     } catch (error) {
       console.error("Error creating a new order:", error);
-      alert("Failed to create a new order. Please try again.");
+      toast.error("Tạo đơn hàng thất bại, thử lại", {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+      });
     }
   };
   const deleteTab = (index: number) => {
@@ -248,22 +317,19 @@ export default function SalePage() {
     updateTotalPrice();
   };
 
-  const handleOrderItemDiscountChange = (
-    index: number,
-    newDiscount: number,
-  ) => {
-    const updatedTabs = [...tabs];
-    updatedTabs[activeTab].order.items[index].discount = newDiscount;
-    setTabs(updatedTabs);
-    updateTotalPrice();
-  };
-
   const handleSkuClick = async (sku: SkuGetDetail) => {
     try {
       const activeOrder = tabs[activeTab]?.order;
 
       if (!activeOrder) {
-        alert("Please create a new order before adding items.");
+        toast.error("Xin hãy tạo đơn hàng trước khi thêm sản phẩm", {
+          position: "top-right",
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+        });
         return;
       }
 
@@ -272,7 +338,6 @@ export default function SalePage() {
         orderId: activeOrder.id,
         skuId: sku.id,
         amount: 1,
-        discount: 0,
       });
 
       // Update the active tab with the new item
@@ -283,7 +348,14 @@ export default function SalePage() {
       updateTotalPrice(); // Update total price and item count
     } catch (error) {
       console.error("Error handling SKU click:", error);
-      alert("Failed to add item. Please try again.");
+      toast.error("Thêm sản phẩm thất bại, thử lại", {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+      });
     }
   };
 
@@ -407,6 +479,20 @@ export default function SalePage() {
     }
   };
 
+  const fetchSearchCustomer = async (value: string) => {
+    try {
+      const filter: CustomerListFilter = {
+        lkPhoneNumber: value,
+        status: [1],
+      };
+      const response = await listCustomer(filter);
+      return response.data;
+    } catch (error) {
+      console.error("Search customer error:", error);
+      throw error;
+    }
+  };
+
   // Set up ResizeObserver to monitor container size
   useEffect(() => {
     const container = skuListRef.current;
@@ -496,7 +582,6 @@ export default function SalePage() {
             activeTab={activeTab}
             onTabChange={(index) => {
               setActiveTab(index);
-              console.log(index);
             }}
             onDeleteTab={deleteTab}
             onAddTab={addTab}
@@ -526,13 +611,9 @@ export default function SalePage() {
                 name={"item name"}
                 quantity={item.amount}
                 originalPrice={item.unitPrice}
-                discount={item.discount || 0}
                 onDecreament={() => handleOrderItemDecrease(index)} // Decrease quantity for this item
                 onIncreament={() => handleOrderItemIncrease(index)} // Increase quantity for this item
                 onRemove={() => handleOrderItemRemove(index)} // Remove this item from the order
-                onDiscountChange={(newDiscount) =>
-                  handleOrderItemDiscountChange(index, newDiscount)
-                } // Change item's discount
               />
             ))}
           </div>
@@ -570,14 +651,45 @@ export default function SalePage() {
           <Card className="p-2 flex flex-col h-full">
             {/*Filter*/}
             <div className="flex flex-row">
-              <div className="relative w-2/3 p-2">
+              <div className="relative w-3/4 p-2 flex items-center">
                 <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 transform bg-background" />
                 <Input
                   value={searchCustomer}
                   onChange={handleSearchCustomer}
-                  className="pl-9 bg-background "
+                  className="pl-9 bg-background flex-grow"
                   placeholder="Tìm khách hàng"
                 />
+                {searchCustomerResult &&
+                  searchCustomerResult.length > 0 &&
+                  searchCustomer.trim() !== "" && (
+                    <div className="absolute top-full mt-2 left-0 w-full bg-white border rounded-lg shadow-md z-50 max-h-60 overflow-y-auto">
+                      {searchCustomerResult.map((provider) => (
+                        <div
+                          key={provider.id}
+                          className="p-2 hover:bg-gray-100 cursor-pointer"
+                          onClick={() => {
+                            setSearchCustomer(
+                              provider.phoneNumber + " - " + provider.name,
+                            );
+                            setSearchCustomerResult(undefined);
+                            setSelectedCustomer(provider);
+                          }}
+                        >
+                          <span className="text-gray-500">
+                            {provider.phoneNumber}
+                          </span>
+                          {" - "}
+                          <span className="font-medium">{provider.name}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                <Button
+                  className="absolute right-3 p-1 h-7 w-7 bg-background text-gray-600 hover:bg-gray-200 rounded-full shadow-none"
+                  onClick={() => setIsCustomerCreateOpen(true)}
+                >
+                  <Plus />
+                </Button>
               </div>
               <div className="flex flex-row flex-grow px-2 w-auto items-center justify-end gap-2">
                 <Button className="p-1 h-7 w-7 bg-transparent text-black rounded-full shadow-none hover:bg-blue-200 hover:text-blue-800">
@@ -612,11 +724,28 @@ export default function SalePage() {
                 onNext={handleNextPage}
                 onPrevious={handlePreviousPage}
               />
-              <Button className="p-4 w-full h-12">THANH TOÁN</Button>
+              <Button
+                className="p-4 w-full h-12"
+                onClick={() => setIsPaymentDialogOpen(true)}
+              >
+                THANH TOÁN
+              </Button>
             </div>
           </Card>
         </div>
       </div>
+
+      <PaymentDialog
+        isOpen={isPaymentDialogOpen}
+        onClose={() => setIsPaymentDialogOpen(false)}
+        customerName={"Mai Hoàng Hưng"}
+        customerPhone={"0123456789"}
+        orderDetails={tabs[activeTab]?.order}
+      />
+      <CreateCustomerModal
+        isOpen={isCustomerCreateOpen}
+        onClose={() => setIsCustomerCreateOpen(false)}
+      />
     </div>
   );
 }

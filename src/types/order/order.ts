@@ -4,6 +4,10 @@
   sellerId: number;
   status: number;
   orderType: OrderType;
+  description?: string;
+  totalAmount: number;
+  discountAmount: number;
+  finalAmount: number;
   createdAt: Date;
   updatedAt: Date;
 }
