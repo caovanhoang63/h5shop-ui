@@ -95,8 +95,12 @@ export const OrderTabsList = ({
               <Button
                 onClick={(e) => {
                   e.stopPropagation();
-                  setIsConfirmDialogOpen(true);
-                  setTabDeleteIndex(index);
+                  if (tab.order.items.length > 0) {
+                    setIsConfirmDialogOpen(true);
+                    setTabDeleteIndex(index);
+                  } else {
+                    onDeleteTab(index);
+                  }
                 }}
                 className={`p-1 h-6 w-6 bg-transparent ${activeTab === index ? "text-black hover:bg-gray-300" : "text-white hover:bg-blue-800"} rounded-full shadow-none`}
               >

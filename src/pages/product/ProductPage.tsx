@@ -8,7 +8,7 @@ import {
   ButtonVisibilityColumnTable,
   MenuVisibilityColumnTable,
 } from "@/components/ButtonVisibilityColumnTable.tsx";
-import { useEffect, useState } from "react";
+import { Fragment, useEffect, useState } from "react";
 import { CardCategoryFilter } from "@/pages/product/CardCategoryFilter.tsx";
 import { CardBrandFilter } from "@/pages/product/CardBrandFilter.tsx";
 import { getBrands } from "@/pages/product/api/brandApi.ts";
@@ -18,6 +18,11 @@ import { Category } from "@/types/category/category.ts";
 import SpuModal from "@/pages/product/SpuModal.tsx";
 import { SpuListTable } from "@/types/spu/spuListTable.ts";
 import { getSpuListTable } from "@/pages/product/api/spuApi.ts";
+import { SpuFilter } from "@/types/spu/spuFilter.ts";
+import { Paging } from "@/types/paging.ts";
+import { LoadingAnimation } from "@/components/ui/LoadingAnimation.tsx";
+import CategoryModal from "@/pages/product/CategoryModal.tsx";
+import BrandModal from "@/pages/product/BrandModal.tsx";
 
 export default function ProductPage() {
   const [fields, setFields] = useState<MenuVisibilityColumnTable[]>([
@@ -28,7 +33,19 @@ export default function ProductPage() {
     { label: "Nhóm hàng", key: "categoryName", visible: true },
     { label: "Mô tả", key: "description", visible: true },
   ]);
+  const [isOpenModalCategoryAdd, setIsOpenModalCategoryAdd] =
+    useState<boolean>(false);
+  const [isOpenModalCategoryUpdate, setIsOpenModalCategoryUpdate] =
+    useState<boolean>(false);
+  const [categoryUpdate, setCategoryUpdate] = useState<Category>();
 
+  const [isOpenModalBrandAdd, setIsOpenModalBrandAdd] =
+    useState<boolean>(false);
+  const [isOpenModalBrandUpdate, setIsOpenModalBrandUpdate] =
+    useState<boolean>(false);
+  const [brandEdit, setBrandEdit] = useState<Brand>({ id: 0, name: "" });
+
+  const [isLoading, setIsLoading] = useState<boolean>(false);
   const [brandSelected, setBrandSelected] = useState<string>("0");
   const [listBrands, setListBrands] = useState<Brand[]>([]);
   const [categorySelected, setCategorySelected] = useState<number>();
@@ -37,12 +54,28 @@ export default function ProductPage() {
   const [spuList, setSpuList] = useState<SpuListTable[]>([]);
   const [spuIdSelected, setSpuIdSelected] = useState<number>();
   const [isAdd, setIsAdd] = useState<boolean>(true);
+  const [paging, setPaging] = useState<Paging>({
+    page: 1,
+    limit: 10,
+    total: 0,
+  });
+  const [spuFilter, setSpuFilter] = useState<SpuFilter>({
+    name: "",
+    page: 1,
+    limit: 10,
+  });
 
   useEffect(() => {
+    // Fetch data
     fetchBrands();
     fetchCategories();
-    fetchSpuListTable();
   }, []);
+
+  useEffect(() => {
+    fetchSpuListTable();
+    console.log(spuFilter);
+    setPaging({ ...paging, page: spuFilter.page ?? 1 });
+  }, [spuFilter]);
 
   const fetchBrands = async () => {
     try {
@@ -55,9 +88,12 @@ export default function ProductPage() {
 
   const fetchSpuListTable = async () => {
     try {
-      const response = await getSpuListTable();
+      setIsLoading(true);
+      const response = await getSpuListTable(spuFilter);
       console.log(response);
       setSpuList(response.data);
+      setPaging(response.paging);
+      setIsLoading(false);
     } catch (error) {
       console.error("Error: ", error);
     }
@@ -77,6 +113,7 @@ export default function ProductPage() {
     console.log(brandSelected);
     console.log(brandId);
     setBrandSelected(brandId);
+    setSpuFilter({ ...spuFilter, brandId: Number(brandId), page: 1 });
   };
 
   const handleCheckField = (key: string, visible: boolean) => {
@@ -100,69 +137,153 @@ export default function ProductPage() {
   const handleChangeCategory = (categoryId: number) => {
     console.log(categorySelected);
     setCategorySelected(categoryId);
+    setSpuFilter({ ...spuFilter, categoryId: categoryId, page: 1 });
+  };
+
+  const handleSetPaging = (page: number) => {
+    setPaging({ ...paging, page });
+    setSpuFilter({ ...spuFilter, page });
+  };
+
+  const handleClickEditCategory = (item: Category) => {
+    console.log(item);
+    setCategoryUpdate(item);
+    setIsOpenModalCategoryUpdate(true);
+  };
+
+  const handleClickEditBrand = (item: Brand) => {
+    setBrandEdit(item);
+    setIsOpenModalBrandUpdate(true);
+  };
+
+  const handleCategoryActionSuccess = () => {
+    fetchCategories();
+  };
+
+  const handleBrandActionSuccess = () => {
+    fetchBrands();
+  };
+
+  const handleCloseBrandModal = () => {
+    setIsOpenModalBrandAdd(false);
+    setIsOpenModalBrandUpdate(false);
+  };
+
+  const handleClickAddCategory = () => {
+    setIsOpenModalCategoryAdd(true);
+  };
+
+  const handleClickAddBrand = () => {
+    setIsOpenModalBrandAdd(true);
   };
 
   return (
-    <Container className={"grid grid-cols-5 gap-4 grid-flow-row"}>
-      <div className={"text-2xl col-span-1 font-bold"}>
-        <p>Hàng hóa</p>
-      </div>
-      <div className={"col-span-4 w-full flex  justify-between"}>
-        <div className="relative flex items-center max-w-80">
-          <Search className="absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 transform" />
-          <Input className={"pl-9"} placeholder={"Theo mã, tên hàng"} />
+    <Fragment>
+      {isLoading && <LoadingAnimation></LoadingAnimation>}
+      <Container className={"grid grid-cols-5 gap-4 grid-flow-row"}>
+        <div className={"text-2xl col-span-1 font-bold"}>
+          <p>Hàng hóa</p>
         </div>
-        <div className={"flex space-x-2"}>
-          <Button
-            className={"bg-green-500"}
-            onClick={() => {
-              setIsOpenModalSpu(true);
-              setIsAdd(true);
-            }}
-          >
-            <Plus />
-            Thêm mới
-            <TriangleDown />
-          </Button>
-          <Button className={"bg-green-500"}>
-            <FileInput />
-            Import
-          </Button>
-          <Button className={"bg-green-500"}>
-            <FileOutputIcon />
-            Xuất file
-          </Button>
-          <ButtonVisibilityColumnTable
-            menus={fields}
-            onCheckChange={handleCheckField}
+        <div className={"col-span-4 w-full flex  justify-between"}>
+          <div className="relative flex items-center max-w-80">
+            <Search className="absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 transform" />
+            <Input
+              className={"pl-9"}
+              placeholder={"Theo mã, tên hàng"}
+              value={spuFilter.name}
+              onChange={(e) =>
+                setSpuFilter({ ...spuFilter, name: e.target.value, page: 1 })
+              }
+            />
+          </div>
+          <div className={"flex space-x-2"}>
+            <Button
+              className={"bg-green-500"}
+              onClick={() => {
+                setIsOpenModalSpu(true);
+                setIsAdd(true);
+              }}
+            >
+              <Plus />
+              Thêm mới
+              <TriangleDown />
+            </Button>
+            <Button className={"bg-green-500"}>
+              <FileInput />
+              Import
+            </Button>
+            <Button className={"bg-green-500"}>
+              <FileOutputIcon />
+              Xuất file
+            </Button>
+            <ButtonVisibilityColumnTable
+              menus={fields}
+              onCheckChange={handleCheckField}
+            />
+          </div>
+        </div>
+        <div className={"col-span-1 space-y-4"}>
+          <CardCategoryFilter
+            listCategories={listCategories}
+            setCategorySelected={(categoryId) =>
+              handleChangeCategory(categoryId)
+            }
+            onClickEdit={handleClickEditCategory}
+            onClickAdd={handleClickAddCategory}
+          />
+          <CardBrandFilter
+            onChange={handleChangedBrand}
+            listBrands={listBrands}
+            onClickEdit={handleClickEditBrand}
+            onClickAdd={handleClickAddBrand}
           />
         </div>
-      </div>
-      <div className={"col-span-1 space-y-4"}>
-        <CardCategoryFilter
+        <div className={"col-span-4"}>
+          <DataTableDemo
+            columnVisible={fields}
+            spuListTable={spuList}
+            onSelectedRow={handleSelectItemTable}
+            paging={paging}
+            setPaging={handleSetPaging}
+          ></DataTableDemo>
+        </div>
+        <SpuModal
+          isAdd={isAdd}
+          isOpen={isOpenModalSpu}
+          onOpenChange={handleCloseModalSpu}
           listCategories={listCategories}
-          setCategorySelected={(categoryId) => handleChangeCategory(categoryId)}
-        />
-        <CardBrandFilter
-          onChange={handleChangedBrand}
           listBrands={listBrands}
+          spuIdSelected={spuIdSelected}
         />
-      </div>
-      <div className={"col-span-4"}>
-        <DataTableDemo
-          columnVisible={fields}
-          spuListTable={spuList}
-          onSelectedRow={handleSelectItemTable}
-        ></DataTableDemo>
-      </div>
-      <SpuModal
-        isAdd={isAdd}
-        isOpen={isOpenModalSpu}
-        onOpenChange={handleCloseModalSpu}
-        listCategories={listCategories}
-        listBrands={listBrands}
-        spuIdSelected={spuIdSelected}
-      />
-    </Container>
+        <CategoryModal
+          isOpen={isOpenModalCategoryAdd}
+          onOpenChange={setIsOpenModalCategoryAdd}
+          isAdd={true}
+          listCategories={listCategories}
+          actionSuccess={handleCategoryActionSuccess}
+        />
+        <CategoryModal
+          isOpen={isOpenModalCategoryUpdate}
+          onOpenChange={setIsOpenModalCategoryUpdate}
+          isAdd={false}
+          listCategories={listCategories}
+          category={categoryUpdate}
+          actionSuccess={handleCategoryActionSuccess}
+        />
+        <BrandModal
+          isOpen={isOpenModalBrandAdd}
+          onOpenChange={handleCloseBrandModal}
+          isAdd={true}
+          actionSuccess={handleBrandActionSuccess}
+        />
+        <BrandModal
+          isOpen={isOpenModalBrandUpdate}
+          onOpenChange={handleCloseBrandModal}
+          isAdd={false}
+          brandUpdate={brandEdit}
+          actionSuccess={handleBrandActionSuccess}
+        />
+      </Container>
+    </Fragment>
   );
 }

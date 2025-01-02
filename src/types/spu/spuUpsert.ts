@@ -10,6 +10,10 @@ export interface SpuUpsert {
   images?: Image[];
   skus: SkuCreate[];
   attrs: SkuAttrCreate[];
+  timeReturn?: number;
+  timeWarranty?: number;
+  typeWarranty?: string;
+  typeReturn?: string;
 }
 
 export interface SkuAttrCreate {
