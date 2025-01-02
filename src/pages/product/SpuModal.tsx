@@ -51,10 +51,19 @@ import {
   upsertSpuDetail,
 } from "@/pages/product/api/spuApi.ts";
 import { Image } from "@/types/image.ts";
-import { SpuDetail } from "@/types/spu/spuGetDetail.ts";
+import { SkuProvider, SpuDetail } from "@/types/spu/spuGetDetail.ts";
 import { deleteSkuAttr } from "@/pages/product/api/skuAttrApi.ts";
 import { deleteSku } from "@/pages/product/api/skuApi.ts";
 import { LoadingAnimation } from "@/components/ui/LoadingAnimation.tsx";
+import { EnumTime } from "@/types/enumTime.ts";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table.tsx";
 
 interface ISpuModalProps {
   isOpen: boolean;
@@ -83,6 +92,13 @@ export default function SpuModal({
   const [skus, setSkus] = useState<SkuCreate[]>([]);
   const [attrs, setAttrs] = useState<SkuAttrCreate[]>([]);
   const [image, setImage] = useState<Image>();
+  const [listProviders, setListProviders] = useState<SkuProvider[]>([]);
+  const [typeTimeWarranty, setTypeTimeWarranty] = useState<EnumTime>(
+    EnumTime.DAY,
+  );
+  const [typeTimeReturn, setTypeTimeReturn] = useState<EnumTime>(EnumTime.DAY);
+  const [timeWarranty, setTimeWarranty] = useState<number>(0);
+  const [timeReturn, setTimeReturn] = useState<number>(0);
 
   const [spuDetail, setSpuDetail] = useState<SpuDetail>();
 
@@ -99,6 +115,8 @@ export default function SpuModal({
       setAttrs([]);
       setImage(undefined);
       setSpuDetail(undefined);
+      setDefaultWarrantyReturn();
+      setListProviders([]);
     } else {
       if (spuIdSelected && spuIdSelected > 0) {
         fetchSpuDetail(spuIdSelected);
@@ -116,6 +134,7 @@ export default function SpuModal({
     setImage(spuDetail?.images?.[0]);
     setSkus((spuDetail?.skus as SkuCreate[]) || []);
     setAttrs((spuDetail?.attrs as SkuAttrCreate[]) || []);
+    setListProviders(spuDetail?.providers || []);
   }, [spuDetail]);
 
   const CallApiUpsertSpuDetail = async (spu: SpuUpsert) => {
@@ -134,6 +153,7 @@ export default function SpuModal({
       await deleteSkuAttr(id, index);
     } catch (error) {
       console.error("Error: ", error);
+      throw error;
     }
   };
 
@@ -178,6 +198,13 @@ export default function SpuModal({
     ]);
   };
 
+  const setDefaultWarrantyReturn = () => {
+    setTimeWarranty(0);
+    setTimeReturn(0);
+    setTypeTimeReturn(EnumTime.DAY);
+    setTypeTimeWarranty(EnumTime.DAY);
+  };
+
   const handleDeleteAttr = (index: number) => {
     // neu co id thi goi api xoa
     if (attrs[index].id) {
@@ -215,6 +242,14 @@ export default function SpuModal({
     } else {
       setSkus((prev) => prev.filter((_, i) => i !== index));
     }
+  };
+
+  const handleSetTypeTimeWarranty = (value: string) => {
+    setTypeTimeWarranty(value as EnumTime);
+  };
+
+  const handleSetTypeTimeReturn = (value: string) => {
+    setTypeTimeReturn(value as EnumTime);
   };
 
   const handleAddSku = () => {
@@ -284,100 +319,207 @@ export default function SpuModal({
                       setImage={setImage}
                     />
                   </div>
-                  <div className={"flex flex-row flex-1 space-x-12"}>
-                    <div className={"flex flex-col flex-1 space-y-5"}>
-                      <div className={"flex flex-row items-center"}>
-                        <Label className={"w-5/12"} htmlFor="name">
-                          Tên sản phẩm
-                        </Label>
-                        <Input
-                          id="name"
-                          value={name}
-                          onChange={(e) => setName(e.target.value)}
-                        />
+                  <div className={"flex flex-col flex-1"}>
+                    <div className={"flex flex-row space-x-14"}>
+                      <div className={"flex flex-col flex-1 space-y-5"}>
+                        <div className={"flex flex-row items-center"}>
+                          <Label className={"w-5/12"} htmlFor="name">
+                            Tên sản phẩm
+                          </Label>
+                          <Input
+                            id="name"
+                            value={name}
+                            onChange={(e) => setName(e.target.value)}
+                          />
+                        </div>
+                        <div className={"flex flex-row items-center"}>
+                          <Label className={"w-5/12"} htmlFor="name">
+                            Thương hiệu
+                          </Label>
+                          <Select
+                            onValueChange={(value) => {
+                              console.log(value);
+                              setBrandId(parseInt(value));
+                            }}
+                            value={brandId?.toString()}
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder={"Chọn thương hiệu"}>
+                                {listBrands.find(
+                                  (brand) => brand.id === brandId,
+                                )?.name || "Chọn thương hiệu"}
+                              </SelectValue>
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectGroup>
+                                <SelectLabel>Thương hiệu</SelectLabel>
+                                {listBrands.map((brand) => (
+                                  <SelectItem
+                                    value={brand.id.toString()}
+                                    key={brand.id}
+                                  >
+                                    {brand.name}
+                                  </SelectItem>
+                                ))}
+                              </SelectGroup>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div className={"flex flex-row items-center"}>
+                          <Label className={"w-5/12"} htmlFor="name">
+                            Nhóm hàng
+                          </Label>
+                          <CardCategorySelect
+                            listCategories={listCategories}
+                            isAdd={true}
+                            setParentId={handleSetCategory}
+                            parentIdSelected={categoryId}
+                          />
+                        </div>
                       </div>
-                      <div className={"flex flex-row items-center"}>
-                        <Label className={"w-5/12"} htmlFor="name">
-                          Thương hiệu
-                        </Label>
-                        <Select
-                          onValueChange={(value) => {
-                            console.log(value);
-                            setBrandId(parseInt(value));
-                          }}
-                          value={brandId?.toString()}
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder={"Chọn thương hiệu"}>
-                              {listBrands.find((brand) => brand.id === brandId)
-                                ?.name || "Chọn thương hiệu"}
-                            </SelectValue>
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectGroup>
-                              <SelectLabel>Thương hiệu</SelectLabel>
-                              {listBrands.map((brand) => (
-                                <SelectItem
-                                  value={brand.id.toString()}
-                                  key={brand.id}
-                                >
-                                  {brand.name}
-                                </SelectItem>
-                              ))}
-                            </SelectGroup>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <div className={"flex flex-row items-center"}>
-                        <Label className={"w-5/12"} htmlFor="name">
-                          Nhóm hàng
-                        </Label>
-                        <CardCategorySelect
-                          listCategories={listCategories}
-                          isAdd={true}
-                          setParentId={handleSetCategory}
-                          parentIdSelected={categoryId}
-                        />
-                      </div>
-                      <div className={"flex flex-row items-center"}>
-                        <Label className={"w-5/12"}>Vị trí</Label>
-                        <Input
-                          value={metadata.position}
-                          onChange={(e) => {
-                            setMetadata({
-                              ...metadata,
-                              position: e.target.value,
-                            });
-                          }}
-                        />
+                      <div className={"flex flex-col space-y-5"}>
+                        <div className={"flex flex-row items-center"}>
+                          <Label className={"w-5/12"}>Vị trí</Label>
+                          <Input
+                            value={metadata.position}
+                            onChange={(e) => {
+                              setMetadata({
+                                ...metadata,
+                                position: e.target.value,
+                              });
+                            }}
+                          />
+                        </div>
+
+                        <div className={"flex flex-row items-center"}>
+                          <Label className={"w-5/12"}>Mô tả</Label>
+                          <Input
+                            value={description}
+                            onChange={(e) => setDescription(e.target.value)}
+                          />
+                        </div>
                       </div>
                     </div>
-                    <div className={"flex flex-col flex-1 space-y-5"}>
-                      <div className={"flex flex-row items-center"}>
-                        <Label className={"w-6/12"} htmlFor="name">
-                          Giá vốn (VND)
+                    <div className={"flex flex-col mt-4 space-y-3"}>
+                      <div
+                        className={
+                          "flex h-8 w-full items-center bg-gray-200 rounded"
+                        }
+                      >
+                        <Label className={"ml-4"} style={{ fontSize: "16px" }}>
+                          Bảo hành
                         </Label>
-                        <Input id="name" disabled={true} />
                       </div>
-                      <div className={"flex flex-row items-center"}>
-                        <Label className={"w-6/12"} htmlFor="name">
-                          Giá bán (VND)
+
+                      <div className={"flex flex-row flex-1 space-x-16"}>
+                        <div
+                          className={
+                            "flex flex-row flex-1 items-center space-x-2"
+                          }
+                        >
+                          <Label className={"w-10/12"}>
+                            Thời gian bảo hành
+                          </Label>
+                          <Input
+                            type={"number"}
+                            style={{ width: "100px" }}
+                            value={timeWarranty}
+                            onChange={(e) =>
+                              setTimeWarranty(parseInt(e.target.value))
+                            }
+                          />
+                          <Select
+                            defaultValue={EnumTime.DAY}
+                            value={typeTimeWarranty.toString()}
+                            onValueChange={(value) =>
+                              handleSetTypeTimeWarranty(value)
+                            }
+                          >
+                            <SelectTrigger style={{ width: "150px" }}>
+                              <SelectValue></SelectValue>
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value={EnumTime.DAY}>Ngày</SelectItem>
+                              <SelectItem value={EnumTime.MONTH}>
+                                Tháng
+                              </SelectItem>
+                              <SelectItem value={EnumTime.YEAR}>Năm</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div
+                          className={
+                            "flex flex-row flex-1 items-center space-x-2"
+                          }
+                        >
+                          <Label className={"w-10/12"}>Thời gian đổi trả</Label>
+                          <Input
+                            id="name"
+                            type={"number"}
+                            style={{ width: "100px" }}
+                            value={timeReturn}
+                            onChange={(e) =>
+                              setTimeReturn(parseInt(e.target.value))
+                            }
+                          />
+                          <Select
+                            defaultValue={EnumTime.DAY}
+                            value={typeTimeReturn.toString()}
+                            onValueChange={(value) =>
+                              handleSetTypeTimeReturn(value)
+                            }
+                          >
+                            <SelectTrigger style={{ width: "150px" }}>
+                              <SelectValue></SelectValue>
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value={EnumTime.DAY}>Ngày</SelectItem>
+                              <SelectItem value={EnumTime.MONTH}>
+                                Tháng
+                              </SelectItem>
+                              <SelectItem value={EnumTime.YEAR}>Năm</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
+                    </div>
+                    <div className={"flex flex-col mt-4"}>
+                      <div
+                        className={
+                          "flex h-8 w-full items-center bg-gray-200 rounded"
+                        }
+                      >
+                        <Label className={"ml-4"} style={{ fontSize: "16px" }}>
+                          Nhà cung cấp
                         </Label>
-                        <Input id="name" disabled={true} />
                       </div>
-                      <div className={"flex flex-row items-center"}>
-                        <Label className={"w-6/12"} htmlFor="name">
-                          Tổng mức tồn kho
-                        </Label>
-                        <Input id="name" disabled={true} />
-                      </div>
-                      <div className={"flex flex-row items-center"}>
-                        <Label className={"w-6/12"}>Mô tả</Label>
-                        <Input
-                          value={description}
-                          onChange={(e) => setDescription(e.target.value)}
-                        />
-                      </div>
+
+                      <Table className={"h-full"}>
+                        <TableHeader>
+                          <TableRow className={"gap-3"}>
+                            <TableHead className="w-[50px]">STT</TableHead>
+                            <TableHead>Tên nhà cung cấp</TableHead>
+                            <TableHead>Số điện thoại</TableHead>
+                            <TableHead className="text-center">Email</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {listProviders.map((item) => (
+                            <TableRow key={item.id}>
+                              <TableCell className="text-blue-600">
+                                {item.name}
+                              </TableCell>
+                              <TableCell>{item.name}</TableCell>
+                              <TableCell className="text-center">
+                                {item.phone}
+                              </TableCell>
+                              <TableCell className="text-center">
+                                {item.email}
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
                     </div>
                   </div>
                 </CardContent>
