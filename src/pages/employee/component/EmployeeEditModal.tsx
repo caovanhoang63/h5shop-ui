@@ -71,7 +71,12 @@ export default function EmployeeEditModal({
       setValue("email", employee.email);
       setValue("gender", employee.gender);
       setValue("address", employee.address);
-      setValue("dateOfBirth", employee.dateOfBirth);
+      setValue(
+        "dateOfBirth",
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-expect-error
+        employee.dateOfBirth,
+      );
     } else {
       reset({
         firstName: "",
@@ -114,7 +119,12 @@ export default function EmployeeEditModal({
 
   const onSubmit = handleSubmit(async (data) => {
     try {
-      const response = await updateEmployee(employee?.id, data);
+      const response = await updateEmployee(
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-expect-error
+        employee?.id,
+        data,
+      );
       console.log(response.data);
       toast.success("Sửa nhân viên thành công!", {
         position: "top-right",
