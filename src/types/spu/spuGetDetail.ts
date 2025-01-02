@@ -15,6 +15,18 @@ export interface SpuDetail {
   status: number;
   attrs: Attr[];
   skus: Sku[];
+  timeReturn?: number;
+  timeWarranty?: number;
+  typeWarranty?: string;
+  typeReturn?: string;
+  providers: SkuProvider[];
+}
+
+export interface SkuProvider {
+  id: number;
+  name: string;
+  phone: string;
+  email: string;
 }
 
 interface Attr {

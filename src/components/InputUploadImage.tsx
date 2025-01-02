@@ -27,6 +27,8 @@ export function InputUploadImage({
   useEffect(() => {
     if (image) {
       setImageState(image.url);
+    } else {
+      setImageState(null);
     }
   }, [image]);
 

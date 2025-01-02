@@ -36,6 +36,7 @@ import {
 } from "@/components/ui/table";
 import { MenuVisibilityColumnTable } from "@/components/ButtonVisibilityColumnTable.tsx";
 import { SpuListTable } from "@/types/spu/spuListTable.ts";
+import { Paging } from "@/types/paging.ts";
 
 export const spuColumns: ColumnDef<SpuListTable>[] = [
   {
@@ -54,6 +55,7 @@ export const spuColumns: ColumnDef<SpuListTable>[] = [
       <Checkbox
         checked={row.getIsSelected()}
         onCheckedChange={(value) => row.toggleSelected(!!value)}
+        onClick={(event) => event.stopPropagation()}
         aria-label="Select row"
       />
     ),
@@ -185,12 +187,16 @@ interface DataTableDemoProps {
   columnVisible: MenuVisibilityColumnTable[];
   spuListTable: SpuListTable[];
   onSelectedRow: (spuId: number) => void;
+  paging: Paging;
+  setPaging: (page: number) => void;
 }
 
 export const DataTableDemo: React.FC<DataTableDemoProps> = ({
   columnVisible,
   spuListTable,
   onSelectedRow,
+  paging,
+  setPaging,
 }) => {
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
@@ -238,6 +244,16 @@ export const DataTableDemo: React.FC<DataTableDemoProps> = ({
       }, {} as VisibilityState),
     );
   }, [columnVisible]);
+
+  const handleClickPrevious = () => {
+    if (paging.page === 1) return;
+    setPaging(paging.page - 1);
+  };
+
+  const handleClickNext = () => {
+    if (paging.page === Math.ceil(paging.total / paging.limit)) return;
+    setPaging(paging.page + 1);
+  };
 
   return (
     <div className="w-full">
@@ -307,16 +323,16 @@ export const DataTableDemo: React.FC<DataTableDemoProps> = ({
           <Button
             variant="outline"
             size="sm"
-            onClick={() => table.previousPage()}
-            disabled={!table.getCanPreviousPage()}
+            onClick={() => handleClickPrevious()}
+            disabled={paging.page === 1}
           >
             Previous
           </Button>
           <Button
             variant="outline"
             size="sm"
-            onClick={() => table.nextPage()}
-            disabled={!table.getCanNextPage()}
+            onClick={() => handleClickNext()}
+            disabled={paging.page === Math.ceil(paging.total / paging.limit)}
           >
             Next
           </Button>

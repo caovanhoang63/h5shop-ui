@@ -25,6 +25,7 @@ import {
   SkuWholesalePriceCreate,
 } from "@/types/spu/spuUpsert.ts";
 import { Image } from "@/types/image.ts";
+import { deleteSkuWholeSalePrice } from "@/pages/product/api/skuWholeSalePriceApi.ts";
 
 export interface ItemSkuProps {
   onDeleted: () => void;
@@ -95,6 +96,15 @@ export const ItemSku = ({
     }
   }, [sku]);
 
+  const CallApiDeleteSkuWholeSalePrice = async (id: number) => {
+    try {
+      await deleteSkuWholeSalePrice(id);
+    } catch (error) {
+      console.error("Fetch error:", error);
+      throw error;
+    }
+  };
+
   const handleSelectAttr = (index: number, value: string) => {
     setAttrSelected((prev) => prev.map((v, i) => (i === index ? value : v)));
     // find index of skuAttrCreate
@@ -133,6 +143,10 @@ export const ItemSku = ({
       ...sku,
       wholesalePrices: newWholeSalePrice,
     } as SkuCreate);
+
+    if (wholeSalePrice[index].id) {
+      CallApiDeleteSkuWholeSalePrice(wholeSalePrice[index].id);
+    }
   };
 
   const handleSetPrice = (e: React.ChangeEvent<HTMLInputElement>) => {
