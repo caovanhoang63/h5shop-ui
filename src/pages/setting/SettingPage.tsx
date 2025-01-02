@@ -154,7 +154,10 @@ export function SettingPage() {
                     type="number"
                     value={newSetting.value}
                     onChange={(e) =>
-                      setNewSetting({ ...newSetting, value: e.target.value })
+                      setNewSetting({
+                        ...newSetting,
+                        value: Number(e.target.value),
+                      })
                     }
                     className="col-span-3"
                   />
@@ -211,8 +214,20 @@ export function SettingPage() {
                       item.value
                     )}
                   </TableCell>
-                  <TableCell>{formatDate(item.createdAt)}</TableCell>
-                  <TableCell>{formatDate(item.updatedAt)}</TableCell>
+                  <TableCell>
+                    {
+                      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                      // @ts-expect-error
+                      formatDate(item.createdAt)
+                    }
+                  </TableCell>
+                  <TableCell>
+                    {
+                      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                      // @ts-expect-error
+                      formatDate(item.updatedAt)
+                    }
+                  </TableCell>
                   <TableCell>
                     {item.status === 1 ? "Active" : "Inactive"}
                   </TableCell>
