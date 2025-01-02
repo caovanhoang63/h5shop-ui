@@ -11,14 +11,23 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Setting, SettingUpdate } from "@/types/setting/setting";
+import { Setting, SettingCreate, SettingUpdate } from "@/types/setting/setting";
 import {
   deleteSetting,
   getSetting,
   updateSetting,
+  createSetting,
 } from "@/pages/setting/api/settingApi";
-import Container from "@/layouts/components/Container.tsx";
+import Container from "@/layouts/components/Container";
 import { toast } from "react-toastify";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
 
 export function SettingPage() {
   const [page, setPage] = useState(1);
@@ -26,6 +35,12 @@ export function SettingPage() {
   const [editingName, setEditingName] = useState<string | null>(null);
   const [editValue, setEditValue] = useState<number | string>("");
   const [totalPages, setTotalPages] = useState(1);
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [newSetting, setNewSetting] = useState<SettingCreate>({
+    name: "",
+    value: 0,
+    description: "",
+  });
 
   async function fetchSettingData() {
     try {
@@ -57,6 +72,7 @@ export function SettingPage() {
       toast.error("Xóa thất bại");
     }
   };
+
   const handleEdit = (name: string, currentValue: number | string) => {
     setEditingName(name);
     setEditValue(currentValue);
@@ -82,9 +98,88 @@ export function SettingPage() {
     }
   };
 
+  const handleAddSetting = async () => {
+    try {
+      const numericValue = Number(newSetting.value);
+      if (isNaN(numericValue)) {
+        console.error("Invalid numeric value");
+        return;
+      }
+
+      const response = await createSetting(newSetting);
+      console.log(response.data);
+      setIsAddDialogOpen(false);
+      setNewSetting({ name: "", value: 0, description: "" });
+      toast.success("Thêm setting thành công");
+      await fetchSettingData(); // Reload lại dữ liệu
+    } catch (e) {
+      console.error("Error adding setting:", e);
+      toast.error("Thêm setting thất bại");
+    }
+  };
+
   return (
     <Container>
-      <div className="flex flex-col ">
+      <div className="flex flex-col">
+        <div className="flex justify-between items-center mb-4">
+          <h1 className="text-2xl font-bold">Settings</h1>
+          <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+            <DialogTrigger asChild>
+              <Button>Thêm Setting</Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Thêm Setting Mới</DialogTitle>
+              </DialogHeader>
+              <div className="grid gap-4 py-4">
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="name" className="text-right">
+                    Name
+                  </Label>
+                  <Input
+                    id="name"
+                    value={newSetting.name}
+                    onChange={(e) =>
+                      setNewSetting({ ...newSetting, name: e.target.value })
+                    }
+                    className="col-span-3"
+                  />
+                </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="value" className="text-right">
+                    Value
+                  </Label>
+                  <Input
+                    id="value"
+                    type="number"
+                    value={newSetting.value}
+                    onChange={(e) =>
+                      setNewSetting({ ...newSetting, value: e.target.value })
+                    }
+                    className="col-span-3"
+                  />
+                </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="value" className="text-right">
+                    Description
+                  </Label>
+                  <Input
+                    id="description"
+                    value={newSetting.description}
+                    onChange={(e) =>
+                      setNewSetting({
+                        ...newSetting,
+                        description: e.target.value,
+                      })
+                    }
+                    className="col-span-3"
+                  />
+                </div>
+              </div>
+              <Button onClick={handleAddSetting}>Thêm</Button>
+            </DialogContent>
+          </Dialog>
+        </div>
         <div className="flex-grow px-2 py-2">
           <Table>
             <TableHeader>
@@ -116,21 +211,8 @@ export function SettingPage() {
                       item.value
                     )}
                   </TableCell>
-
-                  <TableCell>
-                    {
-                      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                      // @ts-expect-error
-                      formatDate(item.createdAt)
-                    }
-                  </TableCell>
-                  <TableCell>
-                    {formatDate(
-                      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                      // @ts-expect-error
-                      item.updatedAt,
-                    )}
-                  </TableCell>
+                  <TableCell>{formatDate(item.createdAt)}</TableCell>
+                  <TableCell>{formatDate(item.updatedAt)}</TableCell>
                   <TableCell>
                     {item.status === 1 ? "Active" : "Inactive"}
                   </TableCell>

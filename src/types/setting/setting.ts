@@ -14,3 +14,8 @@ export interface SettingPaging {
 export interface SettingUpdate {
   value: number;
 }
+export interface SettingCreate {
+  name: string;
+  value: number;
+  description: string;
+}
