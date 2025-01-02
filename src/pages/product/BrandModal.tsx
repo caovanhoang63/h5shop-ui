@@ -9,18 +9,20 @@ import { Button } from "@/components/ui/button.tsx";
 import { BanIcon, FileInput, Plus, Trash2Icon } from "lucide-react";
 import { Input } from "@/components/ui/input.tsx";
 import { Brand, brandConverter, BrandCreate } from "@/types/brand/brand.ts";
-import { useEffect, useState } from "react";
+import { Fragment, useEffect, useState } from "react";
 import {
   createBrand,
   deleteBrand,
   updateBrand,
 } from "@/pages/product/api/brandApi.ts";
+import { LoadingAnimation } from "@/components/ui/LoadingAnimation.tsx";
 
 interface IBrandModalProps {
   isOpen: boolean;
   onOpenChange: (isOpen: boolean) => void;
   isAdd: boolean;
   brandUpdate?: Brand;
+  actionSuccess?: () => void;
 }
 
 export default function BrandModal({
@@ -28,8 +30,10 @@ export default function BrandModal({
   onOpenChange,
   isAdd,
   brandUpdate,
+  actionSuccess,
 }: IBrandModalProps) {
   const [brand, setBrand] = useState<Brand>({ name: "", id: 0 });
+  const [isLoading, setIsLoading] = useState<boolean>(false);
   useEffect(() => {
     if (brandUpdate) {
       setBrand(brandUpdate);
@@ -41,20 +45,26 @@ export default function BrandModal({
       await createBrand(brand);
     } catch (error) {
       console.error("Fetch error:", error);
+      throw error;
     }
   };
 
   const CallApiUpdateBrand = async (brand: Brand) => {
     try {
+      setIsLoading(true);
       await updateBrand(brand);
+      setIsLoading(false);
     } catch (error) {
       console.error("Fetch error:", error);
+      throw error;
     }
   };
 
   const CallApiDeleteBrand = async (brandId: number) => {
     try {
+      setIsLoading(true);
       await deleteBrand(brandId);
+      setIsLoading(false);
     } catch (error) {
       console.error("Fetch error:", error);
     }
@@ -64,7 +74,7 @@ export default function BrandModal({
     CallApiAddBrand(brandConverter.convertBrandToBrandCreate(brand))
       .then(() => {
         onOpenChange(false);
-        alert("Thêm mới thương hiệu thành công");
+        if (actionSuccess) actionSuccess();
       })
       .catch((error) => {
         console.error("Fetch error:", error);
@@ -75,7 +85,7 @@ export default function BrandModal({
     CallApiUpdateBrand(brand)
       .then(() => {
         onOpenChange(false);
-        alert("Cập nhật thương hiệu thành công");
+        if (actionSuccess) actionSuccess();
       })
       .catch((error) => {
         console.error("Fetch error:", error);
@@ -98,65 +108,68 @@ export default function BrandModal({
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="flex flex-col space-y-2">
-        <DialogHeader>
-          {isAdd ? (
-            <DialogTitle>Thêm mới thương hiệu</DialogTitle>
-          ) : (
-            <DialogTitle>Chỉnh sửa thương hiệu</DialogTitle>
-          )}
-        </DialogHeader>
-        <div className={"flex flex-col space-y-6"}>
-          <div className={"flex flex-row space-x-4"}>
-            <label className={"w-5/12 font-semibold"}>Tên thương hiệu</label>
-            <Input
-              className={""}
-              placeholder={""}
-              value={brand.name}
-              onChange={(e) => {
-                handleSetNameBrand(e.target.value);
-              }}
-            />
+    <Fragment>
+      {isLoading && <LoadingAnimation />}
+      <Dialog open={isOpen} onOpenChange={onOpenChange}>
+        <DialogContent className="flex flex-col space-y-2">
+          <DialogHeader>
+            {isAdd ? (
+              <DialogTitle>Thêm mới thương hiệu</DialogTitle>
+            ) : (
+              <DialogTitle>Chỉnh sửa thương hiệu</DialogTitle>
+            )}
+          </DialogHeader>
+          <div className={"flex flex-col space-y-6"}>
+            <div className={"flex flex-row space-x-4"}>
+              <label className={"w-5/12 font-semibold"}>Tên thương hiệu</label>
+              <Input
+                className={""}
+                placeholder={""}
+                value={brand.name}
+                onChange={(e) => {
+                  handleSetNameBrand(e.target.value);
+                }}
+              />
+            </div>
           </div>
-        </div>
-        <DialogFooter className="">
-          {isAdd && (
+          <DialogFooter className="">
+            {isAdd && (
+              <Button
+                className={"bg-green-500 hover:bg-green-600"}
+                onClick={() => handleClickBtnAdd()}
+              >
+                <Plus />
+                Thêm mới
+              </Button>
+            )}
+            {!isAdd && (
+              <Button
+                className={"bg-green-500 hover:bg-green-600"}
+                onClick={() => handleClickBtnUpdate()}
+              >
+                <FileInput />
+                Lưu
+              </Button>
+            )}
+            {!isAdd && (
+              <Button
+                className={"bg-red-500 hover:bg-red-600"}
+                onClick={() => handleClickBtnDelete()}
+              >
+                <Trash2Icon />
+                Xóa
+              </Button>
+            )}
             <Button
-              className={"bg-green-500 hover:bg-green-600"}
-              onClick={() => handleClickBtnAdd()}
+              className={"bg-gray-500 hover:bg-gray-600"}
+              onClick={() => onOpenChange(false)}
             >
-              <Plus />
-              Thêm mới
+              <BanIcon />
+              Bỏ qua
             </Button>
-          )}
-          {!isAdd && (
-            <Button
-              className={"bg-green-500 hover:bg-green-600"}
-              onClick={() => handleClickBtnUpdate()}
-            >
-              <FileInput />
-              Lưu
-            </Button>
-          )}
-          {!isAdd && (
-            <Button
-              className={"bg-red-500 hover:bg-red-600"}
-              onClick={() => handleClickBtnDelete()}
-            >
-              <Trash2Icon />
-              Xóa
-            </Button>
-          )}
-          <Button
-            className={"bg-gray-500 hover:bg-gray-600"}
-            onClick={() => onOpenChange(false)}
-          >
-            <BanIcon />
-            Bỏ qua
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </Fragment>
   );
 }

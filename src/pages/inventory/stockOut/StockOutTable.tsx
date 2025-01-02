@@ -33,29 +33,10 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  InventoryReport,
-  InventoryReportDetails,
-} from "@/types/inventory/inventoryReport.ts";
-import InventoryReportDetailModal from "@/pages/inventory/InventoryReportDetailModal.tsx";
-import { getInventoryReportDetailById } from "@/pages/inventory/api/reportApi.ts";
 import { MenuVisibilityColumnTable } from "@/components/ButtonVisibilityColumnTable.tsx";
-
-/*function generateMockSpus(count: number = 10): InventoryReport[] {
-  return Array.from({ length: count }, (_, index) => ({
-    id: index + 1,
-    amount: faker.number.int({ min: 0, max: 100 }),
-    warehouseMan: faker.number.int({ min: 0, max: 100 }),
-    inventoryDif: faker.number.int({ min: 0, max: 100 }),
-    status: faker.helpers.arrayElement([0, 1, 2]),
-    note: faker.lorem.sentence(),
-    createdAt: faker.date.past(),
-    updatedAt: faker.date.recent(),
-  }));
-}*/
-
-// Example usage
-//const data = generateMockSpus(25);
+import { StockInDetails, StockInItemTable } from "@/types/stockIn/stockIn.ts";
+import StockInDetailModal from "@/pages/inventory/stockIn/StockInDetailModal.tsx";
+import { getStockInDetailById } from "@/pages/inventory/stockIn/api/stockInApi.ts";
 
 interface IColorMap {
   [key: number]: string;
@@ -72,16 +53,16 @@ const colorMap: IColorMap = {
 };
 
 const statusMap: IStatusMap = {
-  1: "Đã cân bằng kho",
+  1: "Đã nhập hàng",
   0: "Đã hủy",
-  2: "Chưa cân băng kho",
+  2: "Phiếu tạm",
 };
 
-function StatusInventoryRow({ status }: { status: number }) {
+function StatusStockInRow({ status }: { status: number }) {
   return <div className={` ${colorMap[status]}`}>{statusMap[status]}</div>;
 }
 
-const columnsInventory: ColumnDef<InventoryReport>[] = [
+const columnsStockIn: ColumnDef<StockInItemTable>[] = [
   {
     id: "select",
     header: ({ table }) => (
@@ -108,7 +89,7 @@ const columnsInventory: ColumnDef<InventoryReport>[] = [
   {
     accessorKey: "id",
     header: () => {
-      return <div className={"font-bold"}>Mã kiểm kho</div>;
+      return <div className={"font-bold"}>Mã xuất kho</div>;
     },
     cell: ({ row }) => <div className="capitalize">{row.getValue("id")}</div>,
   },
@@ -121,7 +102,7 @@ const columnsInventory: ColumnDef<InventoryReport>[] = [
           variant="ghost"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
-          Thời gian cân bằng
+          Thời gian
           <ArrowUpDown />
         </Button>
       );
@@ -133,7 +114,7 @@ const columnsInventory: ColumnDef<InventoryReport>[] = [
     ),
   },
   {
-    accessorKey: "amount",
+    accessorKey: "providerName",
     header: ({ column }) => {
       return (
         <Button
@@ -141,17 +122,17 @@ const columnsInventory: ColumnDef<InventoryReport>[] = [
           variant="ghost"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
-          SL thực tế
+          Nhà cung cấp
           <ArrowUpDown />
         </Button>
       );
     },
     cell: ({ row }) => (
-      <div className="lowercase ml-4">{row.getValue("amount")}</div>
+      <div className="lowercase ml-4">{row.getValue("providerName")}</div>
     ),
   },
   {
-    accessorKey: "inventoryDif",
+    accessorKey: "totalAmount",
     header: ({ column }) => {
       return (
         <Button
@@ -159,24 +140,13 @@ const columnsInventory: ColumnDef<InventoryReport>[] = [
           variant="ghost"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
-          Tổng chênh lệch
+          Tổng số lượng
           <ArrowUpDown />
         </Button>
       );
     },
     cell: ({ row }) => (
-      <div className="lowercase ml-4">{row.getValue("inventoryDif")}</div>
-    ),
-  },
-  {
-    accessorKey: "note",
-    header: () => {
-      return <div className={"font-bold"}>Ghi chú</div>;
-    },
-    cell: ({ row }) => (
-      <div className="lowercase text-wrap w-[200px]">
-        {row.getValue("note")}
-      </div>
+      <div className="lowercase ml-4">{row.getValue("totalAmount")}</div>
     ),
   },
   {
@@ -184,7 +154,7 @@ const columnsInventory: ColumnDef<InventoryReport>[] = [
     header: () => {
       return <div className={"font-bold"}>Trạng thái</div>;
     },
-    cell: ({ row }) => <StatusInventoryRow status={row.getValue("status")} />,
+    cell: ({ row }) => <StatusStockInRow status={row.getValue("status")} />,
   },
 
   {
@@ -218,14 +188,14 @@ const columnsInventory: ColumnDef<InventoryReport>[] = [
     },
   },
 ];
-interface InventoryTableProps {
-  dataInventory: InventoryReport[];
+interface StockInTableProps {
+  dataStockIn: StockInItemTable[];
   columnVisible: MenuVisibilityColumnTable[];
 }
-export function InventoryTable({
-  dataInventory,
+export function StockOutTable({
+  dataStockIn,
   columnVisible,
-}: InventoryTableProps) {
+}: StockInTableProps) {
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     [],
@@ -240,29 +210,29 @@ export function InventoryTable({
   const [rowSelection, setRowSelection] = React.useState({});
   const [isOpenStockTakesModal, setIsOpenStockTakesModal] = useState(false);
 
-  const [selectedInventoryReport, setSelectedInventoryReport] = useState<
-    InventoryReport | undefined
+  const [selectedStockInReport, setSelectedStockInReport] = useState<
+    StockInItemTable | undefined
   >(undefined);
-  const [inventoryReportDetails, setInventoryReportDetails] = useState<
-    InventoryReportDetails | undefined
+  const [stockInReportDetails, setStockInReportDetails] = useState<
+    StockInDetails | undefined
   >(undefined);
 
-  const getInventoryReportDetails = async (id: number) => {
+  const getStockInDetails = async (id: number) => {
     try {
-      const response = await getInventoryReportDetailById(id);
-      setInventoryReportDetails(response.data);
+      const response = await getStockInDetailById(id);
+      setStockInReportDetails(response.data);
     } catch (error) {
-      console.error("Error fetching inventory report details:", error);
+      console.error("Error fetching stock in report details:", error);
     }
   };
-  const table = useReactTable<InventoryReport>({
+  const table = useReactTable<StockInItemTable>({
     initialState: {
       pagination: {
         pageSize: 10,
       },
     },
-    data: dataInventory,
-    columns: columnsInventory,
+    data: dataStockIn,
+    columns: columnsStockIn,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
     getCoreRowModel: getCoreRowModel(),
@@ -288,11 +258,11 @@ export function InventoryTable({
   }, [columnVisible]);
   return (
     <div className="w-full">
-      <InventoryReportDetailModal
+      <StockInDetailModal
         isOpen={isOpenStockTakesModal}
         onOpenChange={setIsOpenStockTakesModal}
-        inventoryItem={inventoryReportDetails}
-      ></InventoryReportDetailModal>
+        stockItem={stockInReportDetails}
+      ></StockInDetailModal>
       <div className="rounded-md border">
         <Table>
           <TableHeader>
@@ -323,9 +293,9 @@ export function InventoryTable({
                     event.stopPropagation();
                     const selectedReport = row.original;
                     setIsOpenStockTakesModal(true);
-                    setSelectedInventoryReport(selectedReport);
-                    console.log(selectedInventoryReport);
-                    await getInventoryReportDetails(selectedReport.id);
+                    setSelectedStockInReport(selectedReport);
+                    console.log(selectedStockInReport);
+                    await getStockInDetails(selectedReport.id);
                   }}
                   key={row.id}
                   data-state={row.getIsSelected() && "selected"}
@@ -343,7 +313,7 @@ export function InventoryTable({
             ) : (
               <TableRow>
                 <TableCell
-                  colSpan={columnsInventory.length}
+                  colSpan={columnsStockIn.length}
                   className="h-24 text-center"
                 >
                   No results.

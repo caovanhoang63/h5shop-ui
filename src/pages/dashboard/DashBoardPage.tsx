@@ -18,8 +18,73 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select.tsx";
+import { vi } from "date-fns/locale";
+
+import { getAudit, IAuditFilter } from "@/pages/dashboard/api.ts";
+import { useEffect, useState } from "react";
+import { Audit } from "@/types/auditLog.ts";
+import { toast } from "react-toastify";
+import { formatDistanceToNow } from "date-fns";
+
+interface IAuditMap {
+  [action: string]: string;
+}
+
+const AuditMap: IAuditMap = {
+  "CREATE+inventory": "Kiểm hàng",
+  "PAYORDER+order": "bán hàng",
+};
+
+const AuditMessage = (audit: Audit) => {
+  const key = audit.action + "+" + audit.objectType;
+  if (audit.action === "PAYORDER") {
+    return (
+      AuditMap[key] +
+      " với giá trị " +
+      Intl.NumberFormat("de-DE").format(audit.newValues?.finalAmount) +
+      " vnd"
+    );
+  } else {
+    return AuditMap[key];
+  }
+};
 
 export const DashBoardPage = () => {
+  const [filter, setFilter] = useState<IAuditFilter>({
+    action: [],
+    objectType: ["order", "inventory"],
+  });
+
+  const [auditLog, setAuditLog] = useState<Audit[]>([]);
+
+  useEffect(() => {
+    // Chạy 1 lần sau khi component mount để cài đặt setInterval
+    const intervalId = setInterval(() => {
+      setFilter((a) => {
+        const newGtCreatedAt =
+          auditLog.length > 0 ? auditLog[0].createdAt : undefined;
+
+        return {
+          ...a,
+          gtCreatedAt: newGtCreatedAt,
+        };
+      });
+    }, 5000);
+
+    return () => clearInterval(intervalId);
+  }, [auditLog]);
+
+  useEffect(() => {
+    getAudit(filter, { limit: 20 })
+      .then((res) => {
+        const audit = res.data.data;
+        setAuditLog((a) => [...audit, ...a]);
+      })
+      .catch((e) => {
+        toast.error(e.response.data.message);
+      });
+  }, [filter]);
+
   return (
     <div className="flex space-x-5 p-5">
       <div className={"space-y-5 flex-grow "}>
@@ -201,17 +266,9 @@ export const DashBoardPage = () => {
         </CardHeader>
         <Separator />
         <CardContent>
-          <ActionCard />
-          <ActionCard />
-          <ActionCard />
-          <ActionCard />
-          <ActionCard />
-          <ActionCard />
-          <ActionCard />
-          <ActionCard />
-          <ActionCard />
-          <ActionCard />
-          <ActionCard />
+          {auditLog.map((item) => (
+            <ActionCard audit={item} />
+          ))}
         </CardContent>
       </Card>
     </div>
@@ -222,14 +279,23 @@ export const DashBoardPage = () => {
 //   "user"
 // ];
 
-const ActionCard = () => {
+const ActionCard = ({ audit }: { audit: Audit }) => {
+  console.log(new Date(audit.createdAt));
   return (
     <div className={"p-2 text-lg"}>
       <p>
-        <span className={"text-primary"}>Nguyễn Huỳnh Duy Hiếu</span> vừa{" "}
-        <span className={"text-primary"}>thực hiện kiểm hàng</span>
+        <span className={"text-primary"}>
+          {audit.user?.firstName} {audit.user?.lastName}
+        </span>{" "}
+        vừa <span className={"text-primary"}>{AuditMessage(audit)}</span>
       </p>
-      <p>11 phút trước</p>
+      <p>
+        {audit.createdAt &&
+          formatDistanceToNow(new Date(audit.createdAt), {
+            addSuffix: true,
+            locale: vi,
+          })}
+      </p>
     </div>
   );
 };

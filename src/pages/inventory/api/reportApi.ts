@@ -2,7 +2,7 @@ import {
   InventoryReport,
   InventoryReportDetails,
   InventoryReportCreate,
-} from "@/types/inventoryReport.ts";
+} from "@/types/inventory/inventoryReport.ts";
 import axiosInstance from "@/axiosSetup.ts";
 
 interface ResponseInventoryReport {
@@ -32,18 +32,13 @@ export async function getInventoryReports(
   filters: InventoryReportFilter,
 ): Promise<ResponseInventoryReport> {
   try {
-    const params: InventoryReportFilter = {};
-    if (filters.lk_warehouseMan1)
-      params.lk_warehouseMan1 = filters.lk_warehouseMan1;
-    if (filters.ltUpdatedAt) params.ltUpdatedAt = filters.ltUpdatedAt;
-    if (filters.gtUpdatedAt) params.gtUpdatedAt = filters.gtUpdatedAt;
-    if (filters.status) params.status = filters.status;
-    if (filters.lk_Id) params.lk_Id = filters.lk_Id;
-
-    console.log(params);
     const response = await axiosInstance.get<ResponseInventoryReport>(
       "v1/inventory/table",
-      { params: params },
+      {
+        params: {
+          ...filters,
+        },
+      },
     );
     return response.data;
   } catch (error) {

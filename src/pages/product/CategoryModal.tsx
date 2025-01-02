@@ -14,7 +14,8 @@ import {
   createCategory,
   updateCategory,
 } from "@/pages/product/api/categoryApi.ts";
-import { useEffect, useState } from "react";
+import { Fragment, useEffect, useState } from "react";
+import { LoadingAnimation } from "@/components/ui/LoadingAnimation.tsx";
 
 interface ICategoryModalProps {
   isOpen: boolean;
@@ -22,6 +23,7 @@ interface ICategoryModalProps {
   isAdd: boolean;
   listCategories: Category[];
   category?: Category;
+  actionSuccess?: () => void;
 }
 
 export default function CategoryModal({
@@ -30,9 +32,11 @@ export default function CategoryModal({
   isAdd,
   listCategories,
   category,
+  actionSuccess,
 }: ICategoryModalProps) {
   const [parentId, setParentId] = useState<number | null>(null);
   const [name, setName] = useState<string>("");
+  const [isLoading, setIsLoading] = useState<boolean>(false);
 
   useEffect(() => {
     if (category) {
@@ -43,17 +47,23 @@ export default function CategoryModal({
 
   const CallApiAddCategory = async (category: CategoryCreate) => {
     try {
+      setIsLoading(true);
       await createCategory(category);
+      setIsLoading(false);
     } catch (error) {
       console.error("Fetch error:", error);
+      throw error;
     }
   };
 
   const CallApiUpdateCategory = async (category: Category) => {
     try {
+      setIsLoading(true);
       await updateCategory(category);
+      setIsLoading(false);
     } catch (error) {
       console.error("Fetch error:", error);
+      throw error;
     }
   };
 
@@ -68,7 +78,7 @@ export default function CategoryModal({
     } as CategoryCreate)
       .then(() => {
         onOpenChange(false);
-        alert("Thêm mới thành công");
+        if (actionSuccess) actionSuccess();
       })
       .catch((error) => {
         console.error("Fetch error:", error);
@@ -83,7 +93,7 @@ export default function CategoryModal({
     } as Category)
       .then(() => {
         onOpenChange(false);
-        alert("Chỉnh sửa thành công");
+        if (actionSuccess) actionSuccess();
       })
       .catch((error) => {
         console.error("Fetch error:", error);
@@ -91,69 +101,72 @@ export default function CategoryModal({
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="flex flex-col space-y-2">
-        <DialogHeader>
-          {isAdd ? (
-            <DialogTitle>Thêm mới danh mục</DialogTitle>
-          ) : (
-            <DialogTitle>Chỉnh sửa danh mục</DialogTitle>
-          )}
-        </DialogHeader>
-        <div className={"flex flex-col space-y-6"}>
-          <div className={"flex flex-row space-x-4"}>
-            <label className={"w-4/12 font-semibold"}>Tên nhóm</label>
-            <Input
-              className={""}
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder={""}
-            />
+    <Fragment>
+      {isLoading && <LoadingAnimation />}
+      <Dialog open={isOpen} onOpenChange={onOpenChange}>
+        <DialogContent className="flex flex-col space-y-2">
+          <DialogHeader>
+            {isAdd ? (
+              <DialogTitle>Thêm mới danh mục</DialogTitle>
+            ) : (
+              <DialogTitle>Chỉnh sửa danh mục</DialogTitle>
+            )}
+          </DialogHeader>
+          <div className={"flex flex-col space-y-6"}>
+            <div className={"flex flex-row space-x-4"}>
+              <label className={"w-4/12 font-semibold"}>Tên nhóm</label>
+              <Input
+                className={""}
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder={""}
+              />
+            </div>
+            <div className={"flex flex-row space-x-4"}>
+              <label className={"w-4/12 font-semibold"}>Nhóm cha</label>
+              <CardCategorySelect
+                listCategories={listCategories}
+                isAdd={false}
+                setParentId={handleChooseParent}
+                parentIdSelected={parentId}
+              />
+            </div>
           </div>
-          <div className={"flex flex-row space-x-4"}>
-            <label className={"w-4/12 font-semibold"}>Nhóm cha</label>
-            <CardCategorySelect
-              listCategories={listCategories}
-              isAdd={false}
-              setParentId={handleChooseParent}
-              parentIdSelected={parentId}
-            />
-          </div>
-        </div>
-        <DialogFooter className="">
-          {isAdd && (
+          <DialogFooter className="">
+            {isAdd && (
+              <Button
+                className={"bg-green-500 hover:bg-green-600"}
+                onClick={() => handleClickBtnAdd()}
+              >
+                <Plus />
+                Thêm mới
+              </Button>
+            )}
+            {!isAdd && (
+              <Button
+                className={"bg-green-500 hover:bg-green-600"}
+                onClick={() => handleClickBtnUpdate()}
+              >
+                <FileInput />
+                Lưu
+              </Button>
+            )}
+            {!isAdd && (
+              <Button className={"bg-red-500 hover:bg-red-600"}>
+                <Trash2Icon />
+                Xóa
+              </Button>
+            )}
             <Button
-              className={"bg-green-500 hover:bg-green-600"}
-              onClick={() => handleClickBtnAdd()}
+              className={"bg-gray-500 hover:bg-gray-600"}
+              onClick={() => onOpenChange(false)}
             >
-              <Plus />
-              Thêm mới
+              <BanIcon />
+              Bỏ qua
             </Button>
-          )}
-          {!isAdd && (
-            <Button
-              className={"bg-green-500 hover:bg-green-600"}
-              onClick={() => handleClickBtnUpdate()}
-            >
-              <FileInput />
-              Lưu
-            </Button>
-          )}
-          {!isAdd && (
-            <Button className={"bg-red-500 hover:bg-red-600"}>
-              <Trash2Icon />
-              Xóa
-            </Button>
-          )}
-          <Button
-            className={"bg-gray-500 hover:bg-gray-600"}
-            onClick={() => onOpenChange(false)}
-          >
-            <BanIcon />
-            Bỏ qua
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </Fragment>
   );
 }
