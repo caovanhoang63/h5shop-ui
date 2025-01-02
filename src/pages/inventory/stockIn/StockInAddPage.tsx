@@ -157,6 +157,7 @@ export default function StockInAddPage() {
     );
   };
   const handleAmountChange = (id: number, amount: number) => {
+    if (amount <= 0) amount = 0;
     setItems((prevItems) =>
       prevItems.map((item) =>
         item.id === id
@@ -168,6 +169,20 @@ export default function StockInAddPage() {
       ),
     );
   };
+
+  const handlePriceChange = (id: number, price: number) => {
+    setItems((prevItems) =>
+      prevItems.map((item) =>
+        item.id === id && price >= 0 && price <= 999999999
+          ? {
+              ...item,
+              costPrice: price,
+            }
+          : item,
+      ),
+    );
+  };
+
   const handleComplete = async () => {
     if (items.length === 0) {
       toast.warning("Không có sản phẩm nào  !", {
@@ -299,10 +314,13 @@ export default function StockInAddPage() {
 
                   <TableCell className="">
                     <Input
-                      type="text"
+                      type="number"
                       placeholder="Đơn giá"
                       className="shadow-none w-fit text-center"
-                      value={formatCurrency(item.costPrice)}
+                      value={item.costPrice}
+                      onChange={(e) =>
+                        handlePriceChange(item.id, Number(e.target.value))
+                      }
                     />
                   </TableCell>
                   <TableCell className="text-center">
