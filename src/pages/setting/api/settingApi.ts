@@ -13,6 +13,9 @@ export interface SettingResponse {
 export interface SettingUpdateResponse {
   data: boolean;
 }
+export interface SettingDeleteResponse {
+  data: number;
+}
 
 export async function getSetting(): Promise<SettingResponse> {
   try {
@@ -36,6 +39,19 @@ export async function updateSetting(
     return response.data;
   } catch (e) {
     console.log("Error updating Setting", e);
+    throw e;
+  }
+}
+export async function deleteSetting(
+  name: string,
+): Promise<SettingDeleteResponse> {
+  try {
+    const response = await axiosInstance.delete<SettingDeleteResponse>(
+      `/v1/setting/${name}`,
+    );
+    return response.data;
+  } catch (e) {
+    console.log("Error deleting Setting", e);
     throw e;
   }
 }

@@ -12,7 +12,11 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Setting, SettingUpdate } from "@/types/setting/setting";
-import { getSetting, updateSetting } from "@/pages/setting/api/settingApi";
+import {
+  deleteSetting,
+  getSetting,
+  updateSetting,
+} from "@/pages/setting/api/settingApi";
 import Container from "@/layouts/components/Container.tsx";
 import { toast } from "react-toastify";
 
@@ -42,6 +46,17 @@ export function SettingPage() {
     return new Date(dateString).toLocaleString();
   };
 
+  const handleDelete = async (name: string) => {
+    try {
+      const response = await deleteSetting(name);
+      console.log(response.data);
+      toast.success("Xóa thành công");
+      await fetchSettingData(); // Reload lại dữ liệu
+    } catch (e) {
+      console.error("Error deleting setting:", e);
+      toast.error("Xóa thất bại");
+    }
+  };
   const handleEdit = (name: string, currentValue: number | string) => {
     setEditingName(name);
     setEditValue(currentValue);
@@ -137,6 +152,15 @@ export function SettingPage() {
                         Edit
                       </Button>
                     )}
+                  </TableCell>
+                  <TableCell>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleDelete(item.name)}
+                    >
+                      Delete
+                    </Button>
                   </TableCell>
                 </TableRow>
               ))}
