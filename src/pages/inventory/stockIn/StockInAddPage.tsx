@@ -362,10 +362,10 @@ export default function StockInAddPage() {
                 <span className="text-gray-500">Mã kiểm kho</span>
                 <span>Mã phiếu tự động</span>
               </div>
-              <div className="flex justify-between text-sm">
+              {/*<div className="flex justify-between text-sm">
                 <span className="text-gray-500">Trạng thái</span>
                 <span>Phiếu tạm</span>
-              </div>
+              </div>*/}
               <div className="flex justify-between text-sm">
                 <span className="text-gray-500">Tổng SL thực tế</span>
                 <span>{calculateTotalActualQuantity()}</span>
