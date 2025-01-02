@@ -24,9 +24,7 @@ interface SkuAttr {
   image?: Image;
 }
 
-interface SkuWholesalePrice {
-  id: number;
-  skuId: number;
+export interface SkuWholesalePrice {
   minQuantity: number;
   price: number;
 }

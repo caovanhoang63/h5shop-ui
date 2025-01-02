@@ -5,6 +5,7 @@ import { OrderItemCreate } from "@/types/orderItem/orderItemCreate.ts";
 import { Order } from "@/types/order/order.ts";
 import { OrderItem } from "@/types/orderItem/orderItem.ts";
 import { OrderUpdate } from "@/types/order/orderUpdate.ts";
+import { OrderPay } from "@/types/order/orderPay.ts";
 
 export enum OrderStatus {
   CANCEL,
@@ -68,6 +69,19 @@ export async function deleteOrder(id: number) {
     return response.data;
   } catch (error) {
     console.error("Delete error:", error);
+    throw error;
+  }
+}
+
+export async function payOrder(id: number | null, order: OrderPay) {
+  try {
+    const response = await axiosInstance.post<Order>(
+      `/v1/order/${id}/pay`,
+      order,
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Pay error:", error);
     throw error;
   }
 }

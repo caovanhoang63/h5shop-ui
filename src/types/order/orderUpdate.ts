@@ -1,5 +1,5 @@
 ﻿export interface OrderUpdate {
-  customerId?: number;
+  customerId?: number | null;
   sellerId?: number;
   orderType?: string;
   description?: string;
