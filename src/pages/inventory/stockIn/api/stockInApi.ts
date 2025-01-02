@@ -34,6 +34,8 @@ interface Response {
   extra?: never;
   paging?: never;
 }
+const token = localStorage.getItem("token");
+
 export async function getStockInTableApi(
   filters: StockInFilter,
 ): Promise<ResponseStockInTable> {
@@ -43,6 +45,9 @@ export async function getStockInTableApi(
       {
         params: {
           ...filters,
+        },
+        headers: {
+          Authorization: `Bearer ${token}`,
         },
       },
     );
@@ -59,6 +64,11 @@ export async function getStockInDetailById(
   try {
     const response = await axiosInstance.get<ResponseStockInDetail>(
       `v1/stock-in/${reportId}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      },
     );
     return response.data;
   } catch (error) {
@@ -73,6 +83,11 @@ export async function createStockInReport(
     const response = await axiosInstance.post<ResponseStockInReportCreate>(
       "v1/stock-in",
       body,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      },
     );
     return response.data;
   } catch (error) {
@@ -87,6 +102,9 @@ export async function searchSku(query: string): Promise<Response> {
       params: {
         lkName: query,
       },
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
     });
     return response.data;
   } catch (error) {
@@ -98,7 +116,7 @@ export async function searchProvider(query: string): Promise<Response> {
   try {
     const config = {
       headers: {
-        authorization: ``,
+        Authorization: `Bearer ${token}`,
       },
     };
     const response = await axiosInstance.get<Response>("v1/provider/", {
