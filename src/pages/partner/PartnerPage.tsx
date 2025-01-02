@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/accordion.tsx";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group.tsx";
 import { Label } from "@/components/ui/label.tsx";
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import PartnerDataTable from "@/pages/partner/components/PartnerDataTable.tsx";
 import {
   ButtonVisibilityColumnTable,
@@ -31,6 +31,7 @@ export default function PartnerPage() {
   const [filterTo, setFilterTo] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
   const [accordionOpen, setAccordionOpen] = useState<Set<string>>(new Set());
+  const [selectedStatus, setSelectedStatus] = useState("option-one"); // New state for RadioGroup
   const [fields, setFields] = useState<MenuVisibilityColumnTable[]>([
     { label: "Mã nhà cung cấp", key: "id", visible: true },
     { label: "Tên nhà cung cấp", key: "name", visible: true },
@@ -49,9 +50,7 @@ export default function PartnerPage() {
       ),
     );
   };
-  const refreshData = async () => {
-    await getProviderTableData();
-  };
+
   const handleFilterChange = (newFilter: Partial<ProviderFilter>) => {
     setProviderFilter((prevFilter) => ({
       ...prevFilter,
@@ -59,39 +58,37 @@ export default function PartnerPage() {
     }));
   };
 
-  const handleFilterApply = useCallback(() => {
-    getProviderTableData();
-  }, [providerFilter]);
   const getProviderTableData = async () => {
     try {
       console.log("filter: ", providerFilter);
       const response = await listProvider(providerFilter);
-      console.log(response);
       setProviderData(response.data);
     } catch (error) {
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-expect-error
-      setError(error.response.data.message);
+      setError(error.response?.data?.message || "Lỗi khi tải dữ liệu.");
     }
   };
+
   useEffect(() => {
     getProviderTableData();
-  }, []);
+  }, [providerFilter]);
 
   if (error) {
     return <div>{error}</div>;
   }
+
   return (
     <Container className={"grid grid-cols-5 gap-4 grid-flow-row"}>
       <NewPartnerModal
-        refreshData={refreshData}
+        refreshData={getProviderTableData}
         isOpen={isOpenNewPartnerModal}
         onOpenChange={setIsOpenNewPartnerModal}
-      ></NewPartnerModal>
+      />
       <div className={"text-2xl col-span-1 font-bold"}>
         <p>Nhà cung cấp</p>
       </div>
-      <div className={"col-span-4 w-full flex  justify-between"}>
+      <div className={"col-span-4 w-full flex justify-between"}>
         <div className="relative flex items-center max-w-80">
           <Search className="absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 transform" />
           <Input
@@ -104,7 +101,7 @@ export default function PartnerPage() {
             }}
             onKeyPress={(e) => {
               if (e.key === "Enter") {
-                handleFilterApply();
+                getProviderTableData();
               }
             }}
           />
@@ -141,55 +138,42 @@ export default function PartnerPage() {
                 <AccordionContent className={"py-1 px-1 flex flex-col gap-2"}>
                   <div className={"space-y-1"}>
                     <div className="grid grid-cols-4 items-center gap-2">
-                      <Label htmlFor="maxWidth">Từ</Label>
-                      <div
-                        className={"border-b-[1px] col-span-3 bg-background"}
-                      >
-                        <Input
-                          id="from"
-                          placeholder="Giá trị"
-                          className="border-0 focus-visible:ring-0  rounded-none shadow-none col-span-3 bg-background"
-                          value={filterFrom}
-                          onChange={(e) => {
-                            setFilterFrom(e.target.value);
-                            handleFilterChange({
-                              gt_debt: parseInt(e.target.value),
-                            });
-                          }}
-                          onKeyPress={(e) => {
-                            e.stopPropagation(); // Ngăn sự kiện lan truyền
-
-                            if (e.key === "Enter") {
-                              handleFilterApply();
-                            }
-                          }}
-                        />
-                      </div>
+                      <Label htmlFor="from">Từ</Label>
+                      <Input
+                        id="from"
+                        placeholder="Giá trị"
+                        value={filterFrom}
+                        onChange={(e) => {
+                          setFilterFrom(e.target.value);
+                          handleFilterChange({
+                            gt_debt: parseInt(e.target.value),
+                          });
+                        }}
+                        onKeyPress={(e) => {
+                          if (e.key === "Enter") {
+                            getProviderTableData();
+                          }
+                        }}
+                      />
                     </div>
                     <div className="grid grid-cols-4 items-center gap-2">
-                      <Label htmlFor="maxWidth">Đến</Label>
-                      <div
-                        className={"border-b-[1px] col-span-3 bg-background"}
-                      >
-                        <Input
-                          id="to"
-                          placeholder="Giá trị"
-                          className="border-0 focus-visible:ring-0  rounded-none shadow-none col-span-3 bg-background"
-                          value={filterTo}
-                          onChange={(e) => {
-                            setFilterTo(e.target.value);
-                            handleFilterChange({
-                              lt_debt: parseInt(e.target.value),
-                            });
-                          }}
-                          onKeyPress={(e) => {
-                            e.stopPropagation(); // Ngăn sự kiện lan truyền
-                            if (e.key === "Enter") {
-                              handleFilterApply();
-                            }
-                          }}
-                        />
-                      </div>
+                      <Label htmlFor="to">Đến</Label>
+                      <Input
+                        id="to"
+                        placeholder="Giá trị"
+                        value={filterTo}
+                        onChange={(e) => {
+                          setFilterTo(e.target.value);
+                          handleFilterChange({
+                            lt_debt: parseInt(e.target.value),
+                          });
+                        }}
+                        onKeyPress={(e) => {
+                          if (e.key === "Enter") {
+                            getProviderTableData();
+                          }
+                        }}
+                      />
                     </div>
                   </div>
                 </AccordionContent>
@@ -206,20 +190,16 @@ export default function PartnerPage() {
                 </AccordionTrigger>
                 <AccordionContent className={"pb-2"}>
                   <RadioGroup
-                    defaultValue="option-one"
+                    value={selectedStatus}
                     onValueChange={(value) => {
-                      setProviderFilter((prevFilter) => {
-                        const updatedFilter = { ...prevFilter };
-                        if (value === "option-one") {
-                          delete updatedFilter.lk_status;
-                        } else if (value === "option-two") {
-                          updatedFilter.lk_status = 1;
-                        } else if (value === "option-three") {
-                          updatedFilter.lk_status = 0;
-                        }
-                        getProviderTableData();
-                        return updatedFilter;
-                      });
+                      setSelectedStatus(value);
+                      if (value === "option-one") {
+                        handleFilterChange({ lk_status: undefined });
+                      } else if (value === "option-two") {
+                        handleFilterChange({ lk_status: 1 });
+                      } else if (value === "option-three") {
+                        handleFilterChange({ lk_status: 0 });
+                      }
                     }}
                   >
                     <div className="flex items-center space-x-2">
@@ -249,10 +229,10 @@ export default function PartnerPage() {
       </div>
       <div className={"col-span-4"}>
         <PartnerDataTable
-          refreshData={refreshData}
+          refreshData={getProviderTableData}
           providerTableData={providerData}
           columnVisible={fields}
-        ></PartnerDataTable>
+        />
       </div>
     </Container>
   );
