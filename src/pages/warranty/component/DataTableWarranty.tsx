@@ -405,7 +405,7 @@ export const DataTableWarranty: React.FC<DataTableDemoProps> = ({
             variant="outline"
             size="sm"
             onClick={() => handleClickNext()}
-            disabled={paging.page === Math.ceil(paging.total / paging.limit)}
+            disabled={paging.page >= Math.ceil(paging.total / paging.limit)}
           >
             Next
           </Button>

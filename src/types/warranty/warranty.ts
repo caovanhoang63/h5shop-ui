@@ -13,3 +13,12 @@ export interface Warranty {
   createdAt: string;
   updatedAt: string;
 }
+
+export interface WarrantyFilter {
+  id?: number;
+  lkCustomerPhoneNumber?: string;
+  ltUpdatedAt?: Date;
+  gtUpdatedAt?: Date;
+  page?: number;
+  limit?: number;
+}

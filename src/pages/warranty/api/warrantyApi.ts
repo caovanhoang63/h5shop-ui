@@ -1,10 +1,11 @@
 import axiosInstance from "@/axiosSetup.ts";
-import { Warranty } from "@/types/warranty/warranty.ts";
+import { Warranty, WarrantyFilter } from "@/types/warranty/warranty.ts";
+import { PagingSpu } from "@/types/spu/PagingSpu.ts";
 
 export interface ResponseWarranty {
   data: Warranty[];
   extra: object;
-  paging: object;
+  paging: PagingSpu;
 }
 
 export async function createWarrantyForm(warranty: Warranty): Promise<void> {
@@ -27,9 +28,19 @@ export async function createWarrantyForm(warranty: Warranty): Promise<void> {
   }
 }
 
-export async function getListWarrantyForm(): Promise<ResponseWarranty> {
+export async function getListWarrantyForm(
+  warrantyFilter: WarrantyFilter,
+): Promise<ResponseWarranty> {
   try {
-    const response = await axiosInstance.get<ResponseWarranty>("/v1/warranty");
+    const newFilter = {
+      ...warrantyFilter,
+      page: warrantyFilter.page ?? 1,
+      limit: warrantyFilter.limit ?? 10,
+    };
+
+    const response = await axiosInstance.get<ResponseWarranty>("/v1/warranty", {
+      params: newFilter,
+    });
     return response.data;
   } catch (error) {
     console.error("Fetch error:", error);
