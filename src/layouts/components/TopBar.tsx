@@ -12,6 +12,7 @@ import {
   ShoppingBasket,
   ShoppingCart,
   User,
+  Users,
 } from "lucide-react";
 import {
   Avatar,
@@ -95,6 +96,10 @@ export const TopBar = () => {
             <NavButton link={"partner"}>
               <Handshake size={20} />
               <p>Đối tác</p>
+            </NavButton>
+            <NavButton link={"employee"}>
+              <Users size={20} />
+              <p>Nhân viên</p>
             </NavButton>
             <NavButton>
               <CircleDollarSign size={20} />
