@@ -1,6 +1,7 @@
 ﻿import { Card } from "@/components/ui/card.tsx";
 import { ImageIcon } from "lucide-react";
 import { SkuGetDetail } from "@/types/sku/skuGetDetail.ts";
+import { formatCurrency } from "@/utils/convert.ts";
 
 export function SkuCard({ name, price, images }: SkuGetDetail): JSX.Element {
   return (
@@ -26,7 +27,7 @@ export function SkuCard({ name, price, images }: SkuGetDetail): JSX.Element {
         </div>
         {/* Product Price */}
         <div className="text-sm font-semibold text-primary mt-2">
-          {price.toLocaleString("vi-VN")}
+          {formatCurrency(price)}
         </div>
       </div>
     </Card>

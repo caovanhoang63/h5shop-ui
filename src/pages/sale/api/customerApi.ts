@@ -28,6 +28,10 @@ export async function updateCustomer(c: CustomerUpdate) {
   }
 }
 
+export async function getCustomerById(id: number) {
+  return axiosInstance.get<{ data: Customer }>(`/v1/customer/${id}`);
+}
+
 interface CustomerListResponse {
   data: Customer[];
 }

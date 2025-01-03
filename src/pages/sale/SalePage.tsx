@@ -1,10 +1,10 @@
-﻿import { Filter, List, Pen, Plus, Search } from "lucide-react";
+﻿import { Filter, List, Pen, Search } from "lucide-react";
 import { Input } from "@/components/ui/input.tsx";
-import {
+import React, {
   ChangeEvent,
+  Fragment,
   useCallback,
   useEffect,
-  useMemo,
   useRef,
   useState,
 } from "react";
@@ -24,70 +24,32 @@ import {
   deleteOrderItem,
   getListOrder,
   OrderStatus,
-  updateOrderItemApi,
+  removeCustomer,
+  updateOrder,
 } from "@/pages/sale/api/orderApi.ts";
 import { OrderType } from "@/types/order/order.ts";
 import { OrderItem } from "@/types/orderItem/orderItem.ts";
-import { OrderCreate } from "@/types/order/orderCreate.ts";
-import { OrderItemCreate } from "@/types/orderItem/orderItemCreate.ts";
-import { OrderItemUpdate } from "@/types/orderItem/orderItemUpdate.ts";
 import PaymentDialog from "@/pages/sale/components/PaymentDialog.tsx";
 import { CreateCustomerModal } from "@/pages/sale/components/CustomerModal.tsx";
 import { toast } from "react-toastify";
-import { listCustomer } from "@/pages/sale/api/customerApi.ts";
-import { CustomerListFilter } from "@/types/customer/customerListFilter.ts";
-import _ from "lodash";
+import { Customer } from "@/types/customer/customer.ts";
+import { LoadingAnimation } from "@/components/ui/LoadingAnimation.tsx";
+import { CustomerSearch } from "@/pages/sale/components/CustomerSearch.tsx";
+import { getCustomerById } from "@/pages/sale/api/customerApi.ts";
 
 export default function SalePage() {
+  const [isLoadingPage, setIsLoadingPage] = useState<boolean>(false);
+  const [isLoadingSku, setIsLoadingSku] = useState<boolean>(false);
   // Input
   const [searchValue, setSearchValue] = useState("");
-  const [orderDescription, setOrderDescription] = useState("");
 
   // Customer
-  const [searchCustomer, setSearchCustomer] = useState("");
-  const [searchCustomerResult, setSearchCustomerResult] = useState<
-    [
-      {
-        id: number;
-        name: string;
-        phoneNumber: string;
-      },
-    ]
-  >();
   const [selectedCustomer, setSelectedCustomer] = useState<
-    | {
-        id: number;
-        name: string;
-        phoneNumber: string;
-      }
-    | undefined
-  >();
-  const debounceSearchCustomer = useMemo(
-    () =>
-      _.debounce(async (query: string) => {
-        if (query.trim() === "") {
-          setSearchCustomerResult(undefined);
-        } else {
-          try {
-            const response = await fetchSearchCustomer(query);
-            console.log(response);
-            const searchResponse = response.map((item) => ({
-              id: item.id,
-              name: item.lastName + " " + item.firstName,
-              phoneNumber: item.phoneNumber,
-            }));
-            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-            // @ts-expect-error
-            setSearchCustomerResult(searchResponse);
-          } catch (error) {
-            console.error(error);
-          }
-        }
-      }, 700),
-    [],
-  );
+    Customer | undefined
+  >(undefined);
 
   // Order tabs
+  const [orderDescription, setOrderDescription] = useState("");
   const [tabs, setTabs] = useState<Tab[]>([]);
   const [activeTab, setActiveTab] = useState(0);
   const [totalPrice, setTotalPrice] = useState(0);
@@ -95,16 +57,14 @@ export default function SalePage() {
   const tabListRef = useRef<HTMLDivElement>(null);
   const [isOverflowing, setIsOverflowing] = useState(false);
   const isAddingTab = useRef(false);
-  const isInitalized = useRef(false);
+  const isInitialized = useRef(false);
 
   // Sku list
   const [skuData, setSkuData] = useState<SkuGetDetail[]>([]);
-  // const [loading, setLoading] = useState(false);
-  // const [error, setError] = useState<string | null>(null);
 
   // Pagination
   const [page, setPage] = useState(1);
-  const [limit, setLimit] = useState(10);
+  const limit = 12;
   const [totalPages, setTotalPages] = useState(1);
   const skuListRef = useRef<HTMLDivElement>(null);
 
@@ -172,6 +132,26 @@ export default function SalePage() {
   const handleSearchInput = (e: ChangeEvent<HTMLInputElement>) => {
     setSearchValue(e.target.value);
   };
+  const handleDescriptionBlur = useCallback(
+    (e: React.FocusEvent<HTMLInputElement>) => {
+      const newDescription = e.target.value;
+      if (!tabs[activeTab]) return;
+      updateOrder(tabs[activeTab].order.id, {
+        description: newDescription,
+      }).catch((error) => {
+        console.error("Error updating order description:", error);
+        toast.error("Cập nhập ghi chú đơn hàng thất bại", {
+          position: "top-right",
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+        });
+      });
+    },
+    [activeTab, tabs],
+  );
   const handleDescriptionChange = (e: ChangeEvent<HTMLInputElement>) => {
     if (!tabs[activeTab]) return;
     setOrderDescription(e.target.value);
@@ -180,97 +160,93 @@ export default function SalePage() {
     updatedTabs[activeTab].order.description = e.target.value;
     setTabs(updatedTabs);
   };
-  const handleSearchCustomer = async (e: ChangeEvent<HTMLInputElement>) => {
-    const query = e.target.value;
-    setSearchCustomer(query);
-
-    debounceSearchCustomer(query);
-  };
-
-  // const handleTabNumber = (): number => {
-  //   let num = 1;
-  //   const existingTabNumbers = tabs.map((tab) => tab.number);
-  //
-  //   // Find the next available tab number
-  //   while (existingTabNumbers.includes(num)) {
-  //     num += 1;
-  //   }
-  //
-  //   return num;
-  // };
 
   // Tabs stuff
-  const addTab = async () => {
+  const addTab = useCallback(async () => {
     if (isAddingTab.current) return;
     isAddingTab.current = true;
     console.log(selectedCustomer);
-    try {
-      const newOrder = await fetchCreateOrder({
-        customerId: 0, // Replace with actual customer ID if available
-        sellerId: 0, // Replace with actual seller ID
-        orderType: OrderType.Retail,
-      });
 
-      // Add the new order as a tab
-      const newTab: Tab = {
-        number: newOrder.id,
-        order: {
-          ...newOrder,
-          items: [], // No items yet
-        },
-      };
+    createOrder({
+      customerId: 0, // Replace with actual customer ID if available
+      sellerId: 0, // Replace with actual seller ID
+      orderType: OrderType.Retail,
+    })
+      .then((response) => {
+        const newTab: Tab = {
+          number: response.data.id,
+          order: {
+            ...response.data,
+            items: [], // No items yet
+          },
+        };
 
-      setTabs((prevTabs) => {
-        const updatedTabs = [...prevTabs, newTab];
-        if (updatedTabs.length === 1) {
-          setActiveTab(0);
-        } else setActiveTab(tabs.length);
-        return updatedTabs;
-      });
-
-      // Scroll to the new tab
-      if (tabListRef.current) {
-        const { scrollWidth, offsetWidth } = tabListRef.current;
-        tabListRef.current.scrollTo({
-          left: scrollWidth + offsetWidth,
-          behavior: "smooth",
+        setTabs((prevTabs) => {
+          const updatedTabs = [...prevTabs, newTab];
+          if (updatedTabs.length === 1) {
+            setActiveTab(0);
+          } else setActiveTab(tabs.length);
+          return updatedTabs;
         });
-      }
 
-      isAddingTab.current = false;
-    } catch (error) {
-      console.error("Error creating a new order:", error);
-      toast.error("Tạo đơn hàng thất bại, thử lại", {
-        position: "top-right",
-        autoClose: 3000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
+        // Scroll to the new tab
+        if (tabListRef.current) {
+          const { scrollWidth, offsetWidth } = tabListRef.current;
+          tabListRef.current.scrollTo({
+            left: scrollWidth + offsetWidth,
+            behavior: "smooth",
+          });
+        }
+
+        isAddingTab.current = false;
+      })
+      .catch((error) => {
+        console.error("Error creating a new order:", error);
+        toast.error("Tạo đơn hàng thất bại, thử lại", {
+          position: "top-right",
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+        });
       });
-    }
-  };
+  }, [tabs, selectedCustomer]);
   const deleteTab = (index: number) => {
-    fetchDeleteOrder(tabs[index].order.id);
+    deleteOrder(tabs[index].order.id)
+      .then(() => {
+        const updatedTabs = tabs.filter((_, i) => i !== index);
+        setTabs(updatedTabs);
 
-    const updatedTabs = tabs.filter((_, i) => i !== index);
-    setTabs(updatedTabs);
+        // Adjust the active tab if the current active tab is deleted
+        if (index === activeTab) {
+          // If the deleted tab was the active tab, set the active tab to the previous one (if it exists)
+          setActiveTab((prevActiveTab) =>
+            prevActiveTab > 0 ? prevActiveTab - 1 : 0,
+          );
+        } else if (index < activeTab) {
+          // If the deleted tab was before the active tab, the active tab index should shift down by 1
+          setActiveTab((prevActiveTab) => prevActiveTab - 1);
+        }
 
-    // Adjust the active tab if the current active tab is deleted
-    if (index === activeTab) {
-      // If the deleted tab was the active tab, set the active tab to the previous one (if it exists)
-      setActiveTab((prevActiveTab) =>
-        prevActiveTab > 0 ? prevActiveTab - 1 : 0,
-      );
-    } else if (index < activeTab) {
-      // If the deleted tab was before the active tab, the active tab index should shift down by 1
-      setActiveTab((prevActiveTab) => prevActiveTab - 1);
-    }
-
-    // If there are no tabs left, create a new tab
-    if (updatedTabs.length === 0) {
-      addTab();
-    }
+        // If there are no tabs left, create a new tab
+        if (updatedTabs.length === 0) {
+          addTab().catch((error) => {
+            console.log("Error adding tab after deleting:", error);
+          });
+        }
+      })
+      .catch((error) => {
+        console.log("Error deleting order:", error);
+        toast.error("Xóa đơn hàng thất bại, thử lại", {
+          position: "top-right",
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+        });
+      });
   };
 
   // Items stuff
@@ -282,47 +258,23 @@ export default function SalePage() {
     setTabs(updatedTabs);
     updateTotalPrice();
   };
-  const handleOrderItemIncrease = async (index: number) => {
-    const orderItem = await fetchUpdateOrderItem(
-      tabs[activeTab].order.id,
-      tabs[activeTab].order.items[index].skuId,
-      {
-        amount: tabs[activeTab].order.items[index].amount + 1,
-      },
-    );
-    updateOrderItem(index, orderItem);
-  };
-  const handleOrderItemDecrease = async (index: number) => {
-    if (tabs[activeTab].order.items[index].amount > 1) {
-      const orderItem = await fetchUpdateOrderItem(
-        tabs[activeTab].order.id,
-        tabs[activeTab].order.items[index].skuId,
-        {
-          amount: tabs[activeTab].order.items[index].amount - 1,
-        },
-      );
-      updateOrderItem(index, orderItem);
-    }
-  };
-  const handleOrderItemRemove = (index: number) => {
-    fetchDeleteOrderItem(
-      tabs[activeTab].order.id,
-      tabs[activeTab].order.items[index].skuId,
-    );
-    const updatedTabs = [...tabs];
-    updatedTabs[activeTab].order.items = updatedTabs[
-      activeTab
-    ].order.items.filter((_, i) => i !== index);
-    setTabs(updatedTabs);
-    updateTotalPrice();
-  };
-
-  const handleSkuClick = async (sku: SkuGetDetail) => {
-    try {
-      const activeOrder = tabs[activeTab]?.order;
-
-      if (!activeOrder) {
-        toast.error("Xin hãy tạo đơn hàng trước khi thêm sản phẩm", {
+  const handleOrderItemQuantityChange = async (
+    index: number,
+    value: number,
+  ) => {
+    return addOrderItem({
+      orderId: tabs[activeTab].order.id,
+      skuId: tabs[activeTab].order.items[index].skuId,
+      amount: value,
+      unitPrice: 1,
+    })
+      .then((response) => {
+        updateOrderItem(index, response.data);
+        return true;
+      })
+      .catch((error) => {
+        console.log("Error update order item quantity:", error);
+        toast.error("Cập nhập số lượng sản phẩm thất bại", {
           position: "top-right",
           autoClose: 3000,
           hideProgressBar: false,
@@ -330,25 +282,113 @@ export default function SalePage() {
           pauseOnHover: true,
           draggable: true,
         });
-        return;
-      }
-
-      // Add the clicked SKU to the existing order
-      const orderItem = await fetchAddOrderItem({
-        orderId: activeOrder.id,
-        skuId: sku.id,
-        amount: 1,
+        return false;
       });
+  };
 
-      // Update the active tab with the new item
-      const updatedTabs = [...tabs];
-      updatedTabs[activeTab].order.items.push(orderItem);
-      setTabs(updatedTabs);
+  const handleOrderItemDescriptionChange = async (
+    index: number,
+    value: string,
+  ) => {
+    addOrderItem({
+      orderId: tabs[activeTab].order.id,
+      skuId: tabs[activeTab].order.items[index].skuId,
+      amount: tabs[activeTab].order.items[index].amount,
+      description: value ? value : undefined,
+      unitPrice: 1,
+    })
+      .then((response) => {
+        updateOrderItem(index, response.data);
+      })
+      .catch((error) => {
+        console.log("Error update order item description:", error);
+        toast.error("Cập nhập ghi chú sản phẩm thất bại", {
+          position: "top-right",
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+        });
+      });
+  };
 
-      updateTotalPrice(); // Update total price and item count
+  const handleOrderItemRemove = (index: number) => {
+    deleteOrderItem(
+      tabs[activeTab].order.id,
+      tabs[activeTab].order.items[index].skuId,
+    )
+      .then(() => {
+        const updatedTabs = [...tabs];
+        updatedTabs[activeTab].order.items = updatedTabs[
+          activeTab
+        ].order.items.filter((_, i) => i !== index);
+        setTabs(updatedTabs);
+        updateTotalPrice();
+      })
+      .catch((error) => {
+        console.log("Error deleting order item:", error);
+        toast.error("Xóa sản phẩm thất bại, thử lại", {
+          position: "top-right",
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+        });
+      });
+  };
+
+  const handleSkuClick = async (sku: SkuGetDetail) => {
+    const activeOrder = tabs[activeTab]?.order;
+
+    if (!activeOrder) {
+      toast.error("Xin hãy tạo đơn hàng trước khi thêm sản phẩm", {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+      });
+      return;
+    }
+    // Add the clicked SKU to the existing order
+    addOrderItem({
+      orderId: activeOrder.id,
+      skuId: sku.id,
+      amount: 1,
+      unitPrice: 1,
+    })
+      .then((response) => {
+        // Update the active tab with the new item
+        const updatedTabs = [...tabs];
+        updatedTabs[activeTab].order.items.push(response.data);
+        setTabs(updatedTabs);
+
+        updateTotalPrice(); // Update total price and item count
+      })
+      .catch((error) => {
+        console.error("Error handling SKU click:", error);
+        toast.error("Thêm sản phẩm thất bại, thử lại", {
+          position: "top-right",
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+        });
+      });
+  };
+
+  const fetchCustomerById = async (customerId: number) => {
+    try {
+      const response = await getCustomerById(customerId);
+      setSelectedCustomer(response.data.data);
+      console.log("Fetched customer:", response);
     } catch (error) {
-      console.error("Error handling SKU click:", error);
-      toast.error("Thêm sản phẩm thất bại, thử lại", {
+      console.error("Error fetching customer:", error);
+      toast.error("Failed to fetch customer details", {
         position: "top-right",
         autoClose: 3000,
         hideProgressBar: false,
@@ -359,159 +399,81 @@ export default function SalePage() {
     }
   };
 
-  // Handle page navigation
-  const handleNextPage = () => {
-    setPage((prev) => Math.min(prev + 1, totalPages));
-  };
-
-  const handlePreviousPage = () => {
-    setPage((prev) => Math.max(prev - 1, 1));
-  };
-
-  const adjustLimit = () => {
-    const container = skuListRef.current;
-    if (container) {
-      const containerWidth = container.offsetWidth;
-      const containerHeight = container.offsetHeight;
-
-      const cardWidth = 192;
-      const cardHeight = 96;
-
-      const itemsPerRow = Math.max(1, Math.floor(containerWidth / cardWidth));
-      const rowsPerPage = Math.max(1, Math.floor(containerHeight / cardHeight));
-
-      const newLimit = itemsPerRow * rowsPerPage;
-      setLimit(newLimit);
-    }
-  };
-
-  // Fetch
-  const fetchOrders = async () => {
-    isInitalized.current = true;
-    try {
-      const response = await getListOrder(OrderStatus.PENDING); // Fetch all orders
-      // console.log("Fetched orders:", response);
-      const transformedTabs: Tab[] = response.data.map(
-        (order: OrderGetDetail) => ({
-          number: order.id,
-          order,
-        }),
-      );
-      setTabs(transformedTabs);
-      if (transformedTabs.length > 0) {
-        setActiveTab(0); // Set the first tab as active if orders exist
-      }
-      isInitalized.current = false;
-    } catch (error) {
-      console.log("Fetch error:", error);
-    }
-  };
-
-  const fetchCreateOrder = async (orderCreate: OrderCreate) => {
-    try {
-      const response = await createOrder(orderCreate);
-      return response.data;
-    } catch (error) {
-      console.error("Create order error:", error);
-      throw error;
-    }
-  };
-
-  const fetchAddOrderItem = async (orderItem: OrderItemCreate) => {
-    try {
-      const response = await addOrderItem(orderItem);
-      return response.data;
-    } catch (error) {
-      console.error("Add order item error:", error);
-      throw error;
-    }
-  };
-
-  const fetchDeleteOrder = async (orderId: number) => {
-    try {
-      await deleteOrder(orderId);
-    } catch (error) {
-      console.error("Delete order error:", error);
-      throw error;
-    }
-  };
-
-  const fetchDeleteOrderItem = async (orderId: number, skuId: number) => {
-    try {
-      await deleteOrderItem(orderId, skuId);
-    } catch (error) {
-      console.error("Delete order item error:", error);
-      throw error;
-    }
-  };
-
-  const fetchUpdateOrderItem = async (
-    orderId: number,
-    skuId: number,
-    orderItem: OrderItemUpdate,
-  ) => {
-    try {
-      const response = await updateOrderItemApi(orderId, skuId, orderItem);
-      return response.data;
-    } catch (error) {
-      console.error("Update order item error:", error);
-      throw error;
-    }
-  };
-
-  const fetchSearchCustomer = async (value: string) => {
-    try {
-      const filter: CustomerListFilter = {
-        lkPhoneNumber: value,
-        status: [1],
-      };
-      const response = await listCustomer(filter);
-      return response.data;
-    } catch (error) {
-      console.error("Search customer error:", error);
-      throw error;
-    }
-  };
-
-  // Set up ResizeObserver to monitor container size
   useEffect(() => {
-    const container = skuListRef.current;
-
-    if (!container) return;
-
-    const observer = new ResizeObserver(() => {
-      adjustLimit();
-    });
-
-    observer.observe(container);
-
-    return () => {
-      observer.disconnect();
-    };
+    // Example: Fetch a specific customer on load if needed
+    const initialCustomerId = 1; // Replace with your logic
+    if (initialCustomerId) fetchCustomerById(initialCustomerId);
   }, []);
 
   // Fetch data on component mount and when filters or page changes
   useEffect(() => {
-    // setLoading(true);
-    // setError(null);
-    getListSku(brandId, categoryId, page, limit)
-      .then((response) => {
+    setIsLoadingSku(true);
+
+    const timeout = new Promise((_, reject) =>
+      setTimeout(() => reject(new Error("Request timed out")), 5000),
+    );
+
+    Promise.race([getListSku(brandId, categoryId, page, limit), timeout])
+      .then((response: any) => {
         setSkuData(response.data); // Set the SKU data from the `data` field
         const totalPages = Math.ceil(
           response.paging.total / response.paging.limit,
         ); // Calculate total pages
         setTotalPages(totalPages);
       })
-      .catch((error) => {
-        console.log("Fetch error:", error);
+      .catch((error: any) => {
+        console.error("Fetch error:", error);
+        toast.error(error.message || "Đã xảy ra lỗi khi tải dữ liệu", {
+          position: "top-right",
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+        });
       })
       .finally(() => {
-        // setLoading(false);
+        setIsLoadingSku(false);
       });
   }, [brandId, categoryId, page, limit]);
 
   useEffect(() => {
-    fetchOrders(); // Fetch orders on component mount
+    setIsLoadingPage(true);
+    isInitialized.current = true;
+
+    const timeout = new Promise((_, reject) =>
+      setTimeout(() => reject(new Error("Request timed out")), 5000),
+    );
+
+    Promise.race([getListOrder(OrderStatus.PENDING), timeout])
+      .then((response: any) => {
+        const transformedTabs: Tab[] = response.data.map(
+          (order: OrderGetDetail) => ({
+            number: order.id,
+            order,
+          }),
+        );
+        setTabs(transformedTabs);
+        if (transformedTabs.length > 0) {
+          setActiveTab(0); // Set the first tab as active if orders exist
+        }
+        // console.log("Orders loaded:", response.data.map((o: OrderGetDetail) => o));
+        isInitialized.current = false;
+      })
+      .catch((error: any) => {
+        console.error("Fetch error:", error);
+        toast.error(error.message || "Đã xảy ra lỗi khi tải đơn hàng", {
+          position: "top-right",
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+        });
+      })
+      .finally(() => {
+        setIsLoadingPage(false);
+      });
   }, []);
 
   useEffect(() => {
@@ -521,16 +483,14 @@ export default function SalePage() {
   }, [tabs, activeTab]);
 
   useEffect(() => {
-    if (tabs.length === 0 && !isInitalized.current) {
+    if (tabs.length === 0 && !isInitialized.current) {
       (async () => {
-        try {
-          await addTab();
-        } catch (error) {
+        await addTab().catch((error) => {
           console.error("Error adding tab on initial load:", error);
-        }
+        });
       })();
     }
-  }, [tabs]);
+  }, [addTab, tabs]);
 
   // Adjust the current page if it exceeds the new total pages
   useEffect(() => {
@@ -557,190 +517,213 @@ export default function SalePage() {
   }, [tabs]);
 
   return (
-    <div className="h-screen flex flex-col">
-      {/* Header */}
-      <div className="flex flex-row bg-primary w-full p-0">
-        <div className="relative w-1/3 p-2">
-          <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 transform bg-background" />
-          <Input
-            value={searchValue}
-            onChange={handleSearchInput}
-            className="pl-9 bg-background "
-            placeholder="Tìm hàng hoá"
-          />
-        </div>
-
-        {/* Tabs list */}
-        <div className="flex flex-row ml-4 items-end w-auto">
-          <OrderTabsList
-            tabs={tabs}
-            activeTab={activeTab}
-            onTabChange={(index) => {
-              setActiveTab(index);
-            }}
-            onDeleteTab={deleteTab}
-            onAddTab={addTab}
-            isOverflowing={isOverflowing}
-            scrollTabs={scrollTabs}
-            tabListRef={tabListRef}
-          />
-        </div>
-      </div>
-
-      {/* Body */}
-      <div className="flex flex-grow flex-row">
-        {/* Left Section */}
-        <div className="p-2 w-full md:w-[55%] flex flex-col h-full">
-          {/* Order items */}
-          <div className="flex flex-col flex-grow p-2 space-y-2 overflow-y-auto h-[0px]">
-            {tabs[activeTab]?.order.items.length === 0 && (
-              <div className="text-center text-gray-500">
-                Chưa có sản phầm nào trong đơn hàng
-              </div>
-            )}
-            {tabs[activeTab]?.order?.items.map((item, index) => (
-              <OrderItemCard
-                key={item.skuId} // Ensure each card has a unique key
-                index={index + 1} // Optionally use 1-based indexing
-                id={item.skuId}
-                name={"item name"}
-                quantity={item.amount}
-                originalPrice={item.unitPrice}
-                onDecreament={() => handleOrderItemDecrease(index)} // Decrease quantity for this item
-                onIncreament={() => handleOrderItemIncrease(index)} // Increase quantity for this item
-                onRemove={() => handleOrderItemRemove(index)} // Remove this item from the order
-              />
-            ))}
+    <Fragment>
+      {isLoadingPage && <LoadingAnimation />}
+      <div className="h-screen flex flex-col">
+        {/* Header */}
+        <div className="flex flex-row bg-primary w-full p-0">
+          <div className="relative w-1/3 p-2">
+            <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 transform bg-background" />
+            <Input
+              value={searchValue}
+              onChange={handleSearchInput}
+              className="pl-9 bg-background "
+              placeholder="Tìm hàng hoá"
+            />
           </div>
 
-          {/* Footer Card */}
-          <Card className="mx-2 mt-auto p-2 shadow-md">
-            <div className="flex flex-row items-center gap-2">
-              {/* Order Description Input */}
-              <div className="flex-grow relative">
-                <Input
-                  value={orderDescription}
-                  onChange={handleDescriptionChange}
-                  className="bg-white p-2 rounded-md border-0 shadow-none pl-10"
-                  placeholder="Ghi chú đơn hàng"
-                />
-                <Pen className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 h-5 w-5" />
-              </div>
-
-              {/* Total Price */}
-              <div className="flex items-center justify-between">
-                <span className="px-5 text-sm text-gray-600">
-                  Tổng tiền hàng
-                </span>
-                <span className="text-sm">{numberOfItems}</span>
-                <span className="pl-24 pr-8 text-lg font-semibold">
-                  {totalPrice.toLocaleString()}
-                </span>
-              </div>
-            </div>
-          </Card>
+          {/* Tabs list */}
+          <div className="flex flex-row ml-4 items-end w-auto">
+            <OrderTabsList
+              tabs={tabs}
+              activeTab={activeTab}
+              onTabChange={async (index) => {
+                setActiveTab(index);
+                if (!tabs[index].order.customerId) return;
+                getCustomerById(tabs[index].order.customerId)
+                  .then((response) => {
+                    console.log(response.data.data);
+                    setSelectedCustomer(response.data.data);
+                  })
+                  .catch((error) => {
+                    console.error("Error fetching customer:", error);
+                    toast.error("Lấy thông tin khách hàng thất bại");
+                  });
+              }}
+              onDeleteTab={deleteTab}
+              onAddTab={addTab}
+              isOverflowing={isOverflowing}
+              scrollTabs={scrollTabs}
+              tabListRef={tabListRef}
+            />
+          </div>
         </div>
 
-        {/* Right Section */}
-        <div className="p-2 w-full md:w-[45%]">
-          <Card className="p-2 flex flex-col h-full">
-            {/*Filter*/}
-            <div className="flex flex-row">
-              <div className="relative w-3/4 p-2 flex items-center">
-                <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 transform bg-background" />
-                <Input
-                  value={searchCustomer}
-                  onChange={handleSearchCustomer}
-                  className="pl-9 bg-background flex-grow"
-                  placeholder="Tìm khách hàng"
-                />
-                {searchCustomerResult &&
-                  searchCustomerResult.length > 0 &&
-                  searchCustomer.trim() !== "" && (
-                    <div className="absolute top-full mt-2 left-0 w-full bg-white border rounded-lg shadow-md z-50 max-h-60 overflow-y-auto">
-                      {searchCustomerResult.map((provider) => (
-                        <div
-                          key={provider.id}
-                          className="p-2 hover:bg-gray-100 cursor-pointer"
-                          onClick={() => {
-                            setSearchCustomer(
-                              provider.phoneNumber + " - " + provider.name,
-                            );
-                            setSearchCustomerResult(undefined);
-                            setSelectedCustomer(provider);
-                          }}
-                        >
-                          <span className="text-gray-500">
-                            {provider.phoneNumber}
-                          </span>
-                          {" - "}
-                          <span className="font-medium">{provider.name}</span>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                <Button
-                  className="absolute right-3 p-1 h-7 w-7 bg-background text-gray-600 hover:bg-gray-200 rounded-full shadow-none"
-                  onClick={() => setIsCustomerCreateOpen(true)}
-                >
-                  <Plus />
-                </Button>
-              </div>
-              <div className="flex flex-row flex-grow px-2 w-auto items-center justify-end gap-2">
-                <Button className="p-1 h-7 w-7 bg-transparent text-black rounded-full shadow-none hover:bg-blue-200 hover:text-blue-800">
-                  <List />
-                </Button>
-                <Button className="p-1 h-7 w-7 bg-transparent text-black rounded-full shadow-none hover:bg-blue-200 hover:text-blue-800">
-                  <Filter />
-                </Button>
-              </div>
-            </div>
-
-            {/*SPU list*/}
-            <div
-              ref={skuListRef}
-              className="p-2 flex flex-wrap gap-2 items-start content-start"
-              style={{
-                height: "calc(100vh - 210px)", // Adjust based on your header/footer height
-              }}
-            >
-              {skuData.map((sku) => (
-                <div key={sku.id} onClick={() => handleSkuClick(sku)}>
-                  <SkuCard {...sku} />
+        {/* Body */}
+        <div className="flex flex-grow flex-row">
+          {/* Left Section */}
+          <div className="p-2 flex flex-col flex-grow h-full">
+            {/* Order items */}
+            <div className="flex flex-col flex-grow p-2 space-y-2 overflow-y-auto h-[0px]">
+              {tabs[activeTab]?.order.items.length === 0 && (
+                <div className="text-center text-gray-500">
+                  Chưa có sản phầm nào trong đơn hàng
                 </div>
+              )}
+              {tabs[activeTab]?.order?.items.map((item, index) => (
+                <OrderItemCard
+                  key={item.skuId} // Ensure each card has a unique key
+                  index={index + 1} // Optionally use 1-based indexing
+                  id={item.skuId}
+                  name={item.skuDetail ? item.skuDetail.name : ""}
+                  quantity={item.amount}
+                  stock={item.skuDetail ? item.skuDetail.stock : 0}
+                  wholeSalePrices={
+                    item.skuDetail && item.skuDetail.wholesalePrices
+                      ? item.skuDetail.wholesalePrices
+                      : []
+                  }
+                  description={item.description}
+                  originalPrice={item.unitPrice}
+                  onRemove={() => handleOrderItemRemove(index)} // Remove this item from the order
+                  onQuantityBlur={async (value) => {
+                    return await handleOrderItemQuantityChange(index, value);
+                  }}
+                  onDescriptionBlur={(value) =>
+                    handleOrderItemDescriptionChange(index, value)
+                  }
+                />
               ))}
             </div>
 
-            {/*Action*/}
-            <div className="flex flex-row p-2 items-center mt-auto gap-10">
-              <Pagination
-                page={page}
-                totalPages={totalPages}
-                onNext={handleNextPage}
-                onPrevious={handlePreviousPage}
-              />
-              <Button
-                className="p-4 w-full h-12"
-                onClick={() => setIsPaymentDialogOpen(true)}
-              >
-                THANH TOÁN
-              </Button>
-            </div>
-          </Card>
-        </div>
-      </div>
+            {/* Footer Card */}
+            <Card className="mx-2 mt-auto p-2 shadow-md">
+              <div className="flex flex-row items-center gap-2">
+                {/* Order Description Input */}
+                <div className="flex-grow relative">
+                  <Input
+                    value={orderDescription}
+                    onChange={handleDescriptionChange}
+                    className="bg-white p-2 rounded-md border-0 shadow-none pl-10"
+                    placeholder="Ghi chú đơn hàng"
+                    onBlur={handleDescriptionBlur}
+                    disabled={!tabs[activeTab]}
+                  />
+                  <Pen className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 h-5 w-5" />
+                </div>
 
-      <PaymentDialog
-        isOpen={isPaymentDialogOpen}
-        onClose={() => setIsPaymentDialogOpen(false)}
-        customerName={"Mai Hoàng Hưng"}
-        customerPhone={"0123456789"}
-        orderDetails={tabs[activeTab]?.order}
-      />
-      <CreateCustomerModal
-        isOpen={isCustomerCreateOpen}
-        onClose={() => setIsCustomerCreateOpen(false)}
-      />
-    </div>
+                {/* Total Price */}
+                <div className="flex items-center justify-between">
+                  <span className="px-5 text-sm text-gray-600">
+                    Tổng tiền hàng
+                  </span>
+                  <span className="text-sm">{numberOfItems}</span>
+                  <span className="pl-24 pr-8 text-lg font-semibold">
+                    {totalPrice.toLocaleString()}
+                  </span>
+                </div>
+              </div>
+            </Card>
+          </div>
+
+          {/* Right Section */}
+          <div className="p-2 w-[650px]">
+            <Card className="p-2 flex flex-col h-full">
+              {/*Filter*/}
+              <div className="flex flex-row">
+                <div className="relative w-3/4 flex items-center">
+                  <CustomerSearch
+                    customerValue={selectedCustomer}
+                    onCustomerChange={(customer) => {
+                      setSelectedCustomer(customer);
+                      if (customer) {
+                        // Update order with customer ID
+                        updateOrder(tabs[activeTab]?.order.id, {
+                          customerId: customer.id,
+                        }).catch((error) => {
+                          console.error(
+                            "Error updating order with customer:",
+                            error,
+                          );
+                          toast.error("Failed to update order with customer.");
+                        });
+                      } else {
+                        // Remove customer from order
+                        removeCustomer(tabs[activeTab]?.order.id).catch(
+                          (error) => {
+                            console.error(
+                              "Error removing customer from order:",
+                              error,
+                            );
+                            toast.error(
+                              "Failed to remove customer from order.",
+                            );
+                          },
+                        );
+                      }
+                    }}
+                  />
+                </div>
+                <div className="flex flex-row flex-grow px-2 w-auto items-center justify-end gap-2">
+                  <Button className="p-1 h-7 w-7 bg-transparent text-black rounded-full shadow-none hover:bg-blue-200 hover:text-blue-800">
+                    <List />
+                  </Button>
+                  <Button className="p-1 h-7 w-7 bg-transparent text-black rounded-full shadow-none hover:bg-blue-200 hover:text-blue-800">
+                    <Filter />
+                  </Button>
+                </div>
+              </div>
+
+              {/*SPU list*/}
+              <div
+                ref={skuListRef}
+                className="p-2 flex flex-wrap gap-2 items-start content-start"
+                style={{
+                  height: "calc(100vh - 210px)",
+                  // width: "650px",
+                }}
+              >
+                {isLoadingSku && <LoadingAnimation />}
+                {skuData.map((sku) => (
+                  <div key={sku.id} onClick={() => handleSkuClick(sku)}>
+                    <SkuCard {...sku} />
+                  </div>
+                ))}
+              </div>
+
+              {/*Action*/}
+              <div className="flex flex-row p-2 items-center mt-auto gap-10">
+                <Pagination
+                  page={page}
+                  totalPages={totalPages}
+                  onNext={() =>
+                    setPage((prev) => Math.min(prev + 1, totalPages))
+                  }
+                  onPrevious={() => setPage((prev) => Math.max(prev - 1, 1))}
+                />
+                <Button
+                  className="p-4 w-full h-12"
+                  onClick={() => setIsPaymentDialogOpen(true)}
+                >
+                  THANH TOÁN
+                </Button>
+              </div>
+            </Card>
+          </div>
+        </div>
+
+        <PaymentDialog
+          isOpen={isPaymentDialogOpen}
+          onClose={() => setIsPaymentDialogOpen(false)}
+          orderId={tabs[activeTab]?.order.id}
+          customer={selectedCustomer}
+          orderDetails={tabs[activeTab]?.order}
+        />
+        <CreateCustomerModal
+          isOpen={isCustomerCreateOpen}
+          onClose={() => setIsCustomerCreateOpen(false)}
+        />
+      </div>
+    </Fragment>
   );
 }
