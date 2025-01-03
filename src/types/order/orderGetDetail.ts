@@ -2,7 +2,7 @@
 
 export interface OrderGetDetail {
   id: number;
-  customerId: number;
+  customerId?: number;
   sellerId: number;
   status: number;
   orderType: string;

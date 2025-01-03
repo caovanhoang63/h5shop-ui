@@ -24,6 +24,7 @@ import {
   deleteOrderItem,
   getListOrder,
   OrderStatus,
+  removeCustomer,
   updateOrder,
 } from "@/pages/sale/api/orderApi.ts";
 import { OrderType } from "@/types/order/order.ts";
@@ -34,6 +35,7 @@ import { toast } from "react-toastify";
 import { Customer } from "@/types/customer/customer.ts";
 import { LoadingAnimation } from "@/components/ui/LoadingAnimation.tsx";
 import { CustomerSearch } from "@/pages/sale/components/CustomerSearch.tsx";
+import { getCustomerById } from "@/pages/sale/api/customerApi.ts";
 
 export default function SalePage() {
   const [isLoadingPage, setIsLoadingPage] = useState<boolean>(false);
@@ -44,7 +46,7 @@ export default function SalePage() {
   // Customer
   const [selectedCustomer, setSelectedCustomer] = useState<
     Customer | undefined
-  >();
+  >(undefined);
 
   // Order tabs
   const [orderDescription, setOrderDescription] = useState("");
@@ -59,8 +61,6 @@ export default function SalePage() {
 
   // Sku list
   const [skuData, setSkuData] = useState<SkuGetDetail[]>([]);
-  // const [loading, setLoading] = useState(false);
-  // const [error, setError] = useState<string | null>(null);
 
   // Pagination
   const [page, setPage] = useState(1);
@@ -381,14 +381,29 @@ export default function SalePage() {
       });
   };
 
-  // Handle page navigation
-  const handleNextPage = () => {
-    setPage((prev) => Math.min(prev + 1, totalPages));
+  const fetchCustomerById = async (customerId: number) => {
+    try {
+      const response = await getCustomerById(customerId);
+      setSelectedCustomer(response.data.data);
+      console.log("Fetched customer:", response);
+    } catch (error) {
+      console.error("Error fetching customer:", error);
+      toast.error("Failed to fetch customer details", {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+      });
+    }
   };
 
-  const handlePreviousPage = () => {
-    setPage((prev) => Math.max(prev - 1, 1));
-  };
+  useEffect(() => {
+    // Example: Fetch a specific customer on load if needed
+    const initialCustomerId = 1; // Replace with your logic
+    if (initialCustomerId) fetchCustomerById(initialCustomerId);
+  }, []);
 
   // Fetch data on component mount and when filters or page changes
   useEffect(() => {
@@ -522,8 +537,18 @@ export default function SalePage() {
             <OrderTabsList
               tabs={tabs}
               activeTab={activeTab}
-              onTabChange={(index) => {
+              onTabChange={async (index) => {
                 setActiveTab(index);
+                if (!tabs[index].order.customerId) return;
+                getCustomerById(tabs[index].order.customerId)
+                  .then((response) => {
+                    console.log(response.data.data);
+                    setSelectedCustomer(response.data.data);
+                  })
+                  .catch((error) => {
+                    console.error("Error fetching customer:", error);
+                    toast.error("Lấy thông tin khách hàng thất bại");
+                  });
               }}
               onDeleteTab={deleteTab}
               onAddTab={addTab}
@@ -608,32 +633,35 @@ export default function SalePage() {
               <div className="flex flex-row">
                 <div className="relative w-3/4 flex items-center">
                   <CustomerSearch
-                    onSelectCustomer={(value) =>
-                      setSelectedCustomer(() => {
-                        updateOrder(tabs[activeTab].order.id, {
-                          customerId: value ? value.id : null,
-                        })
-                          .then(() => {
-                            return value;
-                          })
-                          .catch((error) => {
+                    customerValue={selectedCustomer}
+                    onCustomerChange={(customer) => {
+                      setSelectedCustomer(customer);
+                      if (customer) {
+                        // Update order with customer ID
+                        updateOrder(tabs[activeTab]?.order.id, {
+                          customerId: customer.id,
+                        }).catch((error) => {
+                          console.error(
+                            "Error updating order with customer:",
+                            error,
+                          );
+                          toast.error("Failed to update order with customer.");
+                        });
+                      } else {
+                        // Remove customer from order
+                        removeCustomer(tabs[activeTab]?.order.id).catch(
+                          (error) => {
                             console.error(
-                              "Error updating order customer:",
+                              "Error removing customer from order:",
                               error,
                             );
-                            toast.error("Cập nhập khách hàng thất bại", {
-                              position: "top-right",
-                              autoClose: 3000,
-                              hideProgressBar: false,
-                              closeOnClick: true,
-                              pauseOnHover: true,
-                              draggable: true,
-                            });
-                          });
-
-                        return value;
-                      })
-                    }
+                            toast.error(
+                              "Failed to remove customer from order.",
+                            );
+                          },
+                        );
+                      }
+                    }}
                   />
                 </div>
                 <div className="flex flex-row flex-grow px-2 w-auto items-center justify-end gap-2">
@@ -668,8 +696,10 @@ export default function SalePage() {
                 <Pagination
                   page={page}
                   totalPages={totalPages}
-                  onNext={handleNextPage}
-                  onPrevious={handlePreviousPage}
+                  onNext={() =>
+                    setPage((prev) => Math.min(prev + 1, totalPages))
+                  }
+                  onPrevious={() => setPage((prev) => Math.max(prev - 1, 1))}
                 />
                 <Button
                   className="p-4 w-full h-12"

@@ -1,4 +1,4 @@
-﻿import React, { ChangeEvent, useMemo, useState } from "react";
+﻿import React, { ChangeEvent, useEffect, useMemo, useState } from "react";
 import { Search, Plus, User, X } from "lucide-react";
 import { Button } from "@/components/ui/button.tsx";
 import { Input } from "@/components/ui/input.tsx";
@@ -8,18 +8,23 @@ import { CustomerListFilter } from "@/types/customer/customerListFilter.ts";
 import _ from "lodash";
 
 interface CustomerSearchProps {
-  onSelectCustomer: (customer: Customer | undefined) => void;
+  onCustomerChange: (customer: Customer | undefined) => void;
+  customerValue?: Customer;
 }
 
 export const CustomerSearch: React.FC<CustomerSearchProps> = ({
-  onSelectCustomer,
+  onCustomerChange,
+  customerValue,
 }) => {
   const [searchCustomer, setSearchCustomer] = useState("");
   const [searchCustomerResult, setSearchCustomerResult] =
     useState<Customer[]>();
-  const [selectedCustomer, setSelectedCustomer] = useState<
-    Customer | undefined
-  >();
+
+  useEffect(() => {
+    if (customerValue) {
+      setSearchCustomerResult(undefined); // Clear search results if customer is set
+    }
+  }, [customerValue]);
 
   const debounceSearchCustomer = useMemo(
     () =>
@@ -33,8 +38,7 @@ export const CustomerSearch: React.FC<CustomerSearchProps> = ({
           };
           listCustomer(filter)
             .then((response) => {
-              const searchResponse = response.data;
-              setSearchCustomerResult(searchResponse);
+              setSearchCustomerResult(response.data);
             })
             .catch((error) => {
               console.error(error);
@@ -52,19 +56,13 @@ export const CustomerSearch: React.FC<CustomerSearchProps> = ({
 
   return (
     <div className="relative w-full p-2 flex items-center">
-      {selectedCustomer ? (
+      {customerValue ? (
         <Button className="h-9 w-full justify-start bg-gray-200 text-primary hover:bg-gray-200 shadow-none">
           <User />
-          {selectedCustomer.phoneNumber +
-            " - " +
-            selectedCustomer.lastName +
-            " " +
-            selectedCustomer.firstName}
+          {customerValue.phoneNumber} - {customerValue.lastName}{" "}
+          {customerValue.firstName}
           <Button
-            onClick={() => {
-              setSelectedCustomer(undefined);
-              onSelectCustomer(undefined);
-            }}
+            onClick={() => onCustomerChange(undefined)}
             className="p-1 ml-auto h-6 w-6 bg-transparent text-black hover:bg-gray-300 rounded-full shadow-none"
           >
             <X />
@@ -91,8 +89,7 @@ export const CustomerSearch: React.FC<CustomerSearchProps> = ({
               key={customer.id}
               className="p-2 hover:bg-gray-100 cursor-pointer"
               onClick={() => {
-                setSelectedCustomer(customer);
-                onSelectCustomer(customer);
+                onCustomerChange(customer);
                 setSearchCustomer("");
                 setSearchCustomerResult(undefined);
               }}

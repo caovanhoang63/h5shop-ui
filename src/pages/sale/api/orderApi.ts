@@ -86,6 +86,18 @@ export async function payOrder(id: number | null, order: OrderPay) {
   }
 }
 
+export async function removeCustomer(id: number) {
+  try {
+    const response = await axiosInstance.patch<Order>(
+      `/v1/order/${id}/remove-customer`,
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Remove customer error:", error);
+    throw error;
+  }
+}
+
 export async function addOrderItem(item: OrderItemCreate) {
   try {
     const response = await axiosInstance.post<OrderItemResponse>(
