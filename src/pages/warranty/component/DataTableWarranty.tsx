@@ -1,7 +1,3 @@
-"use client";
-
-import * as React from "react";
-import { useEffect } from "react";
 import {
   ColumnDef,
   ColumnFiltersState,
@@ -14,18 +10,13 @@ import {
   useReactTable,
   VisibilityState,
 } from "@tanstack/react-table";
-import { ArrowUpDown, MoreHorizontal } from "lucide-react";
-
-import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { Checkbox } from "@/components/ui/checkbox.tsx";
+import { Button } from "@/components/ui/button.tsx";
+import { ArrowUpDown } from "lucide-react";
+import { MenuVisibilityColumnTable } from "@/components/ButtonVisibilityColumnTable.tsx";
+import { PagingSpu } from "@/types/spu/PagingSpu.ts";
+import * as React from "react";
+import { useEffect } from "react";
 import {
   Table,
   TableBody,
@@ -33,12 +24,10 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table";
-import { MenuVisibilityColumnTable } from "@/components/ButtonVisibilityColumnTable.tsx";
-import { SpuListTable } from "@/types/spu/spuListTable.ts";
-import { PagingSpu } from "@/types/spu/PagingSpu.ts";
+} from "@/components/ui/table.tsx";
+import { Warranty } from "@/types/warranty/warranty.ts";
 
-export const spuColumns: ColumnDef<SpuListTable>[] = [
+export const warrantyColumn: ColumnDef<Warranty>[] = [
   {
     id: "select",
     header: ({ table }) => (
@@ -68,21 +57,7 @@ export const spuColumns: ColumnDef<SpuListTable>[] = [
     cell: ({ row }) => <div className="capitalize">{row.getValue("id")}</div>,
   },
   {
-    id: "images",
-    enableHiding: false,
-    cell: ({ row }) => {
-      const images = row.original.images;
-      return (
-        <img
-          className={"w-8"}
-          alt={"ảnh sản phẩm"}
-          src={images?.[0]?.url || "image-placeholder.png"}
-        ></img>
-      );
-    },
-  },
-  {
-    accessorKey: "name",
+    accessorKey: "warrantyType",
     header: ({ column }) => {
       return (
         <Button
@@ -90,15 +65,15 @@ export const spuColumns: ColumnDef<SpuListTable>[] = [
           variant="ghost"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
-          Tên sản phẩm
+          Loại bảo hành
           <ArrowUpDown />
         </Button>
       );
     },
-    cell: ({ row }) => <div className="lowercase">{row.getValue("name")}</div>,
+    cell: ({ row }) => <div>{row.getValue("warrantyType")}</div>,
   },
   {
-    accessorKey: "brandName",
+    accessorKey: "customerId",
     header: ({ column }) => {
       return (
         <Button
@@ -106,17 +81,15 @@ export const spuColumns: ColumnDef<SpuListTable>[] = [
           variant="ghost"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
-          Thương hiệu
+          Id khách hàng
           <ArrowUpDown />
         </Button>
       );
     },
-    cell: ({ row }) => (
-      <div className="lowercase">{row.getValue("brandName")}</div>
-    ),
+    cell: ({ row }) => <div>{row.getValue("customerId")}</div>,
   },
   {
-    accessorKey: "categoryName",
+    accessorKey: "customerPhoneNumber",
     header: ({ column }) => {
       return (
         <Button
@@ -124,17 +97,47 @@ export const spuColumns: ColumnDef<SpuListTable>[] = [
           variant="ghost"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
-          Nhóm hàng
+          Sdt khách hàng
           <ArrowUpDown />
         </Button>
       );
     },
-    cell: ({ row }) => (
-      <div className="lowercase">{row.getValue("categoryName")}</div>
-    ),
+    cell: ({ row }) => <div>{row.getValue("customerPhoneNumber")}</div>,
   },
   {
-    accessorKey: "description",
+    accessorKey: "stockInId",
+    header: ({ column }) => {
+      return (
+        <Button
+          className="p-0"
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Id stock in
+          <ArrowUpDown />
+        </Button>
+      );
+    },
+    cell: ({ row }) => <div>{row.getValue("stockInId")}</div>,
+  },
+  {
+    accessorKey: "skuId",
+    header: ({ column }) => {
+      return (
+        <Button
+          className="p-0"
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Id Sku
+          <ArrowUpDown />
+        </Button>
+      );
+    },
+    cell: ({ row }) => <div className="lowercase">{row.getValue("skuId")}</div>,
+  },
+  {
+    accessorKey: "orderId",
     header: ({ column }) => {
       return (
         <Button
@@ -147,53 +150,123 @@ export const spuColumns: ColumnDef<SpuListTable>[] = [
         </Button>
       );
     },
+    cell: ({ row }) => <div>{row.getValue("orderId")}</div>,
+  },
+  {
+    accessorKey: "amount",
+    header: ({ column }) => {
+      return (
+        <Button
+          className="p-0"
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Số lượng
+          <ArrowUpDown />
+        </Button>
+      );
+    },
+    cell: ({ row }) => <div>{row.getValue("amount")}</div>,
+  },
+  {
+    accessorKey: "returnDate",
+    header: ({ column }) => {
+      return (
+        <Button
+          className="p-0"
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Ngày trả hàng
+          <ArrowUpDown />
+        </Button>
+      );
+    },
+    cell: ({ row }) => <div>{row.getValue("returnDate")}</div>,
+  },
+  {
+    accessorKey: "note",
+    header: ({ column }) => {
+      return (
+        <Button
+          className="p-0"
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Note
+          <ArrowUpDown />
+        </Button>
+      );
+    },
+    cell: ({ row }) => <div className="lowercase">{row.getValue("note")}</div>,
+  },
+  {
+    accessorKey: "status",
+    header: ({ column }) => {
+      return (
+        <Button
+          className="p-0"
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Trạng thái
+          <ArrowUpDown />
+        </Button>
+      );
+    },
     cell: ({ row }) => (
-      <div className="lowercase">{row.getValue("description")}</div>
+      <div className="lowercase">{row.getValue("status")}</div>
     ),
   },
   {
-    id: "actions",
-    enableHiding: false,
-    cell: ({ row }) => {
-      const payment = row.original;
+    accessorKey: "createdAt",
+    header: ({ column }) => {
       return (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="h-8 w-8 p-0">
-              <span className="sr-only">Open menu</span>
-              <MoreHorizontal />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuLabel>Actions</DropdownMenuLabel>
-            <DropdownMenuItem
-              onClick={() =>
-                navigator.clipboard.writeText(payment.id.toString())
-              }
-            >
-              Copy payment ID
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem>View customer</DropdownMenuItem>
-            <DropdownMenuItem>View payment details</DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <Button
+          className="p-0"
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Ngày tạo
+          <ArrowUpDown />
+        </Button>
       );
     },
+    cell: ({ row }) => (
+      <div className="lowercase">{row.getValue("createdAt")}</div>
+    ),
+  },
+  {
+    accessorKey: "updatedAt",
+    header: ({ column }) => {
+      return (
+        <Button
+          className="p-0"
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Ngày cập nhật
+          <ArrowUpDown />
+        </Button>
+      );
+    },
+    cell: ({ row }) => (
+      <div className="lowercase">{row.getValue("updatedAt")}</div>
+    ),
   },
 ];
 
 interface DataTableDemoProps {
   columnVisible: MenuVisibilityColumnTable[];
-  spuListTable: SpuListTable[];
-  onSelectedRow: (spuId: number) => void;
+  warrantyList: Warranty[];
+  onSelectedRow: (warrantyId: number) => void;
   paging: PagingSpu;
   setPaging: (page: number) => void;
 }
 
-export const DataTableDemo: React.FC<DataTableDemoProps> = ({
+export const DataTableWarranty: React.FC<DataTableDemoProps> = ({
   columnVisible,
-  spuListTable,
+  warrantyList,
   onSelectedRow,
   paging,
   setPaging,
@@ -218,8 +291,8 @@ export const DataTableDemo: React.FC<DataTableDemoProps> = ({
         pageSize: 10,
       },
     },
-    data: spuListTable,
-    columns: spuColumns,
+    data: warrantyList as Warranty[],
+    columns: warrantyColumn,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
     getCoreRowModel: getCoreRowModel(),
@@ -304,7 +377,7 @@ export const DataTableDemo: React.FC<DataTableDemoProps> = ({
             ) : (
               <TableRow>
                 <TableCell
-                  colSpan={spuColumns.length}
+                  colSpan={warrantyColumn.length}
                   className="h-24 text-center"
                 >
                   No results.
@@ -332,7 +405,7 @@ export const DataTableDemo: React.FC<DataTableDemoProps> = ({
             variant="outline"
             size="sm"
             onClick={() => handleClickNext()}
-            disabled={paging.page === Math.ceil(paging.total / paging.limit)}
+            disabled={paging.page >= Math.ceil(paging.total / paging.limit)}
           >
             Next
           </Button>
