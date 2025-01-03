@@ -12,10 +12,10 @@ interface SkuListDetailResponse {
 }
 
 export async function getListSku(
-  brandId: number,
-  categoryId: number,
-  page: number,
-  limit: number,
+  brandId?: number,
+  categoryId?: number,
+  page?: number,
+  limit?: number,
 ): Promise<SkuListDetailResponse> {
   try {
     const response = await axiosInstance.get<SkuListDetailResponse>(
