@@ -46,6 +46,7 @@ import { CategoryFilterDialog } from "@/pages/sale/components/CategoryFilterDial
 export default function SalePage() {
   const [isLoadingPage, setIsLoadingPage] = useState<boolean>(false);
   const [isLoadingSku, setIsLoadingSku] = useState<boolean>(false);
+  const [isLoadingCustomer, setIsLoadingCustomer] = useState<boolean>(false);
   // Input
   const [searchValue, setSearchValue] = useState("");
 
@@ -229,9 +230,6 @@ export default function SalePage() {
   const deleteTab = (index: number) => {
     deleteOrder(tabs[index].order.id)
       .then(() => {
-        const updatedTabs = tabs.filter((_, i) => i !== index);
-        setTabs(updatedTabs);
-
         // Adjust the active tab if the current active tab is deleted
         if (index === activeTab) {
           // If the deleted tab was the active tab, set the active tab to the previous one (if it exists)
@@ -244,11 +242,13 @@ export default function SalePage() {
         }
 
         // If there are no tabs left, create a new tab
+        const updatedTabs = tabs.filter((_, i) => i !== index);
         if (updatedTabs.length === 0) {
           addTab().catch((error) => {
             console.log("Error adding tab after deleting:", error);
           });
         }
+        setTabs(updatedTabs);
       })
       .catch((error) => {
         console.log("Error deleting order:", error);
@@ -276,6 +276,8 @@ export default function SalePage() {
     index: number,
     value: number,
   ) => {
+    if (tabs[activeTab].order.items[index].amount === value) return true;
+
     return addOrderItem({
       orderId: tabs[activeTab].order.id,
       skuId: tabs[activeTab].order.items[index].skuId,
@@ -355,7 +357,6 @@ export default function SalePage() {
 
   const handleSkuClick = async (sku: SkuGetDetail) => {
     const activeOrder = tabs[activeTab]?.order;
-
     if (!activeOrder) {
       toast.error("Xin hãy tạo đơn hàng trước khi thêm sản phẩm", {
         position: "top-right",
@@ -377,6 +378,7 @@ export default function SalePage() {
       .then((response) => {
         // Update the active tab with the new item
         const updatedTabs = [...tabs];
+        response.data.skuDetail = sku;
         updatedTabs[activeTab].order.items.push(response.data);
         setTabs(updatedTabs);
 
@@ -427,6 +429,45 @@ export default function SalePage() {
     } catch (error) {
       console.error("Fetch error:", error);
     }
+  };
+
+  const fetchSku = async () => {
+    setIsLoadingSku(true);
+
+    const timeout = new Promise((_, reject) =>
+      setTimeout(() => reject(new Error("Request timed out")), 5000),
+    );
+
+    Promise.race([
+      getListSku(
+        skuFilter.brandId,
+        skuFilter.categoryId,
+        skuFilter.page,
+        skuFilter.limit,
+      ),
+      timeout,
+    ])
+      .then((response: any) => {
+        setSkuData(response.data); // Set the SKU data from the `data` field
+        const totalPages = Math.ceil(
+          response.paging.total / response.paging.limit,
+        ); // Calculate total pages
+        setTotalPages(totalPages);
+      })
+      .catch((error: any) => {
+        console.error("Fetch error:", error);
+        toast.error(error.message || "Đã xảy ra lỗi khi tải dữ liệu", {
+          position: "top-right",
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+        });
+      })
+      .finally(() => {
+        setIsLoadingSku(false);
+      });
   };
 
   // Fetch data on component mount and when filters or page changes
@@ -568,6 +609,27 @@ export default function SalePage() {
     fetchCategories();
   }, []);
 
+  const fetchCustomerOnTab = async (index: number) => {
+    setIsLoadingCustomer(true);
+    if (!tabs[index].order.customerId) {
+      setSelectedCustomer(undefined);
+      setIsLoadingCustomer(false);
+      return;
+    }
+    getCustomerById(tabs[index].order.customerId)
+      .then((response) => {
+        // console.log(response.data.data);
+        setSelectedCustomer(response.data.data);
+      })
+      .catch((error) => {
+        console.error("Error fetching customer:", error);
+        toast.error("Lấy thông tin khách hàng thất bại");
+      })
+      .finally(() => {
+        setIsLoadingCustomer(false);
+      });
+  };
+
   return (
     <Fragment>
       {isLoadingPage && <LoadingAnimation />}
@@ -590,22 +652,14 @@ export default function SalePage() {
               tabs={tabs}
               activeTab={activeTab}
               onTabChange={async (index) => {
-                setActiveTab(index);
-                if (!tabs[index].order.customerId) {
-                  setSelectedCustomer(undefined);
-                  return;
-                }
-                getCustomerById(tabs[index].order.customerId)
-                  .then((response) => {
-                    console.log(response.data.data);
-                    setSelectedCustomer(response.data.data);
-                  })
-                  .catch((error) => {
-                    console.error("Error fetching customer:", error);
-                    toast.error("Lấy thông tin khách hàng thất bại");
-                  });
+                fetchCustomerOnTab(index).then(() => {
+                  setActiveTab(index);
+                  console.log(tabs[index].order.id);
+                });
               }}
-              onDeleteTab={deleteTab}
+              onDeleteTab={(index: number) => {
+                deleteTab(index);
+              }}
               onAddTab={addTab}
               isOverflowing={isOverflowing}
               scrollTabs={scrollTabs}
@@ -627,19 +681,10 @@ export default function SalePage() {
               )}
               {tabs[activeTab]?.order?.items.map((item, index) => (
                 <OrderItemCard
-                  key={item.skuId} // Ensure each card has a unique key
+                  key={item.orderId + "" + item.skuId} // Ensure each card has a unique key
                   index={index + 1} // Optionally use 1-based indexing
-                  id={item.skuId}
-                  name={item.skuDetail ? item.skuDetail.name : ""}
+                  item={item}
                   quantity={item.amount}
-                  stock={item.skuDetail ? item.skuDetail.stock : 0}
-                  wholeSalePrices={
-                    item.skuDetail && item.skuDetail.wholesalePrices
-                      ? item.skuDetail.wholesalePrices
-                      : []
-                  }
-                  description={item.description}
-                  originalPrice={item.unitPrice}
                   onRemove={() => handleOrderItemRemove(index)} // Remove this item from the order
                   onQuantityBlur={async (value) => {
                     return await handleOrderItemQuantityChange(index, value);
@@ -687,37 +732,43 @@ export default function SalePage() {
               {/*Filter*/}
               <div className="flex flex-row">
                 <div className="relative w-3/4 flex items-center">
-                  <CustomerSearch
-                    customerValue={selectedCustomer}
-                    onCustomerChange={(customer) => {
-                      setSelectedCustomer(customer);
-                      if (customer) {
-                        // Update order with customer ID
-                        updateOrder(tabs[activeTab]?.order.id, {
-                          customerId: customer.id,
-                        }).catch((error) => {
-                          console.error(
-                            "Error updating order with customer:",
-                            error,
-                          );
-                          toast.error("Failed to update order with customer.");
-                        });
-                      } else {
-                        // Remove customer from order
-                        removeCustomer(tabs[activeTab]?.order.id).catch(
-                          (error) => {
+                  {isLoadingCustomer ? (
+                    <div>Loading...</div>
+                  ) : (
+                    <CustomerSearch
+                      customerValue={selectedCustomer}
+                      onCustomerChange={(customer) => {
+                        setSelectedCustomer(customer);
+                        if (customer) {
+                          // Update order with customer ID
+                          updateOrder(tabs[activeTab]?.order.id, {
+                            customerId: customer.id,
+                          }).catch((error) => {
                             console.error(
-                              "Error removing customer from order:",
+                              "Error updating order with customer:",
                               error,
                             );
                             toast.error(
-                              "Failed to remove customer from order.",
+                              "Failed to update order with customer.",
                             );
-                          },
-                        );
-                      }
-                    }}
-                  />
+                          });
+                        } else {
+                          // Remove customer from order
+                          removeCustomer(tabs[activeTab]?.order.id).catch(
+                            (error) => {
+                              console.error(
+                                "Error removing customer from order:",
+                                error,
+                              );
+                              toast.error(
+                                "Failed to remove customer from order.",
+                              );
+                            },
+                          );
+                        }
+                      }}
+                    />
+                  )}
                 </div>
                 <div className="flex flex-row flex-grow px-2 w-auto items-center justify-end gap-2">
                   <Button
@@ -787,6 +838,24 @@ export default function SalePage() {
           orderId={tabs[activeTab]?.order.id}
           customer={selectedCustomer}
           orderDetails={tabs[activeTab]?.order}
+          onPaymentSuccess={() => {
+            const updatedTabs = tabs.filter((_, i) => i !== activeTab);
+            setTabs(updatedTabs);
+
+            setActiveTab((prevActiveTab) =>
+              prevActiveTab > 0 ? prevActiveTab - 1 : 0,
+            );
+
+            // If there are no tabs left, create a new tab
+            if (updatedTabs.length === 0) {
+              addTab().catch((error) => {
+                console.log("Error adding tab after deleting:", error);
+              });
+            }
+
+            // Update sku list
+            fetchSku();
+          }}
         />
         <BrandFilterDialog
           onChange={handleChangedBrand}

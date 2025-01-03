@@ -41,6 +41,7 @@ export const MainRoute = () => {
         <Route path={"stock-in"} element={<StockInPage />} />
         <Route path={"stock-in/new"} element={<StockInAddPage />} />
         <Route path={"stock-out"} element={<StockOutPage />} />
+        {/*<Route path={"order"} element={<OrderPage />} />*/}
       </Route>
       <Route path="/sale" element={<SalePage />} />
       <Route path="/error" element={<ErrorPage />} />
