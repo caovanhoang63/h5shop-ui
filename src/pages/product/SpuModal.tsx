@@ -64,6 +64,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table.tsx";
+import { toast } from "react-toastify";
 
 interface ISpuModalProps {
   isOpen: boolean;
@@ -300,8 +301,7 @@ export default function SpuModal({
     console.log(spuTest);
     CallApiUpsertSpuDetail(spuTest as SpuUpsert)
       .then(() => {
-        console.log("Success");
-        alert("Thêm mới spu thành công");
+        toast.success("Thành công");
       })
       .catch((error) => {
         console.error("Error: ", error);
