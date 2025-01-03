@@ -1,4 +1,4 @@
-export const baocaocuoingayC = `
+export const saleReportTemplate = `
 <html  lang="vi">
 <head>
     <meta charset="UTF-8">
@@ -72,33 +72,51 @@ export const baocaocuoingayC = `
 <body>
     <div class="container">
         <div class="header">
-            <h1>Báo cáo cuối ngày về bán hàng</h1>
+            <h1>Báo cáo bán hàng</h1>
         </div>
         <div class="info">
             <p><strong>Thời gian tạo:</strong> {{created_at}}</p>
-            <p><strong>Ngày bán:</strong> {{date}}</p>
+            <p><strong>Ngày bắt đầu:</strong> {{startDate}}</p>
+            <p><strong>Ngày kết thúc:</strong> {{endDate}}</p>
         </div>
         <div>Tổng đơn: {{totalOrder}}</div>
         <div>Tổng thu: {{totalAmount}} VND </div>
+        <br/>
+        
+        <h2 class="header">Các hàng hóa bán chạy</h2>
         <table>
             <thead>
-                <tr>
-                    <th>Mã đơn</th>
-                    <th>Thời gian</th>
-                    <th>Người bán</th>
-                    <th>Loại hóa đơn</th>
-                    <th>Số đth khách hàng</th>
-                    <th>Giá trị</th>
-                    <th>Giảm</th>
-                    <th>Thực thu</th>
-                </tr>
+                <or>
+                    <th>STT</th>
+                    <th>Mã hàng </th>
+                    <th>Tên mặt hàng</th>
+                    <th>Đã bán</th>
+                    <th>Doanh thu</th>
+                </or>
             </thead>
             <tbody>
-              {{body}} <!-- Dữ liệu này sẽ được điền vào động -->
+              {{skuBody}} <!-- Dữ liệu này sẽ được điền vào động -->
             </tbody>
         </table>
         <br>
-
+        
+      
+        <br>
+        <h2 class="header">Doanh thu theo ngày</h2>
+        <br>
+        <table>
+            <thead>
+                <tr>
+                    <th>Ngày</th>
+                    <th>Tổng số đơn</th>
+                    <th>Doanh thu</th>
+                </tr>
+            </thead>
+            <tbody>
+              {{revenueBody}} <!-- Dữ liệu này sẽ được điền vào động -->
+            </tbody>
+        </table>
+        <br>
     </div>
 </body>
 </html>
