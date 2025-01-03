@@ -17,8 +17,8 @@ export interface SpuDetail {
   skus: Sku[];
   timeReturn?: number;
   timeWarranty?: number;
-  typeWarranty?: string;
-  typeReturn?: string;
+  typeTimeWarranty?: string;
+  typeTimeReturn?: string;
   providers: SkuProvider[];
 }
 

@@ -118,7 +118,7 @@ export default function SpuModal({
       setDefaultWarrantyReturn();
       setListProviders([]);
     } else {
-      if (spuIdSelected && spuIdSelected > 0) {
+      if (isOpen && spuIdSelected && spuIdSelected > 0) {
         fetchSpuDetail(spuIdSelected);
       }
     }
@@ -135,6 +135,14 @@ export default function SpuModal({
     setSkus((spuDetail?.skus as SkuCreate[]) || []);
     setAttrs((spuDetail?.attrs as SkuAttrCreate[]) || []);
     setListProviders(spuDetail?.providers || []);
+    setTimeWarranty(spuDetail?.timeWarranty || 0);
+    setTimeReturn(spuDetail?.timeReturn || 0);
+    setTypeTimeWarranty(
+      (spuDetail?.typeTimeWarranty as EnumTime.DAY) || EnumTime.DAY,
+    );
+    setTypeTimeReturn(
+      (spuDetail?.typeTimeReturn as EnumTime.DAY) || EnumTime.DAY,
+    );
   }, [spuDetail]);
 
   const CallApiUpsertSpuDetail = async (spu: SpuUpsert) => {
@@ -280,10 +288,14 @@ export default function SpuModal({
       description: description,
       categoryId: categoryId,
       brandId: brandId,
-      images: [image],
+      images: image ? [image] : [],
       metadata: metadata,
       skus: skus,
       attrs: attrs,
+      timeWarranty: timeWarranty,
+      timeReturn: timeReturn,
+      typeTimeWarranty: typeTimeWarranty.toString(),
+      typeTimeReturn: typeTimeReturn.toString(),
     };
     console.log(spuTest);
     CallApiUpsertSpuDetail(spuTest as SpuUpsert)
@@ -486,44 +498,43 @@ export default function SpuModal({
                         </div>
                       </div>
                     </div>
-                    <div className={"flex flex-col mt-4"}>
-                      <div
-                        className={
-                          "flex h-8 w-full items-center bg-gray-200 rounded"
-                        }
-                      >
-                        <Label className={"ml-4"} style={{ fontSize: "16px" }}>
-                          Nhà cung cấp
-                        </Label>
-                      </div>
+                    {listProviders.length > 0 && (
+                      <div className={"flex flex-col mt-4"}>
+                        <div
+                          className={
+                            "flex h-8 w-full items-center bg-gray-200 rounded"
+                          }
+                        >
+                          <Label
+                            className={"ml-4"}
+                            style={{ fontSize: "16px" }}
+                          >
+                            Nhà cung cấp
+                          </Label>
+                        </div>
 
-                      <Table className={"h-full"}>
-                        <TableHeader>
-                          <TableRow className={"gap-3"}>
-                            <TableHead className="w-[50px]">STT</TableHead>
-                            <TableHead>Tên nhà cung cấp</TableHead>
-                            <TableHead>Số điện thoại</TableHead>
-                            <TableHead className="text-center">Email</TableHead>
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          {listProviders.map((item) => (
-                            <TableRow key={item.id}>
-                              <TableCell className="text-blue-600">
-                                {item.name}
-                              </TableCell>
-                              <TableCell>{item.name}</TableCell>
-                              <TableCell className="text-center">
-                                {item.phone}
-                              </TableCell>
-                              <TableCell className="text-center">
-                                {item.email}
-                              </TableCell>
+                        <Table className={"h-full"}>
+                          <TableHeader>
+                            <TableRow className={"gap-3"}>
+                              <TableHead className="w-[50px]">STT</TableHead>
+                              <TableHead>Tên nhà cung cấp</TableHead>
+                              <TableHead>Email</TableHead>
+                              <TableHead>Số điện thoại</TableHead>
                             </TableRow>
-                          ))}
-                        </TableBody>
-                      </Table>
-                    </div>
+                          </TableHeader>
+                          <TableBody>
+                            {listProviders.map((item, index) => (
+                              <TableRow key={item.id}>
+                                <TableCell>{index}</TableCell>
+                                <TableCell>{item.name}</TableCell>
+                                <TableCell>{item.email}</TableCell>
+                                <TableCell>{item.phone}</TableCell>
+                              </TableRow>
+                            ))}
+                          </TableBody>
+                        </Table>
+                      </div>
+                    )}
                   </div>
                 </CardContent>
               </Card>
