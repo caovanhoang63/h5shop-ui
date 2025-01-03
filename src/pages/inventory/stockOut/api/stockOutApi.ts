@@ -81,7 +81,7 @@ export async function createStockOutReport(
 ): Promise<ResponseStockInReportCreate> {
   try {
     const response = await axiosInstance.post<ResponseStockInReportCreate>(
-      "v1/stock-in",
+      "v1/stock-out",
       body,
       {
         headers: {
