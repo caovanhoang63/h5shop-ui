@@ -1,9 +1,10 @@
 export interface InventoryItemStockTake {
   id: number;
-  code: string;
   name: string;
-  stockQuantity: number;
+  stock: number;
   actualQuantity?: number;
   variance?: number;
   varianceValue?: number;
+  image?: string;
+  price?: number;
 }

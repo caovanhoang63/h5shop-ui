@@ -24,6 +24,8 @@ interface InventoryItem {
   skuId: number;
   name: string;
   amount: number;
+  oldStock: number;
+  price: number | null;
   inventoryDif: number;
   actualQuantity?: number;
   varianceValue?: number;
@@ -38,5 +40,6 @@ export interface InventoryReportCreate {
 interface InventoryReportDetailCreate {
   skuId: number;
   amount: number;
+  oldStock: number;
   inventoryDif: number;
 }

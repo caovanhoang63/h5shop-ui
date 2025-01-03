@@ -238,7 +238,7 @@ export function StockOutTable({
   const [rowSelection, setRowSelection] = React.useState({});
   const [isOpenStockTakesModal, setIsOpenStockTakesModal] = useState(false);
 
-  const [selectedStockInReport, setSelectedStockInReport] = useState<
+  const [selectedStockOutReport, setSelectedStockOutReport] = useState<
     StockOutItemTable | undefined
   >(undefined);
   const [stockOutReportDetails, setStockOutReportDetails] = useState<
@@ -249,6 +249,7 @@ export function StockOutTable({
     try {
       const response = await getStockOutDetailById(id);
       setStockOutReportDetails(response.data);
+      console.log(response.data);
     } catch (error) {
       console.error("Error fetching stock in report details:", error);
     }
@@ -320,8 +321,8 @@ export function StockOutTable({
                     event.preventDefault();
                     event.stopPropagation();
                     const selectedReport = row.original;
-                    setSelectedStockInReport(selectedReport);
-                    console.log(selectedStockInReport);
+                    setSelectedStockOutReport(selectedReport);
+                    console.log(selectedStockOutReport);
                     await getStockOutDetail(selectedReport.id);
                     setIsOpenStockTakesModal(true);
                   }}
