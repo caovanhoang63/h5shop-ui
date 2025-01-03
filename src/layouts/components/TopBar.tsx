@@ -1,13 +1,14 @@
 import { Button } from "@/components/ui/button.tsx";
 import {
-  ArrowRightLeft,
+  BarChart3,
   ChartColumn,
-  CircleDollarSign,
   EyeIcon,
+  FileText,
   Handshake,
+  List,
   LogOut,
   Mail,
-  Package2,
+  Package,
   Settings,
   ShoppingBasket,
   ShoppingCart,
@@ -21,13 +22,9 @@ import {
 } from "@/components/ui/avatar.tsx";
 import {
   NavigationMenu,
-  NavigationMenuItem,
-  NavigationMenuLink,
   NavigationMenuList,
-  navigationMenuTriggerStyle,
 } from "@/components/ui/navigation-menu.tsx";
-import { Fragment } from "react";
-import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -36,6 +33,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 export const TopBar = () => {
+  const navigate = useNavigate();
   return (
     <div className="sticky top-0 z-50">
       <div className="flex justify-between items-center px-5 bg-background">
@@ -81,50 +79,134 @@ export const TopBar = () => {
       <div className={"w-full bg-primary px-5 flex justify-between text-white"}>
         <NavigationMenu>
           <NavigationMenuList>
-            <NavButton>
+            <Button
+              variant="default"
+              className="bg-blue-600 hover:bg-blue-700 text-white text-lg"
+              onClick={() => navigate("/")}
+            >
               <EyeIcon size={20} />
               <p>Tổng quan</p>
-            </NavButton>
-            <NavButton link={"product"}>
-              <Package2 size={20} />
-              <p>Hàng hóa</p>
-            </NavButton>
-            <NavButton>
-              <ArrowRightLeft size={20} />
-              <p>Giao dịch</p>
-            </NavButton>
-            <NavButton link={"partner"}>
+            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="default"
+                  className="bg-blue-600 hover:bg-blue-700 text-white text-lg"
+                >
+                  <Package size={20} />
+                  Hàng hóa
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-56 bg-blue-600 text-white border-blue-700">
+                <DropdownMenuItem
+                  className="hover:bg-blue-700 focus:bg-blue-700 cursor-pointer"
+                  onClick={() => navigate("/product")}
+                >
+                  <List size={20} />
+                  Danh mục
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  className="hover:bg-blue-700 focus:bg-blue-700 cursor-pointer"
+                  onClick={() => navigate("/warranty")}
+                >
+                  <FileText className="mr-2 h-4 w-4" />
+                  Phiếu bảo hành
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  className="hover:bg-blue-700 focus:bg-blue-700 cursor-pointer"
+                  onClick={() => navigate("/inventory")}
+                >
+                  <BarChart3 size={20} />
+                  Kiểm kho
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+            {/*<DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="default"
+                  className="bg-blue-600 hover:bg-blue-700 text-white text-lg"
+                >
+                  <ArrowRightLeft size={20} />
+                  <p>Giao dịch</p>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-56 bg-blue-600 text-white border-blue-700">
+                <DropdownMenuItem
+                  className="hover:bg-blue-700 focus:bg-blue-700 cursor-pointer"
+                  onClick={() => navigate("/product")}
+                >
+                  <List size={20} />
+                  Danh mục
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  className="hover:bg-blue-700 focus:bg-blue-700 cursor-pointer"
+                  onClick={() => navigate("/warranty")}
+                >
+                  <FileText className="mr-2 h-4 w-4" />
+                  Phiếu bảo hành
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  className="hover:bg-blue-700 focus:bg-blue-700 cursor-pointer"
+                  onClick={() => navigate("/inventory")}
+                >
+                  <BarChart3 size={20} />
+                  Kiểm kho
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>*/}
+            <Button
+              variant="default"
+              className="bg-blue-600 hover:bg-blue-700 text-white text-lg"
+              onClick={() => navigate("/partner")}
+            >
               <Handshake size={20} />
               <p>Đối tác</p>
-            </NavButton>
-            <NavButton link={"employee"}>
+            </Button>
+            <Button
+              variant="default"
+              className="bg-blue-600 hover:bg-blue-700 text-white text-lg"
+              onClick={() => navigate("/employee")}
+            >
               <Users size={20} />
               <p>Nhân viên</p>
-            </NavButton>
-            <NavButton>
-              <CircleDollarSign size={20} />
-              <p>Sổ quỹ</p>
-            </NavButton>
-            <NavButton link={"/report"}>
+            </Button>
+            <Button
+              variant="default"
+              className="bg-blue-600 hover:bg-blue-700 text-white text-lg"
+              onClick={() => navigate("/report")}
+            >
               <ChartColumn size={20} />
               <p>Báo cáo</p>
-            </NavButton>
-            <NavButton link={"/warranty"}>
+            </Button>
+            <Button
+              variant="default"
+              className="bg-blue-600 hover:bg-blue-700 text-white text-lg"
+              onClick={() => navigate("/warranty")}
+            >
               <ShoppingCart size={20} />
               <p>Bảo hành</p>
-            </NavButton>
-            <NavButton link={"setting"}>
+            </Button>
+            <Button
+              variant="default"
+              className="bg-blue-600 hover:bg-blue-700 text-white text-lg"
+              onClick={() => navigate("/setting")}
+            >
               <Settings size={20} />
               <p>Setting</p>
-            </NavButton>
+            </Button>
           </NavigationMenuList>
         </NavigationMenu>
         <NavigationMenu>
           <NavigationMenuList>
-            <NavButton link={"/sale"}>
+            <Button
+              variant="default"
+              className="bg-blue-600 hover:bg-blue-700 text-white text-lg"
+              onClick={() => navigate("/sale")}
+            >
               <ShoppingBasket size={20} />
               <p>Bán hàng</p>
-            </NavButton>
+            </Button>
           </NavigationMenuList>
         </NavigationMenu>
       </div>
@@ -132,7 +214,7 @@ export const TopBar = () => {
   );
 };
 
-const NavButton = ({
+/*const NavButton = ({
   children,
   className = " ",
   link = "/",
@@ -154,4 +236,4 @@ const NavButton = ({
       </NavigationMenuItem>
     </Fragment>
   );
-};
+};*/
