@@ -183,8 +183,6 @@ export default function SalePage() {
     console.log(selectedCustomer);
 
     createOrder({
-      customerId: 0, // Replace with actual customer ID if available
-      sellerId: 0, // Replace with actual seller ID
       orderType: OrderType.Retail,
     })
       .then((response) => {
@@ -835,7 +833,6 @@ export default function SalePage() {
         <PaymentDialog
           isOpen={isPaymentDialogOpen}
           onClose={() => setIsPaymentDialogOpen(false)}
-          orderId={tabs[activeTab]?.order.id}
           customer={selectedCustomer}
           orderDetails={tabs[activeTab]?.order}
           onPaymentSuccess={() => {

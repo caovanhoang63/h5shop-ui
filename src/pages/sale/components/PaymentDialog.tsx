@@ -24,7 +24,6 @@ import { toast } from "react-toastify";
 interface PaymentDialogProps {
   isOpen: boolean;
   onClose: () => void;
-  orderId: number;
   customer: Customer | undefined;
   orderDetails: OrderGetDetail;
   onPaymentSuccess: () => void;
@@ -33,7 +32,6 @@ interface PaymentDialogProps {
 const PaymentDialog: React.FC<PaymentDialogProps> = ({
   isOpen,
   onClose,
-  orderId,
   customer,
   orderDetails,
   onPaymentSuccess,
@@ -60,7 +58,7 @@ const PaymentDialog: React.FC<PaymentDialogProps> = ({
 
   const handleConfirmPayment = async () => {
     setIsProcessing(true);
-    payOrder(orderId, { isUsePoint: usePoints })
+    payOrder(orderDetails.id, { isUsePoint: usePoints })
       .then(() => {
         onPaymentSuccess();
         onClose();

@@ -1,6 +1,5 @@
 ﻿export interface OrderCreate {
-  customerId: number;
-  sellerId: number;
+  customerId?: number;
   orderType: string;
   description?: string;
 }
