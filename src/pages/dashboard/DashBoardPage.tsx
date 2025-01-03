@@ -52,12 +52,16 @@ const AuditMessage = (audit: Audit) => {
     return (
       AuditMap[key] +
       " với giá trị " +
-      Intl.NumberFormat("de-DE").format(audit.newValues?.finalAmount) +
+      formatMoney(audit.newValues?.finalAmount) +
       " vnd"
     );
   } else {
     return AuditMap[key];
   }
+};
+
+const formatMoney = (money: number) => {
+  return Intl.NumberFormat("de-DE").format(money);
 };
 
 export const DashBoardPage = () => {
@@ -250,6 +254,30 @@ export const DashBoardPage = () => {
                       fill="var(--color-revenue)"
                       radius={4}
                     />
+                    <ChartTooltip
+                      content={({ active, payload }) => {
+                        if (active && payload && payload.length) {
+                          const { totalOrder, revenue } = payload[0].payload;
+                          return (
+                            <div className="text-base text-gray-600">
+                              <p>
+                                <span className={" font-bold text-primary"}>
+                                  Doanh thu:
+                                </span>{" "}
+                                {Intl.NumberFormat("de-DE").format(revenue)} vnd
+                              </p>
+                              <p>
+                                <span className={" font-bold text-primary"}>
+                                  Số đơn:
+                                </span>{" "}
+                                {totalOrder}
+                              </p>
+                            </div>
+                          );
+                        }
+                        return null;
+                      }}
+                    ></ChartTooltip>
                   </BarChart>
                 </ChartContainer>
               </div>
