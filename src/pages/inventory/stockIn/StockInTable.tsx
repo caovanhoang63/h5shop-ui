@@ -292,10 +292,10 @@ export function StockInTable({
                     event.preventDefault();
                     event.stopPropagation();
                     const selectedReport = row.original;
-                    setIsOpenStockTakesModal(true);
                     setSelectedStockInReport(selectedReport);
                     console.log(selectedStockInReport);
                     await getStockInDetails(selectedReport.id);
+                    setIsOpenStockTakesModal(true);
                   }}
                   key={row.id}
                   data-state={row.getIsSelected() && "selected"}

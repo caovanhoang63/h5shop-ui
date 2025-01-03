@@ -27,16 +27,14 @@ import { cn } from "@/lib/utils.ts";
 import { endOfMonth, format, startOfMonth } from "date-fns";
 import { Calendar } from "@/components/ui/calendar";
 import { SelectRangeEventHandler } from "react-day-picker";
-import { StockInTable } from "@/pages/inventory/stockIn/StockInTable.tsx";
-import {
-  getStockInTableApi,
-  StockInFilter,
-} from "@/pages/inventory/stockIn/api/stockInApi.ts";
-import { StockInItemTable } from "@/types/stockIn/stockIn.ts";
+import { StockInFilter } from "@/pages/inventory/stockIn/api/stockInApi.ts";
 import { toast } from "react-toastify";
+import { listStockOutApi } from "@/pages/inventory/stockOut/api/stockOutApi.ts";
+import { StockOutItemTable } from "@/types/stockOut/stockOut.ts";
+import { StockOutTable } from "@/pages/inventory/stockOut/StockOutTable.tsx";
 
 export const StockOutPage = () => {
-  const [stockInReport, setStockInReport] = useState<StockInItemTable[]>([]);
+  const [stockOutReport, setStockOutReport] = useState<StockOutItemTable[]>([]);
   const [filters, setFilters] = useState<StockInFilter>({
     lk_providerName: null,
     gtUpdatedAt: null,
@@ -114,11 +112,11 @@ export const StockOutPage = () => {
       }));
     }
   };
-  const getStockInTable = async () => {
+  const listStockOut = async () => {
     try {
-      const response = await getStockInTableApi(filters);
+      const response = await listStockOutApi(filters);
       console.log("api", response.data);
-      setStockInReport(response.data);
+      setStockOutReport(response.data);
     } catch (error) {
       toast.error("Lỗi hệ thống!", {
         position: "top-right",
@@ -132,7 +130,7 @@ export const StockOutPage = () => {
     }
   };
   useEffect(() => {
-    getStockInTable();
+    listStockOut();
   }, [filters]);
   const [fields, setFields] = useState<MenuVisibilityColumnTable[]>([
     { label: "Mã xuất kho", key: "id", visible: true },
@@ -310,10 +308,10 @@ export const StockOutPage = () => {
         </Card>
       </div>
       <div className={"col-span-4"}>
-        <StockInTable
+        <StockOutTable
           columnVisible={fields}
-          dataStockIn={stockInReport}
-        ></StockInTable>
+          dataStockOut={stockOutReport}
+        ></StockOutTable>
       </div>
     </Container>
   );

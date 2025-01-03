@@ -1,17 +1,17 @@
 import axiosInstance from "@/axiosSetup.ts";
+import { StockInCreate } from "@/types/stockIn/stockIn.ts";
 import {
-  StockInCreate,
-  StockInDetails,
-  StockInItemTable,
-} from "@/types/stockIn/stockIn.ts";
+  StockOutDetail,
+  StockOutItemTable,
+} from "@/types/stockOut/stockOut.ts";
 
-interface ResponseStockInTable {
-  data: StockInItemTable[];
+interface ResponseStockOutTable {
+  data: StockOutItemTable[];
   extra?: never;
   paging?: never;
 }
-interface ResponseStockInDetail {
-  data: StockInDetails;
+interface ResponseStockOutDetail {
+  data: StockOutDetail;
   extra?: never;
   paging?: never;
 }
@@ -21,7 +21,7 @@ interface ResponseStockInReportCreate {
   extra?: never;
   paging?: never;
 }
-export interface StockInFilter {
+export interface StockOutFitler {
   lk_providerName?: string | null;
   ltUpdatedAt?: Date | null;
   gtUpdatedAt?: Date | null;
@@ -36,12 +36,12 @@ interface Response {
 }
 const token = localStorage.getItem("token");
 
-export async function getStockInTableApi(
-  filters: StockInFilter,
-): Promise<ResponseStockInTable> {
+export async function listStockOutApi(
+  filters: StockOutFitler,
+): Promise<ResponseStockOutTable> {
   try {
-    const response = await axiosInstance.get<ResponseStockInTable>(
-      "v1/stock-in",
+    const response = await axiosInstance.get<ResponseStockOutTable>(
+      "v1/stock-out",
       {
         params: {
           ...filters,
@@ -58,12 +58,12 @@ export async function getStockInTableApi(
   }
 }
 
-export async function getStockInDetailById(
+export async function getStockOutDetailById(
   reportId: number,
-): Promise<ResponseStockInDetail> {
+): Promise<ResponseStockOutDetail> {
   try {
-    const response = await axiosInstance.get<ResponseStockInDetail>(
-      `v1/stock-in/${reportId}`,
+    const response = await axiosInstance.get<ResponseStockOutDetail>(
+      `v1/stock-out/${reportId}`,
       {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -76,7 +76,7 @@ export async function getStockInDetailById(
     throw error;
   }
 }
-export async function createStockInReport(
+export async function createStockOutReport(
   body: StockInCreate,
 ): Promise<ResponseStockInReportCreate> {
   try {
