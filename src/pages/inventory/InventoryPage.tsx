@@ -1,4 +1,4 @@
-import { CalendarIcon, FileOutputIcon, Plus, Search } from "lucide-react";
+import { CalendarIcon, Plus, Search } from "lucide-react";
 import { Input } from "@/components/ui/input.tsx";
 import { Button } from "@/components/ui/button.tsx";
 import { Card, CardContent } from "@/components/ui/card.tsx";
@@ -33,6 +33,7 @@ import { cn } from "@/lib/utils.ts";
 import { endOfMonth, format, startOfMonth } from "date-fns";
 import { Calendar } from "@/components/ui/calendar";
 import { SelectRangeEventHandler } from "react-day-picker";
+import { ExportButton } from "@/components/ExportButton.tsx";
 
 export const InventoryPage = () => {
   const [inventoryReports, setInventoryReports] = useState<InventoryReport[]>(
@@ -170,10 +171,8 @@ export const InventoryPage = () => {
               Kiểm kho
             </Button>
           </Link>
-          <Button className={"bg-green-500"}>
-            <FileOutputIcon />
-            Xuất file
-          </Button>
+          <ExportButton data={inventoryReports || []} fileName={`Inventory`} />
+
           <ButtonVisibilityColumnTable
             menus={fields}
             onCheckChange={handleCheckField}
