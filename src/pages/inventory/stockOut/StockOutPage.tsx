@@ -267,16 +267,10 @@ export const StockOutPage = () => {
                 </AccordionTrigger>
                 <AccordionContent className={"pb-2 space-y-2"}>
                   <CheckBoxWithText
-                    id={"draft"}
-                    onCheckChange={(value) => handleStatusChange("2", !!value)}
-                  >
-                    Phiếu tạm
-                  </CheckBoxWithText>
-                  <CheckBoxWithText
                     id={"serial"}
                     onCheckChange={(value) => handleStatusChange("1", !!value)}
                   >
-                    Đã nhập hàng
+                    Đã xuất hàng
                   </CheckBoxWithText>
                   <CheckBoxWithText
                     id={"service"}
