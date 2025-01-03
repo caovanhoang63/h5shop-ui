@@ -7,7 +7,11 @@ import {
 } from "@/components/ui/card.tsx";
 import { Separator } from "@/components/ui/separator.tsx";
 import { ArrowRightCircle } from "lucide-react";
-import { ChartConfig, ChartContainer } from "@/components/ui/chart.tsx";
+import {
+  ChartConfig,
+  ChartContainer,
+  ChartTooltip,
+} from "@/components/ui/chart.tsx";
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts";
 import {
   Select,
@@ -20,7 +24,14 @@ import {
 } from "@/components/ui/select.tsx";
 import { vi } from "date-fns/locale";
 
-import { getAudit, IAuditFilter } from "@/pages/dashboard/api.ts";
+import {
+  getAudit,
+  getRevenue,
+  getSkuOrder,
+  IAuditFilter,
+  Revenue,
+  SkuOrder,
+} from "@/pages/dashboard/api.ts";
 import { useEffect, useState } from "react";
 import { Audit } from "@/types/auditLog.ts";
 import { toast } from "react-toastify";
@@ -41,7 +52,7 @@ const AuditMessage = (audit: Audit) => {
     return (
       AuditMap[key] +
       " với giá trị " +
-      Intl.NumberFormat("de-DE").format(audit.newValues?.finalAmount) +
+      formatMoney(audit.newValues?.finalAmount) +
       " vnd"
     );
   } else {
@@ -49,28 +60,83 @@ const AuditMessage = (audit: Audit) => {
   }
 };
 
+const formatMoney = (money: number) => {
+  return Intl.NumberFormat("de-DE").format(money);
+};
+
 export const DashBoardPage = () => {
   const [filter, setFilter] = useState<IAuditFilter>({
     action: [],
     objectType: ["order", "inventory"],
   });
-
+  const [currentRevenue, setCurrentRevenue] = useState<Revenue[]>([]);
+  const [lastRevenue, setLastRevenue] = useState<Revenue[]>([]);
+  const [revenueSelect, setRevenueSelect] = useState<string>("current");
+  const [currentTotalRevenue, setCurrentTotalRevenue] = useState<number>(0);
+  const [lastTotalRevenue, setLastTotalRevenue] = useState<number>(0);
+  const [todayOrder, setTodayOrder] = useState<number>(0);
+  const [todayRevenue, setTodayRevenue] = useState<number>(0);
+  const [lastTodayRevenue, setLastTodayOrder] = useState<number>(0);
+  const compare = caculateCompare(todayRevenue, lastTodayRevenue);
   const [auditLog, setAuditLog] = useState<Audit[]>([]);
+  const [skuOrder, setSkuOrder] = useState<SkuOrder[]>([]);
+
+  const [skuOrderStartDate, setSkuOrderStartDate] = useState<Date>(
+    getFirstDayOfCurrentMonth(),
+  );
+  const [skuOrderEndDate, setSkuOrderEndDate] = useState<Date>(new Date());
+  const [skuOrderOrder, setSkuOrderOrder] = useState<"amount" | "revenue">(
+    "amount",
+  );
 
   useEffect(() => {
-    // Chạy 1 lần sau khi component mount để cài đặt setInterval
+    getSkuOrder(skuOrderStartDate, skuOrderEndDate, 10, skuOrderOrder).then(
+      (r) => {
+        setSkuOrder(r.data.data);
+      },
+    );
+  }, [skuOrderEndDate, skuOrderOrder, skuOrderStartDate]);
+
+  useEffect(() => {
+    getRevenue(getFirstDayOfCurrentMonth(), new Date()).then((r) => {
+      let total = 0;
+      r.data.data.forEach((a) => {
+        if (new Date(a.date).getDate() == new Date().getDate()) {
+          setTodayRevenue(a.revenue);
+          setTodayOrder(a.totalOrder);
+        }
+        total += parseFloat(a.revenue.toString());
+      });
+      setCurrentTotalRevenue(total);
+
+      setCurrentRevenue(r.data.data);
+    });
+
+    const { firstDay, lastDay } = getFirstAndLastDayOfPreviousMonth();
+    getRevenue(firstDay, lastDay).then((r) => {
+      let total = 0;
+      r.data.data.forEach((a) => {
+        if (new Date(a.date).getDate() == new Date().getDate()) {
+          setLastTodayOrder(a.revenue);
+        }
+        total += parseFloat(a.revenue.toString());
+      });
+      setLastTotalRevenue(total);
+      setLastRevenue(r.data.data);
+    });
+  }, []);
+
+  useEffect(() => {
     const intervalId = setInterval(() => {
       setFilter((a) => {
         const newGtCreatedAt =
           auditLog.length > 0 ? auditLog[0].createdAt : undefined;
-
         return {
           ...a,
           gtCreatedAt: newGtCreatedAt,
         };
       });
-    }, 5000);
-
+    }, 30000);
     return () => clearInterval(intervalId);
   }, [auditLog]);
 
@@ -100,30 +166,24 @@ export const DashBoardPage = () => {
               alt={"Dollar Icon"}
             />
             <div>
-              <p>0 hóa đơn</p>
-              <p className={"text-primary text-4xl"}>0</p>
+              <p>{todayOrder} hóa đơn</p>
+              <p className={"text-primary text-4xl"}>
+                {Intl.NumberFormat("de-DE").format(todayRevenue / 1000000)} tr
+              </p>
               <p className={"text-gray-400"}>Doanh thu</p>
             </div>
             <Separator orientation="vertical" />
             <img
               className={"size-14"}
-              src={"/icons/YellowReturn.svg"}
+              src={compare > 0 ? "/icons/GreenUp.svg" : "/icons/RedDown.svg"}
               alt={"Dollar Icon"}
             />
             <div>
-              <p>0 hóa đơn</p>
-              <p className={"text-yellow-500 text-4xl"}>0</p>
-              <p className={"text-gray-400"}>Trả hàng</p>
-            </div>
-            <Separator orientation="vertical" />
-            <img
-              className={"size-14"}
-              src={"/icons/RedDown.svg"}
-              alt={"Dollar Icon"}
-            />
-            <div>
-              <p>0 hóa đơn</p>
-              <p className={"text-red-500 text-4xl"}>-7.42%</p>
+              <p
+                className={`${compare > 0 ? "text-success" : "text-red-500  "} text-4xl`}
+              >
+                {compare} %
+              </p>
               <p className={"text-gray-400"}>So với cùng kỳ tháng trước</p>
             </div>
           </CardContent>
@@ -135,18 +195,28 @@ export const DashBoardPage = () => {
               <div className={" flex items-center space-x-2"}>
                 <p className={"content-center"}>Doanh thu thuần tháng này</p>
                 <ArrowRightCircle size={20} />
-                <p className={"text-primary contain-content"}>73,988,000</p>
+                <p className={"text-primary contain-content"}>
+                  {Intl.NumberFormat("de-DE").format(
+                    revenueSelect == "current"
+                      ? currentTotalRevenue
+                      : lastTotalRevenue,
+                  )}{" "}
+                  vnd
+                </p>
               </div>
               <div className={"text-primary"}>
-                <Select defaultValue={"apple"}>
+                <Select
+                  defaultValue={"current"}
+                  onValueChange={(v) => setRevenueSelect(v)}
+                >
                   <SelectTrigger className="w-[180px]">
                     <SelectValue placeholder="Thời điểm" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectGroup>
                       <SelectLabel>Thời điểm</SelectLabel>
-                      <SelectItem value="apple">Tháng này</SelectItem>
-                      <SelectItem value="banana">Tháng trước</SelectItem>
+                      <SelectItem value="current">Tháng này</SelectItem>
+                      <SelectItem value="last">Tháng trước</SelectItem>
                     </SelectGroup>
                   </SelectContent>
                 </Select>
@@ -159,21 +229,55 @@ export const DashBoardPage = () => {
               <p className={"py-1"}>Theo ngày</p>
               <div>
                 <ChartContainer className={"h-80 w-full"} config={chartConfig}>
-                  <BarChart accessibilityLayer data={chartData}>
+                  <BarChart
+                    accessibilityLayer
+                    data={
+                      revenueSelect == "current" ? currentRevenue : lastRevenue
+                    }
+                  >
                     <CartesianGrid vertical={false} />
                     <XAxis
-                      dataKey="day"
+                      dataKey="date"
                       tickLine={false}
                       tickMargin={10}
                       axisLine={false}
-                      tickFormatter={(value) => value.slice(0, 3)}
+                      tickFormatter={(value) =>
+                        new Date(value).getDate().toString()
+                      }
                     />
-                    <YAxis unit={"tr"} />
+                    <YAxis
+                      unit={"tr"}
+                      tickFormatter={(value) => (value / 1000000).toString()}
+                    />
                     <Bar
                       dataKey="revenue"
                       fill="var(--color-revenue)"
                       radius={4}
                     />
+                    <ChartTooltip
+                      content={({ active, payload }) => {
+                        if (active && payload && payload.length) {
+                          const { totalOrder, revenue } = payload[0].payload;
+                          return (
+                            <div className="text-base text-gray-600">
+                              <p>
+                                <span className={" font-bold text-primary"}>
+                                  Doanh thu:
+                                </span>{" "}
+                                {Intl.NumberFormat("de-DE").format(revenue)} vnd
+                              </p>
+                              <p>
+                                <span className={" font-bold text-primary"}>
+                                  Số đơn:
+                                </span>{" "}
+                                {totalOrder}
+                              </p>
+                            </div>
+                          );
+                        }
+                        return null;
+                      }}
+                    ></ChartTooltip>
                   </BarChart>
                 </ChartContainer>
               </div>
@@ -190,18 +294,21 @@ export const DashBoardPage = () => {
                     Top 10 Hàng hóa bán chạy tháng này
                   </p>
                   <div className={"text-primary"}>
-                    <Select defaultValue={"apple"}>
+                    <Select
+                      defaultValue={"amount"}
+                      onValueChange={(v) =>
+                        setSkuOrderOrder(v as "amount" | "revenue")
+                      }
+                    >
                       <SelectTrigger className="w-[180px]">
                         <SelectValue placeholder="Cách tính" />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectGroup>
                           <SelectLabel>Loại doanh thu </SelectLabel>
-                          <SelectItem value="apple">
+                          <SelectItem value="amount">Theo số lượng</SelectItem>
+                          <SelectItem value="revenue">
                             Theo doanh thu thuần
-                          </SelectItem>
-                          <SelectItem value="banana">
-                            Theo lợi nhuận ròng
                           </SelectItem>
                         </SelectGroup>
                       </SelectContent>
@@ -209,15 +316,34 @@ export const DashBoardPage = () => {
                   </div>
                 </div>
                 <div className={"text-primary"}>
-                  <Select defaultValue={"apple"}>
+                  <Select
+                    defaultValue={"cur"}
+                    onValueChange={(v) => {
+                      switch (v) {
+                        case "cur":
+                          setSkuOrderStartDate(getFirstDayOfCurrentMonth());
+                          setSkuOrderEndDate(new Date());
+                          break;
+                        case "last":
+                          {
+                            const { firstDay, lastDay } =
+                              getFirstAndLastDayOfPreviousMonth();
+
+                            setSkuOrderStartDate(firstDay);
+                            setSkuOrderEndDate(lastDay);
+                          }
+                          break;
+                      }
+                    }}
+                  >
                     <SelectTrigger className="w-[180px]">
                       <SelectValue placeholder="Thời điểm" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectGroup>
                         <SelectLabel>Thời điểm</SelectLabel>
-                        <SelectItem value="apple">Tháng này</SelectItem>
-                        <SelectItem value="banana">Tháng trước</SelectItem>
+                        <SelectItem value="cur">Tháng này</SelectItem>
+                        <SelectItem value="last">Tháng trước</SelectItem>
                       </SelectGroup>
                     </SelectContent>
                   </Select>
@@ -228,26 +354,55 @@ export const DashBoardPage = () => {
           </CardHeader>
           <CardContent>
             <div>
-              <ChartContainer className={"h-96 w-full"} config={chartConfig}>
+              <ChartContainer className={"h-96 w-full"} config={skuCharConfig}>
                 <BarChart
                   accessibilityLayer
-                  data={chartData}
+                  data={skuOrder}
                   layout={"vertical"}
                 >
                   <CartesianGrid vertical={false} />
-                  <XAxis type={"number"} dataKey={"revenue"} unit={"tr"} />
+                  <XAxis type={"number"} dataKey={skuOrderOrder} unit={""} />
                   <YAxis
-                    dataKey="day"
+                    dataKey="id"
                     type="category"
                     tickLine={false}
                     tickMargin={10}
                     axisLine={false}
-                    tickFormatter={(value) => value.slice(0, 3)}
                   />
                   <Bar
-                    dataKey="revenue"
+                    className={""}
+                    dataKey={skuOrderOrder}
                     fill="var(--color-revenue)"
-                    radius={4}
+                  />
+                  <ChartTooltip
+                    content={({ active, payload }) => {
+                      if (active && payload && payload.length) {
+                        const { name, amount, revenue } = payload[0].payload;
+                        return (
+                          <div className="text-base text-gray-600">
+                            <p>
+                              <span className={" font-bold text-primary"}>
+                                Tên:
+                              </span>{" "}
+                              {name}
+                            </p>
+                            <p>
+                              <span className={" font-bold text-primary"}>
+                                Số lượng:
+                              </span>{" "}
+                              {amount}
+                            </p>
+                            <p>
+                              <span className={" font-bold text-primary"}>
+                                Doanh thu:
+                              </span>{" "}
+                              {Intl.NumberFormat("de-DE").format(revenue)} vnd
+                            </p>
+                          </div>
+                        );
+                      }
+                      return null;
+                    }}
                   />
                 </BarChart>
               </ChartContainer>
@@ -275,12 +430,27 @@ export const DashBoardPage = () => {
   );
 };
 
-// const AuditData = [
-//   "user"
-// ];
+const getFirstAndLastDayOfPreviousMonth = (): {
+  firstDay: Date;
+  lastDay: Date;
+} => {
+  const now = new Date();
+  const previousMonth = now.getMonth() - 1;
+  const year = now.getFullYear();
+  const firstDay = new Date(year, previousMonth, 1);
+  const lastDay = new Date(year, previousMonth + 1, 0);
+  return { firstDay, lastDay };
+};
+const getFirstDayOfCurrentMonth = (): Date => {
+  const now = new Date();
+  return new Date(now.getFullYear(), now.getMonth(), 1);
+};
 
+const caculateCompare = (cur: number, last: number) => {
+  if (last == 0) return 100;
+  else return (cur - last) / last;
+};
 const ActionCard = ({ audit }: { audit: Audit }) => {
-  console.log(new Date(audit.createdAt));
   return (
     <div className={"p-2 text-lg"}>
       <p>
@@ -300,22 +470,24 @@ const ActionCard = ({ audit }: { audit: Audit }) => {
   );
 };
 
-const chartData = [
-  { day: "1", revenue: 186 },
-  { day: "2", revenue: 305 },
-  { day: "3", revenue: 237 },
-  { day: "4", revenue: 73 },
-  { day: "5", revenue: 209 },
-  { day: "6", revenue: 2 },
-  { day: "7", revenue: 209 },
-  { day: "8", revenue: 209 },
-  { day: "9", revenue: 214 },
-  { day: "19", revenue: 214 },
-];
-
 const chartConfig = {
   revenue: {
     label: "Revenue",
+    color: "#2563eb",
+  },
+} satisfies ChartConfig;
+
+const skuCharConfig = {
+  revenue: {
+    label: "Revenue",
+    color: "#2563eb",
+  },
+  amount: {
+    label: "Amount",
+    color: "#2563ed",
+  },
+  name: {
+    label: "Name",
     color: "#2563eb",
   },
 } satisfies ChartConfig;
