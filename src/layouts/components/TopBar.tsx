@@ -109,9 +109,9 @@ export const TopBar = () => {
               <ChartColumn size={20} />
               <p>Báo cáo</p>
             </NavButton>
-            <NavButton>
+            <NavButton link={"/warranty"}>
               <ShoppingCart size={20} />
-              <p>Bán Online</p>
+              <p>Bảo hành</p>
             </NavButton>
             <NavButton link={"setting"}>
               <Settings size={20} />
