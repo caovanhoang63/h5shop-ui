@@ -69,6 +69,7 @@ export default function EmployeeEditModal({
       setValue("lastName", employee.lastName);
       setValue("phoneNumber", employee.phoneNumber);
       setValue("email", employee.email);
+
       setValue("gender", employee.gender || ""); // Gắn giá trị mặc định cho giới tính
       setValue("address", employee.address);
       setValue(
@@ -119,6 +120,7 @@ export default function EmployeeEditModal({
 
   const onSubmit = handleSubmit(async (data) => {
     try {
+
       const response = await updateEmployee(
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-expect-error
@@ -135,6 +137,7 @@ export default function EmployeeEditModal({
         draggable: true,
       });
       onOpenChange(false);
+
     } catch (e) {
       console.log(e);
       toast.error("Sửa nhân viên thất bại!", {

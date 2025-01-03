@@ -19,10 +19,10 @@ import SpuModal from "@/pages/product/SpuModal.tsx";
 import { SpuListTable } from "@/types/spu/spuListTable.ts";
 import { getSpuListTable } from "@/pages/product/api/spuApi.ts";
 import { SpuFilter } from "@/types/spu/spuFilter.ts";
-import { Paging } from "@/types/paging.ts";
 import { LoadingAnimation } from "@/components/ui/LoadingAnimation.tsx";
 import CategoryModal from "@/pages/product/CategoryModal.tsx";
 import BrandModal from "@/pages/product/BrandModal.tsx";
+import { PagingSpu } from "@/types/spu/PagingSpu.ts";
 
 export default function ProductPage() {
   const [fields, setFields] = useState<MenuVisibilityColumnTable[]>([
@@ -54,7 +54,7 @@ export default function ProductPage() {
   const [spuList, setSpuList] = useState<SpuListTable[]>([]);
   const [spuIdSelected, setSpuIdSelected] = useState<number>();
   const [isAdd, setIsAdd] = useState<boolean>(true);
-  const [paging, setPaging] = useState<Paging>({
+  const [paging, setPaging] = useState<PagingSpu>({
     page: 1,
     limit: 10,
     total: 0,

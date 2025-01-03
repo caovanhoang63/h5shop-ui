@@ -60,6 +60,7 @@ export function EmployeeTable({
     {
       accessorKey: "id",
       header: "Mã nhân viên",
+
       cell: ({ row }: { row: unknown }) => (
         <div>
           {
@@ -74,6 +75,7 @@ export function EmployeeTable({
       accessorKey: "firstName",
       header: "Tên",
       cell: ({ row }: { row: unknown }) => (
+
         <div>
           {
             // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -87,6 +89,7 @@ export function EmployeeTable({
       accessorKey: "lastName",
       header: "Họ",
       cell: ({ row }: { row: unknown }) => (
+
         <div>
           {
             // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -99,6 +102,7 @@ export function EmployeeTable({
     {
       accessorKey: "email",
       header: "Email",
+
       cell: ({ row }: { row: unknown }) => (
         <div>
           {
@@ -113,6 +117,7 @@ export function EmployeeTable({
       accessorKey: "phoneNumber",
       header: "Số điện thoại",
       cell: ({ row }: { row: unknown }) => (
+
         <div>
           {
             // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -125,6 +130,7 @@ export function EmployeeTable({
     {
       accessorKey: "address",
       header: "Địa chỉ",
+
       cell: ({ row }: { row: unknown }) => (
         <div>
           {
@@ -138,6 +144,7 @@ export function EmployeeTable({
     {
       accessorKey: "gender",
       header: "Giới tính",
+
       cell: ({ row }: { row: unknown }) => (
         <div>
           {
@@ -152,6 +159,7 @@ export function EmployeeTable({
       accessorKey: "dateOfBirth",
       header: "Ngày sinh",
       cell: ({ row }: { row: unknown }) => (
+
         <div>
           {
             // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -165,8 +173,6 @@ export function EmployeeTable({
       accessorKey: "status",
       header: "Trạng thái",
       cell: ({ row }: { row: unknown }) => {
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-expect-error
         const status = row.getValue("status");
         return (
           <div className={status === 1 ? "text-green-500" : "text-red-500"}>
@@ -178,6 +184,7 @@ export function EmployeeTable({
     {
       id: "actions",
       enableHiding: false,
+
       cell: ({
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-expect-error

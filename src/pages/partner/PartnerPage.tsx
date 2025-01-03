@@ -66,6 +66,7 @@ export default function PartnerPage() {
     } catch (error) {
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-expect-error
+
       setError(error.response?.data?.message || "Lỗi khi tải dữ liệu.");
     }
   };
