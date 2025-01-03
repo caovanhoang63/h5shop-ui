@@ -1,7 +1,7 @@
 export interface Setting {
   id: number;
   name: string;
-  value: number;
+  value: string;
   description: string;
   status: number;
   createdAt: Date | null;
@@ -12,10 +12,10 @@ export interface SettingPaging {
   limit: number;
 }
 export interface SettingUpdate {
-  value: number;
+  value: string;
 }
 export interface SettingCreate {
   name: string;
-  value: number;
+  value: string;
   description: string;
 }

@@ -28,6 +28,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea.tsx";
 
 export function SettingPage() {
   const [page, setPage] = useState(1);
@@ -38,7 +39,7 @@ export function SettingPage() {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [newSetting, setNewSetting] = useState<SettingCreate>({
     name: "",
-    value: 0,
+    value: "",
     description: "",
   });
 
@@ -80,14 +81,8 @@ export function SettingPage() {
 
   const handleSave = async (name: string) => {
     try {
-      const numericValue = Number(editValue);
-      if (isNaN(numericValue)) {
-        console.error("Invalid numeric value");
-        return;
-      }
-
       const response = await updateSetting(name, {
-        value: numericValue,
+        value: editValue,
       } as SettingUpdate);
       console.log(response.data);
       setEditingName(null);
@@ -100,16 +95,10 @@ export function SettingPage() {
 
   const handleAddSetting = async () => {
     try {
-      const numericValue = Number(newSetting.value);
-      if (isNaN(numericValue)) {
-        console.error("Invalid numeric value");
-        return;
-      }
-
       const response = await createSetting(newSetting);
       console.log(response.data);
       setIsAddDialogOpen(false);
-      setNewSetting({ name: "", value: 0, description: "" });
+      setNewSetting({ name: "", value: "", description: "" });
       toast.success("Thêm setting thành công");
       await fetchSettingData(); // Reload lại dữ liệu
     } catch (e) {
@@ -149,14 +138,13 @@ export function SettingPage() {
                   <Label htmlFor="value" className="text-right">
                     Value
                   </Label>
-                  <Input
+                  <Textarea
                     id="value"
-                    type="number"
                     value={newSetting.value}
                     onChange={(e) =>
                       setNewSetting({
                         ...newSetting,
-                        value: Number(e.target.value),
+                        value: e.target.value,
                       })
                     }
                     className="col-span-3"
@@ -166,7 +154,7 @@ export function SettingPage() {
                   <Label htmlFor="value" className="text-right">
                     Description
                   </Label>
-                  <Input
+                  <Textarea
                     id="description"
                     value={newSetting.description}
                     onChange={(e) =>
@@ -203,12 +191,10 @@ export function SettingPage() {
                   <TableCell>{item.name}</TableCell>
                   <TableCell>
                     {editingName === item.name ? (
-                      <Input
+                      <Textarea
                         value={editValue}
                         onChange={(e) => setEditValue(e.target.value)}
                         className="w-full"
-                        type="number"
-                        step="any"
                       />
                     ) : (
                       item.value
