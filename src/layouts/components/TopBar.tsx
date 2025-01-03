@@ -100,7 +100,7 @@ export const TopBar = () => {
               <CircleDollarSign size={20} />
               <p>Sổ quỹ</p>
             </NavButton>
-            <NavButton>
+            <NavButton link={"/report"}>
               <ChartColumn size={20} />
               <p>Báo cáo</p>
             </NavButton>
