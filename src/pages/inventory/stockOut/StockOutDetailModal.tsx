@@ -8,7 +8,7 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { FileDown, Save, XCircle } from "lucide-react";
+import { Save, XCircle } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -143,10 +143,6 @@ export default function StockOutDetailModal({
           <Button className="bg-green-500 hover:bg-green-600">
             <Save className="w-4 h-4 mr-2" />
             Lưu
-          </Button>
-          <Button variant="secondary" onClick={() => {}}>
-            <FileDown className="w-4 h-4 mr-2" />
-            In tem mã
           </Button>
           <Button variant="destructive" onClick={() => onOpenChange(false)}>
             <XCircle className="w-4 h-4 mr-2" />

@@ -1,5 +1,5 @@
 import * as React from "react";
-import { ArrowLeft, Trash2, Pencil, PlusCircle } from "lucide-react";
+import { ArrowLeft, Trash2, PlusCircle } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -12,21 +12,28 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Link, useNavigate } from "react-router-dom";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { StockInItemAdd, StockInItemSearch } from "@/types/stockIn/stockIn.ts";
 import {
-  StockInCreate,
-  StockInItemAdd,
-  StockInItemSearch,
-} from "@/types/stockIn/stockIn.ts";
-import {
-  createStockInReport,
-  searchProvider,
+  listReason,
   searchSku,
-} from "@/pages/inventory/stockIn/api/stockInApi.ts";
+} from "@/pages/inventory/stockOut/api/stockOutApi.ts";
 import { formatCurrency } from "@/utils/convert.ts";
 import _ from "lodash";
 import { toast } from "react-toastify";
-import { StockOutItemAdd } from "@/types/stockOut/stockOut.ts";
+import {
+  StockOutCreate,
+  StockOutItemAdd,
+  StockOutReason,
+} from "@/types/stockOut/stockOut.ts";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select.tsx";
+import { createStockOutReport } from "@/pages/inventory/stockOut/api/stockOutApi.ts";
 
 export default function StockOutAddPage() {
   const rawData: StockOutItemAdd[] = [];
@@ -50,18 +57,7 @@ export default function StockOutAddPage() {
     })),
   );
   const [searchQuery, setSearchQuery] = useState("");
-  const [searchProviderQuery, setSearchProviderQuery] = useState("");
-  const [filteredProviders, setFilteredProviders] = useState<
-    [
-      {
-        id: number;
-        phoneNumber: string;
-        name: string;
-      },
-    ]
-  >();
   const [filteredProducts, setFilteredProducts] = useState(searchData);
-  const [selectedProvider, setSelectedProvider] = useState<number>();
   const debouncedSearch = useMemo(
     () =>
       _.debounce(async (query: string) => {
@@ -113,38 +109,6 @@ export default function StockOutAddPage() {
     });
   };
 
-  const handleSearchProviderChange = (
-    e: React.ChangeEvent<HTMLInputElement>,
-  ) => {
-    const query = e.target.value;
-    setSearchProviderQuery(query);
-    debouncedSearchProvider(query);
-  };
-
-  const debouncedSearchProvider = useMemo(
-    () =>
-      _.debounce(async (query: string) => {
-        if (query.trim() === "") {
-          setFilteredProviders(undefined);
-        } else {
-          try {
-            const response = await searchProvider(query);
-            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-            // @ts-expect-error
-            const searchResponse = response.data.map((item) => ({
-              id: item.id,
-              name: item.name,
-              phoneNumber: item.phoneNumber,
-            }));
-            setFilteredProviders(searchResponse);
-          } catch (error) {
-            console.error(error);
-          }
-        }
-      }, 2000),
-    [],
-  );
-
   const handleRemoveItem = (id: number) => {
     setItems((prevItems) => prevItems.filter((item) => item.id !== id));
   };
@@ -171,34 +135,18 @@ export default function StockOutAddPage() {
     );
   };
 
-  const handlePriceChange = (id: number, price: number) => {
-    setItems((prevItems) =>
-      prevItems.map((item) =>
-        item.id === id && price >= 0 && price <= 999999999
-          ? {
-              ...item,
-              costPrice: price,
-            }
-          : item,
-      ),
-    );
-  };
-
   const handleComplete = async () => {
     if (items.length === 0) {
-      toast.warning("Không có sản phẩm nào  !", {
-        position: "top-right",
-        autoClose: 3000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-      });
+      toast.warning("Không có sản phẩm nào!");
       return;
     }
-    const report: StockInCreate = {
-      warehouseMen: 8,
-      providerId: selectedProvider || 1,
+    if (selectedReason === "") {
+      toast.warning("Chưa chọn lý do xuất hàng!");
+      return;
+    }
+    const report: StockOutCreate = {
+      warehouseMen: 1,
+      stockOutReasonId: Number(selectedReason),
       items: items.map((item) => ({
         skuId: item.id,
         amount: item.amount,
@@ -207,38 +155,40 @@ export default function StockOutAddPage() {
       })),
     };
     try {
-      const response = await createStockInReport(report);
-      toast.success("Nhập hàng thành công!", {
-        position: "top-right",
-        autoClose: 3000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-      });
+      const response = await createStockOutReport(report);
+      toast.success("Nhập hàng thành công!");
       console.log("Báo cáo nhập kho đã được tạo:", response);
       navigate("/stock-in");
     } catch (error) {
-      toast.error("Nhập hàng thất bại!", {
-        position: "top-right",
-        autoClose: 3000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-      });
+      toast.error("Nhập hàng thất bại!");
       console.error("Lỗi khi tạo báo cáo kiểm kho:", error);
     }
   };
+  const [stockOutReason, setStockOutReason] = useState<StockOutReason[]>([]);
+  const [selectedReason, setSelectedReason] = useState("");
+  const getListReason = async () => {
+    try {
+      const response = await listReason();
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-expect-error
+      setStockOutReason(response.data);
+    } catch (error) {
+      toast.error("Lỗi hệ thống!");
+      console.log(error);
+    }
+  };
+  useEffect(() => {
+    getListReason();
+  }, []);
   return (
     <div className=" mx-auto p-4">
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-4 ">
-          <Link to="/stock-in" className="hover:opacity-80">
+          <Link to="/stock-out" className="hover:opacity-80">
             <ArrowLeft className="h-6 w-6" />
           </Link>
-          <h1 className="text-xl font-semibold">Nhập hàng</h1>
+          <h1 className="text-xl font-semibold"> Xuất hàng</h1>
           <div className="relative flex items-center gap-2 bg-white rounded-lg px-3 py-2 flex-1 w-[400px]">
             <Input
               type="search"
@@ -313,16 +263,8 @@ export default function StockOutAddPage() {
                     />
                   </TableCell>
 
-                  <TableCell className="">
-                    <Input
-                      type="number"
-                      placeholder="Đơn giá"
-                      className="shadow-none w-fit text-center"
-                      value={item.costPrice}
-                      onChange={(e) =>
-                        handlePriceChange(item.id, Number(e.target.value))
-                      }
-                    />
+                  <TableCell className="text-center">
+                    {formatCurrency(item.costPrice)}
                   </TableCell>
                   <TableCell className="text-center">
                     {formatCurrency(
@@ -340,42 +282,20 @@ export default function StockOutAddPage() {
           <CardContent className="p-4 space-y-4">
             <div className="flex items-center justify-between text-sm">
               <span>Nguyễn Huỳnh Duy Hiếu</span>
-              <Pencil className="h-4 w-4 text-gray-500" />
             </div>
             <div className="flex items-center justify-between text-sm relative">
-              <Input
-                placeholder="Tìm nhà cung cấp"
-                value={searchProviderQuery}
-                onChange={handleSearchProviderChange}
-              />
-              <Button variant={"ghost"} className={"rounded-full "}>
-                <PlusCircle
-                  className={
-                    "h-4 w-4 text-gray-500 cursor-pointer hover:text-red-500"
-                  }
-                />
-              </Button>
-              {filteredProviders &&
-                filteredProviders.length > 0 &&
-                searchProviderQuery.trim() !== "" && (
-                  <div className="absolute top-full mt-2 left-0 w-full bg-white border rounded-lg shadow-md z-50 max-h-60 overflow-y-auto">
-                    {filteredProviders.map((provider) => (
-                      <div
-                        key={provider.id}
-                        className="p-2 hover:bg-gray-100 cursor-pointer"
-                        onClick={() => {
-                          setSearchProviderQuery(provider.name);
-                          setFilteredProviders(undefined);
-                          setSelectedProvider(provider.id);
-                        }}
-                      >
-                        <span className="text-gray-500">{provider.id}</span>
-                        {" - "}
-                        <span className="font-medium">{provider.name}</span>
-                      </div>
-                    ))}
-                  </div>
-                )}
+              <Select onValueChange={(value) => setSelectedReason(value)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Chọn lý do xuất hàng" />
+                </SelectTrigger>
+                <SelectContent>
+                  {stockOutReason.map((option) => (
+                    <SelectItem key={option.id} value={option.id.toString()}>
+                      {option.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             <div className="space-y-2">
               <div className="flex justify-between text-sm">

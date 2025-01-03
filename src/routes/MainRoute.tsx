@@ -17,6 +17,7 @@ import { useEffect } from "react";
 import { EmployeePage } from "@/pages/employee/EmployeePage.tsx";
 import { StockOutPage } from "@/pages/inventory/stockOut/StockOutPage.tsx";
 import { ReportPage } from "@/pages/report/ReportPage.tsx";
+import StockOutAddPage from "@/pages/inventory/stockOut/StockOutAddPage.tsx";
 
 export const MainRoute = () => {
   const navigate = useNavigate();
@@ -41,6 +42,7 @@ export const MainRoute = () => {
         <Route path={"stock-in"} element={<StockInPage />} />
         <Route path={"stock-in/new"} element={<StockInAddPage />} />
         <Route path={"stock-out"} element={<StockOutPage />} />
+        <Route path={"stock-out/new"} element={<StockOutAddPage />} />
       </Route>
       <Route path="/sale" element={<SalePage />} />
       <Route path="/error" element={<ErrorPage />} />

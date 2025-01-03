@@ -1,6 +1,6 @@
 import axiosInstance from "@/axiosSetup.ts";
-import { StockInCreate } from "@/types/stockIn/stockIn.ts";
 import {
+  StockOutCreate,
   StockOutDetail,
   StockOutItemTable,
 } from "@/types/stockOut/stockOut.ts";
@@ -63,7 +63,7 @@ export async function getStockOutDetailById(
 ): Promise<ResponseStockOutDetail> {
   try {
     const response = await axiosInstance.get<ResponseStockOutDetail>(
-      `v1/stock-out/${reportId}`,
+      `v1/stock-out/detail/${reportId}`,
       {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -77,7 +77,7 @@ export async function getStockOutDetailById(
   }
 }
 export async function createStockOutReport(
-  body: StockInCreate,
+  body: StockOutCreate,
 ): Promise<ResponseStockInReportCreate> {
   try {
     const response = await axiosInstance.post<ResponseStockInReportCreate>(
@@ -124,6 +124,19 @@ export async function searchProvider(query: string): Promise<Response> {
         lkName: query,
       },
       headers: config.headers,
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Fetch error:", error);
+    throw error;
+  }
+}
+export async function listReason(): Promise<Response> {
+  try {
+    const response = await axiosInstance.get<Response>("v1/stock-out/reasons", {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
     });
     return response.data;
   } catch (error) {

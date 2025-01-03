@@ -34,7 +34,7 @@ export default function InventoryCheckPage() {
     })),
   );
 
-  const [searchProviderQuery, setSearchProviderQuery] = useState("");
+  const [searchSkuQuery, setSearchSkuQuery] = useState("");
   const [filteredProviders, setFilteredProviders] = useState<
     [
       {
@@ -47,11 +47,11 @@ export default function InventoryCheckPage() {
   >();
   const handleSearchSkuChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const query = e.target.value;
-    setSearchProviderQuery(query);
-    debouncedSearchProvider(query);
+    setSearchSkuQuery(query);
+    debouncedSearchSku(query);
   };
 
-  const debouncedSearchProvider = useMemo(
+  const debouncedSearchSku = useMemo(
     () =>
       _.debounce(async (query: string) => {
         if (query.trim() === "") {
@@ -78,7 +78,7 @@ export default function InventoryCheckPage() {
   );
   const handleAddItem = (product: InventoryItemStockTake) => {
     setItems((prevItems) => {
-      setSearchProviderQuery("");
+      setSearchSkuQuery("");
       const exists = prevItems.some((item) => item.id === product.id);
 
       if (exists) return prevItems;
@@ -164,7 +164,7 @@ export default function InventoryCheckPage() {
               type="search"
               placeholder="Tìm hàng hóa theo tên sản phẩm"
               className="w-full "
-              value={searchProviderQuery}
+              value={searchSkuQuery}
               onChange={handleSearchSkuChange}
             />
             {/*
@@ -172,7 +172,7 @@ export default function InventoryCheckPage() {
 */}
             {filteredProviders &&
               filteredProviders.length > 0 &&
-              searchProviderQuery.trim() !== "" && (
+              searchSkuQuery.trim() !== "" && (
                 <div className="absolute top-full mt-2 left-0 w-full bg-white border rounded-lg shadow-md z-50 max-h-60 overflow-y-auto">
                   {filteredProviders.map((provider) => (
                     <div
