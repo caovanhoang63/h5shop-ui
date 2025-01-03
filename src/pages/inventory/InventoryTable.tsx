@@ -322,10 +322,10 @@ export function InventoryTable({
                     event.preventDefault();
                     event.stopPropagation();
                     const selectedReport = row.original;
-                    setIsOpenStockTakesModal(true);
                     setSelectedInventoryReport(selectedReport);
                     console.log(selectedInventoryReport);
                     await getInventoryReportDetails(selectedReport.id);
+                    setIsOpenStockTakesModal(true);
                   }}
                   key={row.id}
                   data-state={row.getIsSelected() && "selected"}

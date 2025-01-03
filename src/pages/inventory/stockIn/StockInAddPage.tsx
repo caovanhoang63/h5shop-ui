@@ -140,7 +140,7 @@ export default function StockInAddPage() {
             console.error(error);
           }
         }
-      }, 2000),
+      }, 300),
     [],
   );
 
@@ -207,25 +207,11 @@ export default function StockInAddPage() {
     };
     try {
       const response = await createStockInReport(report);
-      toast.success("Nhập hàng thành công!", {
-        position: "top-right",
-        autoClose: 3000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-      });
+      toast.success("Nhập hàng thành công!");
       console.log("Báo cáo nhập kho đã được tạo:", response);
       navigate("/stock-in");
     } catch (error) {
-      toast.error("Nhập hàng thất bại!", {
-        position: "top-right",
-        autoClose: 3000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-      });
+      toast.error("Nhập hàng thất bại!");
       console.error("Lỗi khi tạo báo cáo kiểm kho:", error);
     }
   };

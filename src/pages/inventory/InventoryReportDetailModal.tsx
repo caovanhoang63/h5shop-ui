@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/dialog.tsx";
 import { InventoryReportDetails } from "@/types/inventory/inventoryReport.ts";
 import { ScrollArea } from "@/components/ui/scroll-area.tsx";
+import { formatCurrency } from "@/utils/convert.ts";
 
 interface IInventoryReportDetailModalProps {
   isOpen: boolean;
@@ -98,16 +99,17 @@ export default function InventoryReportDetailModal({
                       </TableCell>
                       <TableCell>{item.name}</TableCell>
                       <TableCell className="text-right">
-                        {item.amount}
+                        {item.oldStock}
                       </TableCell>
                       <TableCell className="text-right">
-                        {item.amount - item.inventoryDif}
+                        {item.amount}
                       </TableCell>
                       <TableCell className="text-right">
                         {item.inventoryDif}
                       </TableCell>
                       <TableCell className="text-right">
-                        {item.amount - item.inventoryDif}
+                        {item.price &&
+                          formatCurrency(item.inventoryDif * item.price)}
                       </TableCell>
                     </TableRow>
                   ))}

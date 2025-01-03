@@ -48,7 +48,6 @@ export default function StockInDetailModal({
       doc.text(`Mã hàng: ${item.skuId}`, 10, yOffset + 10);
       doc.text(`Tên hàng: ${item.name}`, 10, yOffset + 20);
       doc.addImage(barcode, "PNG", 10, yOffset + 30, 100, 20);
-
       yOffset += 60;
       if ((index + 1) % 4 === 0) {
         doc.addPage();

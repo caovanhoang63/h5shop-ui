@@ -28,15 +28,19 @@ export interface InventoryReportFilter {
   status?: [] | null;
   lk_Id?: string | null;
 }
+const token = localStorage.getItem("token");
 export async function getInventoryReports(
   filters: InventoryReportFilter,
 ): Promise<ResponseInventoryReport> {
   try {
     const response = await axiosInstance.get<ResponseInventoryReport>(
-      "v1/inventory/table",
+      "v1/inventory",
       {
         params: {
           ...filters,
+        },
+        headers: {
+          Authorization: `Bearer ${token}`,
         },
       },
     );
@@ -52,7 +56,12 @@ export async function getInventoryReportDetailById(
 ): Promise<ResponseInventoryReportDetail> {
   try {
     const response = await axiosInstance.get<ResponseInventoryReportDetail>(
-      `v1/inventory/${reportId}/details`,
+      `v1/inventory/${reportId}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      },
     );
     return response.data;
   } catch (error) {
@@ -67,6 +76,11 @@ export async function createInventoryReport(
     const response = await axiosInstance.post<ResponseInventoryReportCreate>(
       "v1/inventory/create",
       body,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      },
     );
     return response.data;
   } catch (error) {
