@@ -132,7 +132,7 @@ export const DashBoardPage = () => {
           gtCreatedAt: newGtCreatedAt,
         };
       });
-    }, 5000);
+    }, 30000);
     return () => clearInterval(intervalId);
   }, [auditLog]);
 
