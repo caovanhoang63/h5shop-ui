@@ -36,7 +36,7 @@ import {
 } from "@/components/ui/table";
 import { MenuVisibilityColumnTable } from "@/components/ButtonVisibilityColumnTable.tsx";
 import { SpuListTable } from "@/types/spu/spuListTable.ts";
-import { Paging } from "@/types/paging.ts";
+import { PagingSpu } from "@/types/spu/PagingSpu.ts";
 
 export const spuColumns: ColumnDef<SpuListTable>[] = [
   {
@@ -187,7 +187,7 @@ interface DataTableDemoProps {
   columnVisible: MenuVisibilityColumnTable[];
   spuListTable: SpuListTable[];
   onSelectedRow: (spuId: number) => void;
-  paging: Paging;
+  paging: PagingSpu;
   setPaging: (page: number) => void;
 }
 
