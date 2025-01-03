@@ -16,17 +16,12 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog.tsx";
-import { SkuWholesalePrice } from "@/types/sku/skuGetDetail.ts";
+import { OrderItem } from "@/types/orderItem/orderItem.ts";
 
 interface OrderItemCardProps {
   index: number;
-  id: number;
-  name: string;
+  item: OrderItem;
   quantity: number;
-  stock: number;
-  wholeSalePrices: SkuWholesalePrice[];
-  description?: string;
-  originalPrice: number;
   onRemove: () => void;
   onQuantityBlur: (newQuantity: number) => Promise<boolean>;
   onDescriptionBlur: (newDescription: string) => void;
@@ -34,20 +29,15 @@ interface OrderItemCardProps {
 
 export function OrderItemCard({
   index,
-  id,
-  name,
+  item,
   quantity,
-  stock,
-  wholeSalePrices,
-  description,
-  originalPrice,
   onRemove,
   onQuantityBlur,
   onDescriptionBlur,
 }: OrderItemCardProps): JSX.Element {
-  const [localDescription, setLocalDescription] = useState(description);
+  const [localDescription, setLocalDescription] = useState(item.description);
   const [localQuantity, setLocalQuantity] = useState(quantity);
-  const safeOriginalPrice = Number(originalPrice) || 0;
+  const safeOriginalPrice = Number(item.unitPrice) || 0;
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const quantityInputRef = useRef<HTMLInputElement>(null);
   const previousQuantityRef = useRef(quantity);
@@ -95,9 +85,11 @@ export function OrderItemCard({
         >
           <Trash2 />
         </Button>
-        <span className="md:w-1/5 text-sm">ID: {id}</span>
+        <span className="md:w-1/5 text-sm">ID: {item.skuId}</span>
         <div>
-          <span className="text-sm">{name}</span>
+          <span className="text-sm">
+            {item.skuDetail ? item.skuDetail.name : ""}
+          </span>
           <Button
             onClick={() => setIsDialogOpen(true)}
             className="p-1 h-6 w-6 bg-background text-gray-600 hover:bg-gray-200 rounded-full shadow-none"
@@ -148,7 +140,7 @@ export function OrderItemCard({
               </div>
             </TooltipTrigger>
             <TooltipContent className="mt-2" side="bottom">
-              <span>Tồn kho: {stock}</span>
+              <span>Tồn kho: {item.skuDetail ? item.skuDetail.stock : 0}</span>
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>
@@ -157,7 +149,7 @@ export function OrderItemCard({
         <div className="flex flex-row items-center gap-20">
           <div className="flex flex-col items-end align-middle">
             <span className="w-24 text-end border-b-2 border-gray-300 text-sm text-gray-700">
-              {new Intl.NumberFormat("en-US").format(originalPrice)}
+              {new Intl.NumberFormat("en-US").format(item.unitPrice)}
             </span>
           </div>
           <span className="font-semibold text-gray-900">
@@ -182,10 +174,13 @@ export function OrderItemCard({
             <DialogTitle>Thông tin sản phẩm</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
-            <p>Tồn kho: {stock}</p>
+            <p>Tồn kho: {item.skuDetail ? item.skuDetail.stock : 0}</p>
             <p>Giá sỉ:</p>
             <ul className="list-disc pl-5">
-              {wholeSalePrices.map((price, idx) => (
+              {(item.skuDetail && item.skuDetail.wholesalePrices
+                ? item.skuDetail.wholesalePrices
+                : []
+              ).map((price, idx) => (
                 <li key={idx}>
                   Mua từ {price.minQuantity} trở lên:{" "}
                   {price.price.toLocaleString()} đ

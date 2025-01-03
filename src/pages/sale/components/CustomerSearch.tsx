@@ -6,6 +6,7 @@ import { listCustomer } from "@/pages/sale/api/customerApi.ts";
 import { Customer } from "@/types/customer/customer.ts";
 import { CustomerListFilter } from "@/types/customer/customerListFilter.ts";
 import _ from "lodash";
+import { CreateCustomerModal } from "@/pages/sale/components/CustomerModal.tsx";
 
 interface CustomerSearchProps {
   onCustomerChange: (customer: Customer | undefined) => void;
@@ -16,6 +17,7 @@ export const CustomerSearch: React.FC<CustomerSearchProps> = ({
   onCustomerChange,
   customerValue,
 }) => {
+  const [isCustomerCreateOpen, setIsCustomerCreateOpen] = useState(false);
   const [searchCustomer, setSearchCustomer] = useState("");
   const [searchCustomerResult, setSearchCustomerResult] =
     useState<Customer[]>();
@@ -77,7 +79,10 @@ export const CustomerSearch: React.FC<CustomerSearchProps> = ({
             className="pl-9 bg-background flex-grow"
             placeholder="Tìm khách hàng"
           />
-          <Button className="absolute right-3 p-1 h-7 w-7 bg-background text-gray-600 hover:bg-gray-200 rounded-full shadow-none">
+          <Button
+            onClick={() => setIsCustomerCreateOpen(true)}
+            className="absolute right-3 p-1 h-7 w-7 bg-background text-gray-600 hover:bg-gray-200 rounded-full shadow-none"
+          >
             <Plus />
           </Button>
         </div>
@@ -102,6 +107,10 @@ export const CustomerSearch: React.FC<CustomerSearchProps> = ({
           ))}
         </div>
       )}
+      <CreateCustomerModal
+        isOpen={isCustomerCreateOpen}
+        onClose={() => setIsCustomerCreateOpen(false)}
+      />
     </div>
   );
 };

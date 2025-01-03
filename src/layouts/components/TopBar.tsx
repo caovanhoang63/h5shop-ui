@@ -89,7 +89,7 @@ export const TopBar = () => {
               <Package2 size={20} />
               <p>Hàng hóa</p>
             </NavButton>
-            <NavButton>
+            <NavButton link={"order"}>
               <ArrowRightLeft size={20} />
               <p>Giao dịch</p>
             </NavButton>

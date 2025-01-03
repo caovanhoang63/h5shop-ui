@@ -27,6 +27,7 @@ interface PaymentDialogProps {
   orderId: number;
   customer: Customer | undefined;
   orderDetails: OrderGetDetail;
+  onPaymentSuccess: () => void;
 }
 
 const PaymentDialog: React.FC<PaymentDialogProps> = ({
@@ -35,6 +36,7 @@ const PaymentDialog: React.FC<PaymentDialogProps> = ({
   orderId,
   customer,
   orderDetails,
+  onPaymentSuccess,
 }) => {
   const totalAmount = useMemo(
     () =>
@@ -60,7 +62,16 @@ const PaymentDialog: React.FC<PaymentDialogProps> = ({
     setIsProcessing(true);
     payOrder(orderId, { isUsePoint: usePoints })
       .then(() => {
+        onPaymentSuccess();
         onClose();
+        toast.success("Thanh toán thành công", {
+          position: "top-right",
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+        });
       })
       .catch((error) => {
         console.error(error);
@@ -108,17 +119,17 @@ const PaymentDialog: React.FC<PaymentDialogProps> = ({
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>SKU ID</TableHead>
-                    <TableHead>Amount</TableHead>
-                    <TableHead>Unit Price</TableHead>
-                    <TableHead>Total</TableHead>
+                    <TableHead>Tên sản phẩm</TableHead>
+                    <TableHead>Số lượng</TableHead>
+                    <TableHead>Đơn giá</TableHead>
+                    <TableHead>Tổng</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {orderDetails &&
                     orderDetails.items.map((item, index) => (
                       <TableRow key={index}>
-                        <TableCell>{item.skuId}</TableCell>
+                        <TableCell>{item.skuDetail?.name}</TableCell>
                         <TableCell>{item.amount}</TableCell>
                         <TableCell>
                           {new Intl.NumberFormat("en-US").format(
