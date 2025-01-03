@@ -7,7 +7,11 @@ import {
 } from "@/components/ui/card.tsx";
 import { Separator } from "@/components/ui/separator.tsx";
 import { ArrowRightCircle } from "lucide-react";
-import { ChartConfig, ChartContainer } from "@/components/ui/chart.tsx";
+import {
+  ChartConfig,
+  ChartContainer,
+  ChartTooltip,
+} from "@/components/ui/chart.tsx";
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts";
 import {
   Select,
@@ -23,8 +27,10 @@ import { vi } from "date-fns/locale";
 import {
   getAudit,
   getRevenue,
+  getSkuOrder,
   IAuditFilter,
   Revenue,
+  SkuOrder,
 } from "@/pages/dashboard/api.ts";
 import { useEffect, useState } from "react";
 import { Audit } from "@/types/auditLog.ts";
@@ -64,14 +70,28 @@ export const DashBoardPage = () => {
   const [revenueSelect, setRevenueSelect] = useState<string>("current");
   const [currentTotalRevenue, setCurrentTotalRevenue] = useState<number>(0);
   const [lastTotalRevenue, setLastTotalRevenue] = useState<number>(0);
-
   const [todayOrder, setTodayOrder] = useState<number>(0);
   const [todayRevenue, setTodayRevenue] = useState<number>(0);
-
   const [lastTodayRevenue, setLastTodayOrder] = useState<number>(0);
   const compare = caculateCompare(todayRevenue, lastTodayRevenue);
-
   const [auditLog, setAuditLog] = useState<Audit[]>([]);
+  const [skuOrder, setSkuOrder] = useState<SkuOrder[]>([]);
+
+  const [skuOrderStartDate, setSkuOrderStartDate] = useState<Date>(
+    getFirstDayOfCurrentMonth(),
+  );
+  const [skuOrderEndDate, setSkuOrderEndDate] = useState<Date>(new Date());
+  const [skuOrderOrder, setSkuOrderOrder] = useState<"amount" | "revenue">(
+    "amount",
+  );
+
+  useEffect(() => {
+    getSkuOrder(skuOrderStartDate, skuOrderEndDate, 10, skuOrderOrder).then(
+      (r) => {
+        setSkuOrder(r.data.data);
+      },
+    );
+  }, [skuOrderEndDate, skuOrderOrder, skuOrderStartDate]);
 
   useEffect(() => {
     getRevenue(getFirstDayOfCurrentMonth(), new Date()).then((r) => {
@@ -246,18 +266,21 @@ export const DashBoardPage = () => {
                     Top 10 Hàng hóa bán chạy tháng này
                   </p>
                   <div className={"text-primary"}>
-                    <Select defaultValue={"apple"}>
+                    <Select
+                      defaultValue={"amount"}
+                      onValueChange={(v) =>
+                        setSkuOrderOrder(v as "amount" | "revenue")
+                      }
+                    >
                       <SelectTrigger className="w-[180px]">
                         <SelectValue placeholder="Cách tính" />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectGroup>
                           <SelectLabel>Loại doanh thu </SelectLabel>
-                          <SelectItem value="apple">
+                          <SelectItem value="amount">Theo số lượng</SelectItem>
+                          <SelectItem value="revenue">
                             Theo doanh thu thuần
-                          </SelectItem>
-                          <SelectItem value="banana">
-                            Theo lợi nhuận ròng
                           </SelectItem>
                         </SelectGroup>
                       </SelectContent>
@@ -265,15 +288,34 @@ export const DashBoardPage = () => {
                   </div>
                 </div>
                 <div className={"text-primary"}>
-                  <Select defaultValue={"apple"}>
+                  <Select
+                    defaultValue={"cur"}
+                    onValueChange={(v) => {
+                      switch (v) {
+                        case "cur":
+                          setSkuOrderStartDate(getFirstDayOfCurrentMonth());
+                          setSkuOrderEndDate(new Date());
+                          break;
+                        case "last":
+                          {
+                            const { firstDay, lastDay } =
+                              getFirstAndLastDayOfPreviousMonth();
+
+                            setSkuOrderStartDate(firstDay);
+                            setSkuOrderEndDate(lastDay);
+                          }
+                          break;
+                      }
+                    }}
+                  >
                     <SelectTrigger className="w-[180px]">
                       <SelectValue placeholder="Thời điểm" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectGroup>
                         <SelectLabel>Thời điểm</SelectLabel>
-                        <SelectItem value="apple">Tháng này</SelectItem>
-                        <SelectItem value="banana">Tháng trước</SelectItem>
+                        <SelectItem value="cur">Tháng này</SelectItem>
+                        <SelectItem value="last">Tháng trước</SelectItem>
                       </SelectGroup>
                     </SelectContent>
                   </Select>
@@ -284,26 +326,55 @@ export const DashBoardPage = () => {
           </CardHeader>
           <CardContent>
             <div>
-              <ChartContainer className={"h-96 w-full"} config={chartConfig}>
+              <ChartContainer className={"h-96 w-full"} config={skuCharConfig}>
                 <BarChart
                   accessibilityLayer
-                  data={currentRevenue}
+                  data={skuOrder}
                   layout={"vertical"}
                 >
                   <CartesianGrid vertical={false} />
-                  <XAxis type={"number"} dataKey={"revenue"} unit={"tr"} />
+                  <XAxis type={"number"} dataKey={skuOrderOrder} unit={""} />
                   <YAxis
-                    dataKey="date"
+                    dataKey="id"
                     type="category"
                     tickLine={false}
                     tickMargin={10}
                     axisLine={false}
-                    tickFormatter={(value) => value.slice(0, 3)}
                   />
                   <Bar
-                    dataKey="revenue"
+                    className={""}
+                    dataKey={skuOrderOrder}
                     fill="var(--color-revenue)"
-                    radius={4}
+                  />
+                  <ChartTooltip
+                    content={({ active, payload }) => {
+                      if (active && payload && payload.length) {
+                        const { name, amount, revenue } = payload[0].payload;
+                        return (
+                          <div className="text-base text-gray-600">
+                            <p>
+                              <span className={" font-bold text-primary"}>
+                                Tên:
+                              </span>{" "}
+                              {name}
+                            </p>
+                            <p>
+                              <span className={" font-bold text-primary"}>
+                                Số lượng:
+                              </span>{" "}
+                              {amount}
+                            </p>
+                            <p>
+                              <span className={" font-bold text-primary"}>
+                                Doanh thu:
+                              </span>{" "}
+                              {Intl.NumberFormat("de-DE").format(revenue)} vnd
+                            </p>
+                          </div>
+                        );
+                      }
+                      return null;
+                    }}
                   />
                 </BarChart>
               </ChartContainer>
@@ -374,6 +445,21 @@ const ActionCard = ({ audit }: { audit: Audit }) => {
 const chartConfig = {
   revenue: {
     label: "Revenue",
+    color: "#2563eb",
+  },
+} satisfies ChartConfig;
+
+const skuCharConfig = {
+  revenue: {
+    label: "Revenue",
+    color: "#2563eb",
+  },
+  amount: {
+    label: "Amount",
+    color: "#2563ed",
+  },
+  name: {
+    label: "Name",
     color: "#2563eb",
   },
 } satisfies ChartConfig;

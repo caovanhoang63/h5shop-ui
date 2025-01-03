@@ -49,3 +49,25 @@ export const getRevenue = (startDate: Date, endDate: Date) =>
       endDate: endDate,
     },
   });
+
+export interface SkuOrder {
+  id: number;
+  amount: number;
+  name: string;
+  revenue: number;
+}
+
+export const getSkuOrder = (
+  startDate: Date,
+  endDate: Date,
+  limit: number,
+  order: "revenue" | "amount",
+) =>
+  axiosInstance.get<{ data: SkuOrder[] }>("v1/report/sku-order", {
+    params: {
+      startDate: startDate,
+      endDate: endDate,
+      limit: limit,
+      order,
+    },
+  });
