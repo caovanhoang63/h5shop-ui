@@ -63,7 +63,7 @@ export async function getStockOutDetailById(
 ): Promise<ResponseStockOutDetail> {
   try {
     const response = await axiosInstance.get<ResponseStockOutDetail>(
-      `v1/stock-in/${reportId}`,
+      `v1/stock-out/${reportId}`,
       {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -76,7 +76,7 @@ export async function getStockOutDetailById(
     throw error;
   }
 }
-export async function createStockInReport(
+export async function createStockOutReport(
   body: StockInCreate,
 ): Promise<ResponseStockInReportCreate> {
   try {
