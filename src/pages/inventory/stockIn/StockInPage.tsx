@@ -70,7 +70,7 @@ export const StockInPage = () => {
   const handleSearchChange = (value: string) => {
     setFilters((prevFilters) => ({
       ...prevFilters,
-      lk_Id: value,
+      lk_Id: value.trim() === "" ? null : value,
     }));
   };
   const handleTimeOptionChange = (value: string) => {

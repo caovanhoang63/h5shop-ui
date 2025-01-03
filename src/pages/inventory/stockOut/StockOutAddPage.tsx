@@ -26,9 +26,10 @@ import {
 import { formatCurrency } from "@/utils/convert.ts";
 import _ from "lodash";
 import { toast } from "react-toastify";
+import { StockOutItemAdd } from "@/types/stockOut/stockOut.ts";
 
-export default function StockInAddPage() {
-  const rawData: StockInItemAdd[] = [];
+export default function StockOutAddPage() {
+  const rawData: StockOutItemAdd[] = [];
   const [note, setNote] = useState("");
   const navigate = useNavigate();
   const searchData = [

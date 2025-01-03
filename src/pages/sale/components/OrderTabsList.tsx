@@ -25,7 +25,7 @@ export interface Tab {
 interface OrderTabsListProps {
   tabs: Tab[];
   activeTab: number;
-  onTabChange: (index: number) => void;
+  onTabChange: (index: number) => Promise<void>;
   onDeleteTab: (index: number) => void;
   onAddTab: (type: string) => void;
   isOverflowing: boolean;

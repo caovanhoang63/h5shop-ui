@@ -15,6 +15,7 @@ import {
   updateProvider,
 } from "@/pages/partner/api/providerApi.ts";
 import { useEffect, useState } from "react";
+import { toast } from "react-toastify";
 interface IPartnerModalProps {
   isOpen: boolean;
   onOpenChange: (isOpen: boolean) => void;
@@ -48,10 +49,13 @@ export default function PartnerModal({
     try {
       if (partner?.id !== undefined) {
         await deleteProvider(partner.id);
+        toast.success("Xóa nhà cung cấp thành công");
+        refreshData(); // Gọi hàm refreshData sau khi xóa thành
         onOpenChange(false);
       }
     } catch (error) {
       console.error("Lỗi xóa nhà cung cấp", error);
+      toast.error("Xóa nhà cung cấp thất bại");
     }
   }
   async function handleUpdate() {
@@ -69,11 +73,13 @@ export default function PartnerModal({
         const response = await updateProvider(partner.id, body);
         if (response) {
           console.log("Cập nhật nhà cung cấp thành công", response);
+          toast.success("Cập nhật nhà cung cấp thành công");
           refreshData(); // Gọi hàm refreshData sau khi cập nhật thành công
         }
         onOpenChange(false);
       }
     } catch (error) {
+      toast.error("Cập nhật nhà cung cấp thất bại");
       console.error("Lỗi xóa nhà cung cấp", error);
     }
   }

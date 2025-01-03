@@ -49,7 +49,6 @@ export const ItemSku = ({
     SkuWholesalePriceCreate[]
   >([]);
   const [price, setPrice] = useState<number>(0);
-  const [costPrice, setCostPrice] = useState<number>(0);
   const [stock, setStock] = useState<number>(0);
   const [skuTierIdx, setSkuTierIdx] = useState<number[]>([]);
   const [image, setImage] = useState<Image>();
@@ -78,7 +77,6 @@ export const ItemSku = ({
 
     // Price, Cost, Stock
     setPrice(sku.price);
-    setCostPrice(sku.costPrice);
     setStock(sku.stock);
 
     // WholeSalePrice
@@ -158,15 +156,6 @@ export const ItemSku = ({
     setSku(indexSku, { ...sku, price: newValue });
   };
 
-  const handleSetCostPrice = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newValue: number = Number(e.target.value);
-    if (isNaN(newValue)) {
-      return;
-    }
-    setCostPrice(newValue);
-    setSku(indexSku, { ...sku, costPrice: newValue });
-  };
-
   const handleSetStock = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newValue: number = Number(e.target.value);
     if (isNaN(newValue)) {
@@ -180,7 +169,7 @@ export const ItemSku = ({
     setImage(image);
     setSku(indexSku, {
       ...sku,
-      images: [image],
+      images: image ? [image] : [],
     });
   };
 
@@ -209,12 +198,6 @@ export const ItemSku = ({
       <div className={"flex flex-1 flex-col space-y-4"}>
         <div className={"flex flex-row space-x-12"}>
           <div className={"flex flex-col flex-1 space-y-4"}>
-            <div className={"flex flex-row items-center"}>
-              <Label className={"w-5/12"} htmlFor="name">
-                Mã vạch
-              </Label>
-              <Input id="name" className={"h-8"} />
-            </div>
             <div className={"flex flex-row items-center"}>
               <Label className={"w-5/12"} htmlFor="name">
                 Tên sản phẩm
@@ -288,15 +271,6 @@ export const ItemSku = ({
             </Card>
           </div>
           <div className={"flex flex-col flex-1 space-y-4"}>
-            <div className={"flex flex-row items-center"}>
-              <Label className={"w-5/12"}>Giá vốn (VND)</Label>
-              <Input
-                id="name"
-                className={"h-8"}
-                value={costPrice}
-                onChange={(e) => handleSetCostPrice(e)}
-              />
-            </div>
             <div className={"flex flex-row items-center"}>
               <Label className={"w-5/12"} htmlFor="name">
                 Giá bán (VND)

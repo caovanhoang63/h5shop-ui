@@ -12,7 +12,7 @@ import { BanIcon, FileInput } from "lucide-react";
 import { useState } from "react";
 import { ProviderCreate } from "@/types/provider.ts";
 import { createProvider } from "@/pages/partner/api/providerApi.ts";
-import { toast } from "sonner";
+import { toast } from "react-toastify";
 
 interface INewPartnerModalProps {
   isOpen: boolean;
@@ -41,12 +41,12 @@ export default function NewPartnerModal({
     try {
       const response = await createProvider(data);
       if (response) {
-        toast("Tạo thành công", {});
+        toast.success("Tạo thành công");
         refreshData();
         onOpenChange(false);
       }
     } catch (e) {
-      toast("Tạo thất bại", {});
+      toast.error("Tạo thất bại");
       console.log(e);
     }
   }

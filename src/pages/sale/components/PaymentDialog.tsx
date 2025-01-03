@@ -16,20 +16,24 @@ import {
   TableRow,
 } from "@/components/ui/table.tsx";
 import { OrderGetDetail } from "@/types/order/orderGetDetail.ts";
+import { Customer } from "@/types/customer/customer.ts";
+import { Checkbox } from "@/components/ui/checkbox.tsx";
+import { payOrder } from "@/pages/sale/api/orderApi.ts";
+import { toast } from "react-toastify";
 
 interface PaymentDialogProps {
   isOpen: boolean;
   onClose: () => void;
-  customerName: string;
-  customerPhone: string;
+  orderId: number;
+  customer: Customer | undefined;
   orderDetails: OrderGetDetail;
 }
 
 const PaymentDialog: React.FC<PaymentDialogProps> = ({
   isOpen,
   onClose,
-  customerName,
-  customerPhone,
+  orderId,
+  customer,
   orderDetails,
 }) => {
   const totalAmount = useMemo(
@@ -50,17 +54,28 @@ const PaymentDialog: React.FC<PaymentDialogProps> = ({
     [orderDetails],
   );
   const [isProcessing, setIsProcessing] = useState(false);
+  const [usePoints, setUsePoints] = useState(false);
 
   const handleConfirmPayment = async () => {
     setIsProcessing(true);
-    try {
-      console.log("Payment confirmed", { customerPhone, totalAmount });
-      onClose();
-    } catch (error) {
-      console.error("Payment error:", error);
-    } finally {
-      setIsProcessing(false);
-    }
+    payOrder(orderId, { isUsePoint: usePoints })
+      .then(() => {
+        onClose();
+      })
+      .catch((error) => {
+        console.error(error);
+        toast.error("Thanh toán thất bại", {
+          position: "top-right",
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+        });
+      })
+      .finally(() => {
+        setIsProcessing(false);
+      });
   };
 
   return (
@@ -72,10 +87,19 @@ const PaymentDialog: React.FC<PaymentDialogProps> = ({
         <div className="flex flex-col space-y-4">
           <div>
             <p>
-              <strong>Khách hàng:</strong> {customerName}
-            </p>
-            <p>
-              <strong>Số điện thoại:</strong> {customerPhone}
+              {customer ? (
+                <span className="flex flex-col">
+                  <span>
+                    <strong>Khách hàng: </strong>{" "}
+                    {customer.lastName + " " + customer.firstName}
+                  </span>
+                  <span>
+                    <strong>Số điện thoại: </strong> {customer.phoneNumber}
+                  </span>
+                </span>
+              ) : (
+                <strong>Khách lẻ</strong>
+              )}
             </p>
           </div>
           <div className="flex flex-col gap-4">
@@ -126,6 +150,16 @@ const PaymentDialog: React.FC<PaymentDialogProps> = ({
                   currency: "VND",
                 })}
               </span>
+            </div>
+            <div className="flex items-center mt-2">
+              <Checkbox
+                id="usePoints"
+                checked={usePoints}
+                onCheckedChange={(checked) => setUsePoints(!!checked)}
+              />
+              <label htmlFor="usePoints" className="ml-2 text-sm">
+                Sử dụng điểm tích luỹ
+              </label>
             </div>
           </div>
         </div>

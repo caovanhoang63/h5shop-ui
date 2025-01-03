@@ -69,9 +69,15 @@ export default function EmployeeEditModal({
       setValue("lastName", employee.lastName);
       setValue("phoneNumber", employee.phoneNumber);
       setValue("email", employee.email);
-      setValue("gender", employee.gender);
+
+      setValue("gender", employee.gender || ""); // Gắn giá trị mặc định cho giới tính
       setValue("address", employee.address);
-      setValue("dateOfBirth", employee.dateOfBirth);
+      setValue(
+        "dateOfBirth",
+        employee.dateOfBirth
+          ? new Date(employee.dateOfBirth).toISOString().split("T")[0] // Chuyển đổi sang định dạng yyyy-MM-dd
+          : "",
+      );
     } else {
       reset({
         firstName: "",
@@ -84,6 +90,7 @@ export default function EmployeeEditModal({
       });
     }
   }, [isOpen, employee, reset, setValue]);
+
   const onDeleteSubmit = async () => {
     try {
       if (employee?.id !== undefined) {
@@ -97,7 +104,6 @@ export default function EmployeeEditModal({
           draggable: true,
         });
         onOpenChange(false);
-        window.location.reload();
       }
     } catch (error) {
       console.log(error);
@@ -114,7 +120,13 @@ export default function EmployeeEditModal({
 
   const onSubmit = handleSubmit(async (data) => {
     try {
-      const response = await updateEmployee(employee?.id, data);
+
+      const response = await updateEmployee(
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-expect-error
+        employee?.id,
+        data,
+      );
       console.log(response.data);
       toast.success("Sửa nhân viên thành công!", {
         position: "top-right",
@@ -125,7 +137,7 @@ export default function EmployeeEditModal({
         draggable: true,
       });
       onOpenChange(false);
-      window.location.reload();
+
     } catch (e) {
       console.log(e);
       toast.error("Sửa nhân viên thất bại!", {
@@ -188,10 +200,14 @@ export default function EmployeeEditModal({
                       Giới tính
                     </Label>
                     <Select
+                      defaultValue={employee?.gender} // Gán giá trị mặc định từ employee
                       onValueChange={(value) => setValue("gender", value)}
                     >
                       <SelectTrigger id="gender">
-                        <SelectValue placeholder="Chọn giới tính" />
+                        <SelectValue
+                          placeholder="Chọn giới tính"
+                          defaultValue={employee?.gender} // Hiển thị giá trị hiện tại trong Select
+                        />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="male">Nam</SelectItem>

@@ -200,7 +200,7 @@ export const CreateCustomerModal: React.FC<CreateCustomerModalProps> = ({
                   <Button variant="outline" className="w-full text-left">
                     {formData.dateOfBirth
                       ? format(new Date(formData.dateOfBirth), "dd/MM/yyyy")
-                      : "Chọn ngày sinh"}
+                      : "dd/mm/yyyy"}
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="">
