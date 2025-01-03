@@ -93,9 +93,10 @@ export default function ProductPage() {
       console.log(response);
       setSpuList(response.data);
       setPaging(response.paging);
-      setIsLoading(false);
     } catch (error) {
       console.error("Error: ", error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
