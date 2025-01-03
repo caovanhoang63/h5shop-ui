@@ -13,127 +13,31 @@ import { DatePickerWithRange } from "@/components/DatePickerWithRange.tsx";
 import jsPDF from "jspdf";
 import { format } from "date-fns";
 import { vi } from "date-fns/locale";
-import { listOrderByDate } from "@/pages/report/api.ts";
+import { inventoryReport, listOrderByDate } from "@/pages/report/api.ts";
 import { Button } from "@/components/ui/button";
 import html2canvas from "html2canvas-pro";
 import { formatMoney } from "@/pages/dashboard/DashBoardPage.tsx";
 import { FileDown } from "lucide-react";
-
-let baocaocuoingay = `
-<html  lang="vi">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Báo cáo bán hàng cuối ngày</title>
-      <style>
-          body {
-              font-family: Arial, sans-serif;
-              margin: 0;
-              padding: 0;
-              background-color: #f4f4f4;
-          }
-  
-          .container {
-              margin: 20px auto;
-              padding: 20px;
-              max-width: 800px;
-              background-color: #ffffff;
-              border-radius: 8px;
-              box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-          }
-  
-          .header {
-              text-align: center;
-              margin-bottom: 20px;
-          }
-  
-          .header h1 {
-              margin: 0;
-              font-size: 24px;
-              color: #333333;
-          }
-  
-          .info {
-              margin-bottom: 20px;
-          }
-  
-          .info p {
-              margin: 5px 0;
-              font-size: 14px;
-              color: #666666;
-          }
-  
-          table {
-              width: 100%;
-              border-collapse: collapse;
-              margin-top: 20px;
-          }
-  
-          table th, table td {
-              border: 1px solid #dddddd;
-              padding: 8px;
-              text-align: center;
-          }
-  
-          table th {
-              background-color: #f4f4f4;
-              color: #333333;
-              font-weight: bold;
-          }
-  
-          .no-data {
-              text-align: center;
-              font-size: 14px;
-              color: #999999;
-              padding: 20px;
-              background-color: #fefefe;
-          }
-      </style>
-</head>
-<body>
-    <div class="container">
-        <div class="header">
-            <h1>Báo cáo cuối ngày về bán hàng</h1>
-        </div>
-        <div class="info">
-            <p><strong>Thời gian tạo:</strong> {{created_at}}</p>
-            <p><strong>Ngày bán:</strong> {{date}}</p>
-        </div>
-        <table>
-            <thead>
-                <tr>
-                    <th>Mã đơn</th>
-                    <th>Thời gian</th>
-                    <th>Người bán</th>
-                    <th>Loại hóa đơn</th>
-                    <th>Số đth khách hàng</th>
-                    <th>Giá trị</th>
-                    <th>Giảm</th>
-                    <th>Thực thu</th>
-                </tr>
-            </thead>
-            <tbody>
-              {{body}} <!-- Dữ liệu này sẽ được điền vào động -->
-            </tbody>
-        </table>
-        <br>
-        <div>Tổng đơn: {{totalOrder}}</div>
-        <div>Tổng thu: {{totalAmount}} VND </div>
-    </div>
-</body>
-</html>
-
-`;
+import { baocaocuoingayC } from "@/pages/report/dailyEndedReport.ts";
+import { inventoryReportTemplate } from "@/pages/report/inventoryReport.ts";
 
 export const ReportPage = () => {
-  baocaocuoingay = baocaocuoingay
-    .replace("{{date}}", format(new Date(), "dd/MM/yyyy", { locale: vi }))
-    .replace(
+  const [endDateReport, setEndDateReport] = useState<string>(
+    baocaocuoingayC
+      .replace("{{date}}", format(new Date(), "dd/MM/yyyy", { locale: vi }))
+      .replace(
+        "{{created_at}}",
+        format(new Date(), "dd/MM/yyyy HH:mm:ss", { locale: vi }),
+      ),
+  );
+  const [inventoryReportT, setInventoryReportT] = useState<string>(
+    inventoryReportTemplate.replace(
       "{{created_at}}",
       format(new Date(), "dd/MM/yyyy HH:mm:ss", { locale: vi }),
-    );
+    ),
+  );
 
-  const [reportTemplate, setReportTemplate] = useState<string>(baocaocuoingay);
+  const [reportTemplate, setReportTemplate] = useState<string>(endDateReport);
   useEffect(() => {
     listOrderByDate(new Date(), new Date()).then((r) => {
       let totalAmount = 0;
@@ -142,7 +46,6 @@ export const ReportPage = () => {
         .map((d) => {
           totalAmount += parseFloat(d.finalAmount.toString());
           totalOrder++;
-
           return `
             <tr class="">
                 <td>${d.id}</td>
@@ -157,12 +60,36 @@ export const ReportPage = () => {
         `;
         })
         .join("\n");
-      setReportTemplate(
-        baocaocuoingay
+      setEndDateReport((a) => {
+        const v = a
           .replace("{{body}}", body)
           .replace("{{totalOrder}}", totalOrder.toString())
-          .replace("{{totalAmount}}", formatMoney(totalAmount).toString()),
-      );
+          .replace("{{totalAmount}}", formatMoney(totalAmount).toString());
+        setReportTemplate(v);
+        return v;
+      });
+    });
+
+    inventoryReport().then((r) => {
+      let totalInventory = 0;
+      const body = r.data.data
+        .map((d) => {
+          totalInventory += d.stock;
+          return `
+            <tr class="">
+                <td>${d.id}</td>
+                <td>${d.name}</td>
+                <td>${d.stock}</td>
+                <td>${d.status == 1 ? "Đang bán " : "Ngừng kinh doanh"}</td>
+            </tr>
+        `;
+        })
+        .join("\n");
+      setInventoryReportT((a) => {
+        return a
+          .replace("{{body}}", body)
+          .replace("{{totalInventory}}", totalInventory.toString());
+      });
     });
   }, []);
   return (
@@ -183,7 +110,6 @@ export const ReportPage = () => {
                   const imgData = canvas.toDataURL("image/png"); // Chuyển đổi HTML thành ảnh
                   const pdf = new jsPDF("p", "mm", "a4"); // Tạo một đối tượng PDF
                   const pdfWidth = pdf.internal.pageSize.getWidth();
-                  // const pdfHeight = pdf.internal.pageSize.getHeight();
 
                   const scaleFactor = 3; // Bạn có thể điều chỉnh giá trị này để ảnh in ra lớn hơn
                   const scaledWidth = pdfWidth * scaleFactor;
@@ -217,7 +143,19 @@ export const ReportPage = () => {
                     Loại báo cáo
                   </AccordionTrigger>
                   <AccordionContent className={"pb-2 space-y-2"}>
-                    <RadioGroup defaultValue="comfortable">
+                    <RadioGroup
+                      defaultValue="endDay"
+                      onValueChange={(v) => {
+                        switch (v) {
+                          case "endDay":
+                            setReportTemplate(endDateReport);
+                            break;
+                          case "inventory":
+                            setReportTemplate(inventoryReportT);
+                            break;
+                        }
+                      }}
+                    >
                       <div className="flex items-center space-x-2">
                         <RadioGroupItem value="endDay" id="r1" />
                         <Label>Báo cáo cuối ngày</Label>

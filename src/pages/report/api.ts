@@ -18,3 +18,17 @@ export interface Sale {
   finalAmount: number;
   createdAt: Date;
 }
+
+export interface SkuStock {
+  id: number;
+  name: string;
+  stock: number;
+  status: number;
+}
+export const inventoryReport = () =>
+  axiosInstance.get<{ data: SkuStock[] }>("v1/report/inventory", {
+    params: {
+      gtStock: 0,
+      ltStock: 10000000,
+    },
+  });
