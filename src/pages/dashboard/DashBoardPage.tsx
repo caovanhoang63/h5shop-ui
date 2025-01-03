@@ -60,7 +60,7 @@ const AuditMessage = (audit: Audit) => {
   }
 };
 
-const formatMoney = (money: number) => {
+export const formatMoney = (money: number) => {
   return Intl.NumberFormat("de-DE").format(money);
 };
 
