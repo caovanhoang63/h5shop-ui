@@ -15,8 +15,13 @@ import StockInAddPage from "@/pages/inventory/stockIn/StockInAddPage.tsx";
 import LoginPage from "@/pages/login/LoginPage.tsx";
 import { useEffect } from "react";
 import { EmployeePage } from "@/pages/employee/EmployeePage.tsx";
+import { SettingPage } from "@/pages/setting/SettingPage.tsx";
 import { StockOutPage } from "@/pages/inventory/stockOut/StockOutPage.tsx";
 import { ReportPage } from "@/pages/report/ReportPage.tsx";
+
+import StockOutAddPage from "@/pages/inventory/stockOut/StockOutAddPage.tsx";
+
+import WarrantyPage from "@/pages/warranty/WarrantyPage.tsx";
 
 export const MainRoute = () => {
   const navigate = useNavigate();
@@ -37,11 +42,13 @@ export const MainRoute = () => {
         <Route path={"inventory"} element={<InventoryPage />} />
         <Route path={"stock-takes"} element={<InventoryCheckPage />} />
         <Route path={"partner"} element={<PartnerPage />} />
+        <Route path={"setting"} element={<SettingPage />} />
         <Route path={"employee"} element={<EmployeePage />} />
         <Route path={"stock-in"} element={<StockInPage />} />
         <Route path={"stock-in/new"} element={<StockInAddPage />} />
         <Route path={"stock-out"} element={<StockOutPage />} />
-        {/*<Route path={"order"} element={<OrderPage />} />*/}
+        <Route path={"stock-out/new"} element={<StockOutAddPage />} />
+        <Route path={"warranty"} element={<WarrantyPage />} />
       </Route>
       <Route path="/sale" element={<SalePage />} />
       <Route path="/error" element={<ErrorPage />} />

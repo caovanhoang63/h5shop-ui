@@ -46,9 +46,9 @@ export const TopBar = () => {
           <button className={"hover:bg-accent p-1 rounded-md"}>
             <Mail size={32} />
           </button>
-          <button className={"hover:bg-accent p-1  rounded-md"}>
+          {/* <button className={"hover:bg-accent p-1  rounded-md"}>
             <Settings size={32} />
-          </button>
+          </button>*/}
           <div className={"content-center text-xl "}>0896374872</div>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -109,9 +109,13 @@ export const TopBar = () => {
               <ChartColumn size={20} />
               <p>Báo cáo</p>
             </NavButton>
-            <NavButton>
+            <NavButton link={"/warranty"}>
               <ShoppingCart size={20} />
-              <p>Bán Online</p>
+              <p>Bảo hành</p>
+            </NavButton>
+            <NavButton link={"setting"}>
+              <Settings size={20} />
+              <p>Setting</p>
             </NavButton>
           </NavigationMenuList>
         </NavigationMenu>

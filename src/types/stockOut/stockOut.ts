@@ -31,7 +31,7 @@ export interface StockOutItemTable {
 }
 export interface StockOutCreate {
   warehouseMen: number;
-  providerId: number;
+  stockOutReasonId: number;
   items: StockOutDetailCreate[];
 }
 interface StockOutDetailCreate {
@@ -54,4 +54,12 @@ export interface StockOutItemSearch {
   id: number;
   name: string;
   price: number;
+}
+export interface StockOutReason {
+  id: number;
+  name: string;
+  description: string;
+  status: number;
+  updatedAt: Date | null;
+  createdAt: Date | null;
 }

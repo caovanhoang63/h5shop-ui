@@ -13,29 +13,18 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Link, useNavigate } from "react-router-dom";
 import { InventoryItemStockTake } from "@/types/inventory/inventoryItemStockTake.ts";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { createInventoryReport } from "@/pages/inventory/api/reportApi.ts";
 import { InventoryReportCreate } from "@/types/inventory/inventoryReport.ts";
 import { toast } from "react-toastify";
+import _ from "lodash";
+import { searchSku } from "@/pages/inventory/stockIn/api/stockInApi.ts";
+import { formatCurrency } from "@/utils/convert.ts";
 
 export default function InventoryCheckPage() {
   const rawData: InventoryItemStockTake[] = [];
   const [note, setNote] = useState("");
   const navigate = useNavigate();
-  const searchData = [
-    {
-      id: 5,
-      code: "PK000016",
-      name: "Tai nghe Bluetooth Sony",
-      stockQuantity: 100,
-    },
-    {
-      id: 6,
-      code: "PK000017",
-      name: "Cáp sạc Lightning Apple",
-      stockQuantity: 200,
-    },
-  ];
   const [items, setItems] = React.useState<InventoryItemStockTake[]>(
     rawData.map((item) => ({
       ...item,
@@ -44,24 +33,52 @@ export default function InventoryCheckPage() {
       varianceValue: 0,
     })),
   );
-  const [searchQuery, setSearchQuery] = useState("");
-  const [filteredProducts, setFilteredProducts] = useState(searchData);
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const query = e.target.value;
-    setSearchQuery(query);
 
-    if (query.trim() === "") {
-      setFilteredProducts(searchData);
-    } else {
-      const filtered = searchData.filter((product) =>
-        product.name.toLowerCase().includes(query.toLowerCase()),
-      );
-      setFilteredProducts(filtered);
-    }
+  const [searchSkuQuery, setSearchSkuQuery] = useState("");
+  const [filteredProviders, setFilteredProviders] = useState<
+    [
+      {
+        id: number;
+        stock: number;
+        name: string;
+        image: string;
+      },
+    ]
+  >();
+  const handleSearchSkuChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const query = e.target.value;
+    setSearchSkuQuery(query);
+    debouncedSearchSku(query);
   };
+
+  const debouncedSearchSku = useMemo(
+    () =>
+      _.debounce(async (query: string) => {
+        if (query.trim() === "") {
+          setFilteredProviders(undefined);
+        } else {
+          try {
+            const response = await searchSku(query);
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            // @ts-expect-error
+            const searchResponse = response.data.map((item) => ({
+              id: item.id,
+              name: item.name,
+              code: item.code,
+              price: item.price,
+              stock: item.stock,
+            }));
+            setFilteredProviders(searchResponse);
+          } catch (error) {
+            console.error(error);
+          }
+        }
+      }, 600),
+    [],
+  );
   const handleAddItem = (product: InventoryItemStockTake) => {
     setItems((prevItems) => {
-      setSearchQuery("");
+      setSearchSkuQuery("");
       const exists = prevItems.some((item) => item.id === product.id);
 
       if (exists) return prevItems;
@@ -83,12 +100,12 @@ export default function InventoryCheckPage() {
   const handleActualQuantityChange = (id: number, actualQuantity: number) => {
     setItems((prevItems) =>
       prevItems.map((item) =>
-        item.id === id
+        item.id === id && actualQuantity >= 0
           ? {
               ...item,
               actualQuantity,
-              variance: actualQuantity - item.stockQuantity,
-              varianceValue: (actualQuantity - item.stockQuantity) * 10,
+              variance: actualQuantity - item.stock,
+              varianceValue: (actualQuantity - item.stock) * (item.price || 0),
             }
           : item,
       ),
@@ -113,11 +130,12 @@ export default function InventoryCheckPage() {
       return;
     }
     const report: InventoryReportCreate = {
-      warehouseMan1: 8,
+      warehouseMan1: 2,
       note: note,
       items: items.map((item) => ({
         skuId: item.id,
-        amount: item.stockQuantity,
+        amount: item.actualQuantity ?? 0,
+        oldStock: item.stock,
         inventoryDif: item.variance ?? 0,
       })),
     };
@@ -125,24 +143,10 @@ export default function InventoryCheckPage() {
     try {
       const response = await createInventoryReport(report);
       console.log("Báo cáo kiểm kho đã được tạo:", response);
-      toast.success("Kiểm kho thành công!", {
-        position: "top-right",
-        autoClose: 3000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-      });
+      toast.success("Kiểm kho thành công!");
       navigate("/inventory");
     } catch (error) {
-      toast.error("Kiểm kho thất bại!", {
-        position: "top-right",
-        autoClose: 3000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-      });
+      toast.error("Kiểm kho thất bại!");
       console.error("Lỗi khi tạo báo cáo kiểm kho:", error);
     }
   };
@@ -160,26 +164,32 @@ export default function InventoryCheckPage() {
               type="search"
               placeholder="Tìm hàng hóa theo tên sản phẩm"
               className="w-full "
-              value={searchQuery}
-              onChange={handleSearchChange}
+              value={searchSkuQuery}
+              onChange={handleSearchSkuChange}
             />
             {/*
             <Plus className="h-5 w-5 text-gray-500" />
 */}
-            {filteredProducts.length > 0 && searchQuery.trim() !== "" && (
-              <div className="absolute top-full mt-2 left-0 w-full bg-white border rounded-lg shadow-md z-50 max-h-60 overflow-y-auto">
-                {filteredProducts.map((product) => (
-                  <div
-                    key={product.id}
-                    className="p-2 hover:bg-gray-100 cursor-pointer"
-                    onClick={() => handleAddItem(product)}
-                  >
-                    <span className="font-medium">{product.name}</span> -{" "}
-                    <span className="text-gray-500">{product.code}</span>
-                  </div>
-                ))}
-              </div>
-            )}
+            {filteredProviders &&
+              filteredProviders.length > 0 &&
+              searchSkuQuery.trim() !== "" && (
+                <div className="absolute top-full mt-2 left-0 w-full bg-white border rounded-lg shadow-md z-50 max-h-60 overflow-y-auto">
+                  {filteredProviders.map((provider) => (
+                    <div
+                      key={provider.id}
+                      className="p-2 hover:bg-gray-100 cursor-pointer"
+                      onClick={() => {
+                        handleAddItem(provider);
+                        setFilteredProviders(undefined);
+                      }}
+                    >
+                      <span className="text-gray-500">{provider.id}</span>
+                      {" - "}
+                      <span className="font-medium">{provider.name}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
           </div>
         </div>
       </div>
@@ -201,7 +211,7 @@ export default function InventoryCheckPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {items.map((item) => (
+              {items.map((item, index) => (
                 <TableRow key={item.id}>
                   <TableCell>
                     <Trash2
@@ -209,12 +219,10 @@ export default function InventoryCheckPage() {
                       onClick={() => handleRemoveItem(item.id)}
                     />
                   </TableCell>
-                  <TableCell>{item.id}</TableCell>
-                  <TableCell className="text-blue-600">{item.code}</TableCell>
+                  <TableCell>{index + 1}</TableCell>
+                  <TableCell className="text-blue-600">{item.id}</TableCell>
                   <TableCell>{item.name}</TableCell>
-                  <TableCell className="text-center">
-                    {item.stockQuantity}
-                  </TableCell>
+                  <TableCell className="text-center">{item.stock}</TableCell>
                   <TableCell className="text-center items-center flex justify-center">
                     <Input
                       type="number"
@@ -229,11 +237,13 @@ export default function InventoryCheckPage() {
                       }
                     />
                   </TableCell>
-                  <TableCell className="text-center text-red-500">
+                  <TableCell
+                    className={`text-center ${item.variance && item.variance > 0 ? "text-success" : "text-red-500"}`}
+                  >
                     {item.variance}
                   </TableCell>
                   <TableCell className="text-center">
-                    {item.varianceValue}
+                    {formatCurrency(Number(item.varianceValue))}
                   </TableCell>
                 </TableRow>
               ))}

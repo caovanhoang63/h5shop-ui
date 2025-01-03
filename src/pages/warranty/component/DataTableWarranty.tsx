@@ -1,6 +1,3 @@
-import * as React from "react";
-import { useEffect, useState } from "react";
-
 import {
   ColumnDef,
   ColumnFiltersState,
@@ -13,18 +10,13 @@ import {
   useReactTable,
   VisibilityState,
 } from "@tanstack/react-table";
-import { ArrowUpDown, MoreHorizontal } from "lucide-react";
-
-import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { Checkbox } from "@/components/ui/checkbox.tsx";
+import { Button } from "@/components/ui/button.tsx";
+import { ArrowUpDown } from "lucide-react";
+import { MenuVisibilityColumnTable } from "@/components/ButtonVisibilityColumnTable.tsx";
+import { PagingSpu } from "@/types/spu/PagingSpu.ts";
+import * as React from "react";
+import { useEffect } from "react";
 import {
   Table,
   TableBody,
@@ -32,47 +24,10 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table";
-import { MenuVisibilityColumnTable } from "@/components/ButtonVisibilityColumnTable.tsx";
-import {
-  StockOutDetail,
-  StockOutItemTable,
-} from "@/types/stockOut/stockOut.ts";
-import { getStockOutDetailById } from "@/pages/inventory/stockOut/api/stockOutApi.ts";
-import StockOutDetailModal from "@/pages/inventory/stockOut/StockOutDetailModal.tsx";
+} from "@/components/ui/table.tsx";
+import { Warranty } from "@/types/warranty/warranty.ts";
 
-interface IColorMap {
-  [key: number]: string;
-}
-
-interface IStatusMap {
-  [key: number]: string;
-}
-interface IConvert {
-  [key: string]: string;
-}
-const colorMap: IColorMap = {
-  1: "text-success",
-  2: "text-warning",
-  0: "text-error",
-};
-
-const statusMap: IStatusMap = {
-  1: "Đã xuất hàng",
-  0: "Đã hủy",
-  2: "Phiếu tạm",
-};
-const typeStockOut: IConvert = {
-  "Returns to Supplier": "Trả hàng nhà cung cấp",
-  Disposal: "Xuất hủy",
-};
-function StatusStockInRow({ status }: { status: number }) {
-  return <div className={` ${colorMap[status]}`}>{statusMap[status]}</div>;
-}
-function TypeStockOut({ type }: { type: string }) {
-  return <div> {typeStockOut[type]}</div>;
-}
-const columnsStockOut: ColumnDef<StockOutItemTable>[] = [
+export const warrantyColumn: ColumnDef<Warranty>[] = [
   {
     id: "select",
     header: ({ table }) => (
@@ -89,8 +44,8 @@ const columnsStockOut: ColumnDef<StockOutItemTable>[] = [
       <Checkbox
         checked={row.getIsSelected()}
         onCheckedChange={(value) => row.toggleSelected(!!value)}
-        aria-label="Select row"
         onClick={(event) => event.stopPropagation()}
+        aria-label="Select row"
       />
     ),
     enableSorting: false,
@@ -98,55 +53,95 @@ const columnsStockOut: ColumnDef<StockOutItemTable>[] = [
   },
   {
     accessorKey: "id",
-    header: () => {
-      return <div className={"font-bold"}>Mã xuất kho</div>;
-    },
+    header: "Mã",
     cell: ({ row }) => <div className="capitalize">{row.getValue("id")}</div>,
   },
   {
-    accessorKey: "updatedAt",
+    accessorKey: "warrantyType",
     header: ({ column }) => {
       return (
         <Button
-          className={"p-0 font-bold"}
+          className={"p-0"}
           variant="ghost"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
-          Thời gian
+          Loại bảo hành
           <ArrowUpDown />
         </Button>
       );
     },
-    cell: ({ row }) => (
-      <div className="">
-        {new Date(row.getValue("updatedAt")).toLocaleDateString()}
-      </div>
-    ),
+    cell: ({ row }) => <div>{row.getValue("warrantyType")}</div>,
   },
   {
-    accessorKey: "stockOutReasonName",
+    accessorKey: "customerId",
     header: ({ column }) => {
       return (
         <Button
-          className={"p-0 font-bold"}
+          className="p-0"
           variant="ghost"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
-          Loại xuất hàng
+          Id khách hàng
           <ArrowUpDown />
         </Button>
       );
     },
-    cell: ({ row }) => (
-      <TypeStockOut type={row.getValue("stockOutReasonName")} />
-    ),
+    cell: ({ row }) => <div>{row.getValue("customerId")}</div>,
   },
   {
-    accessorKey: "stockOutReasonDescription",
+    accessorKey: "customerPhoneNumber",
     header: ({ column }) => {
       return (
         <Button
-          className={"p-0 font-bold"}
+          className="p-0"
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Sdt khách hàng
+          <ArrowUpDown />
+        </Button>
+      );
+    },
+    cell: ({ row }) => <div>{row.getValue("customerPhoneNumber")}</div>,
+  },
+  {
+    accessorKey: "stockInId",
+    header: ({ column }) => {
+      return (
+        <Button
+          className="p-0"
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Id stock in
+          <ArrowUpDown />
+        </Button>
+      );
+    },
+    cell: ({ row }) => <div>{row.getValue("stockInId")}</div>,
+  },
+  {
+    accessorKey: "skuId",
+    header: ({ column }) => {
+      return (
+        <Button
+          className="p-0"
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Id Sku
+          <ArrowUpDown />
+        </Button>
+      );
+    },
+    cell: ({ row }) => <div className="lowercase">{row.getValue("skuId")}</div>,
+  },
+  {
+    accessorKey: "orderId",
+    header: ({ column }) => {
+      return (
+        <Button
+          className="p-0"
           variant="ghost"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
@@ -155,79 +150,132 @@ const columnsStockOut: ColumnDef<StockOutItemTable>[] = [
         </Button>
       );
     },
-    cell: ({ row }) => (
-      <div className="">{row.getValue("stockOutReasonDescription")}</div>
-    ),
+    cell: ({ row }) => <div>{row.getValue("orderId")}</div>,
   },
   {
-    accessorKey: "totalAmount",
+    accessorKey: "amount",
     header: ({ column }) => {
       return (
         <Button
-          className={"p-0 font-bold"}
+          className="p-0"
           variant="ghost"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
-          Tổng số lượng
+          Số lượng
+          <ArrowUpDown />
+        </Button>
+      );
+    },
+    cell: ({ row }) => <div>{row.getValue("amount")}</div>,
+  },
+  {
+    accessorKey: "returnDate",
+    header: ({ column }) => {
+      return (
+        <Button
+          className="p-0"
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Ngày trả hàng
+          <ArrowUpDown />
+        </Button>
+      );
+    },
+    cell: ({ row }) => <div>{row.getValue("returnDate")}</div>,
+  },
+  {
+    accessorKey: "note",
+    header: ({ column }) => {
+      return (
+        <Button
+          className="p-0"
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Note
+          <ArrowUpDown />
+        </Button>
+      );
+    },
+    cell: ({ row }) => <div className="lowercase">{row.getValue("note")}</div>,
+  },
+  {
+    accessorKey: "status",
+    header: ({ column }) => {
+      return (
+        <Button
+          className="p-0"
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Trạng thái
           <ArrowUpDown />
         </Button>
       );
     },
     cell: ({ row }) => (
-      <div className="lowercase ml-4">{row.getValue("totalAmount")}</div>
+      <div className="lowercase">{row.getValue("status")}</div>
     ),
   },
   {
-    accessorKey: "status",
-    header: () => {
-      return <div className={"font-bold"}>Trạng thái</div>;
-    },
-    cell: ({ row }) => <StatusStockInRow status={row.getValue("status")} />,
-  },
-
-  {
-    id: "actions",
-    enableHiding: false,
-    cell: ({ row }) => {
-      const payment = row.original;
+    accessorKey: "createdAt",
+    header: ({ column }) => {
       return (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="h-8 w-8 p-0">
-              <span className="sr-only">Open menu</span>
-              <MoreHorizontal />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuLabel>Actions</DropdownMenuLabel>
-            <DropdownMenuItem
-              onClick={() =>
-                navigator.clipboard.writeText(payment.id.toString())
-              }
-            >
-              Copy payment ID
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem>View customer</DropdownMenuItem>
-            <DropdownMenuItem>View payment details</DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <Button
+          className="p-0"
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Ngày tạo
+          <ArrowUpDown />
+        </Button>
       );
     },
+    cell: ({ row }) => (
+      <div className="lowercase">{row.getValue("createdAt")}</div>
+    ),
+  },
+  {
+    accessorKey: "updatedAt",
+    header: ({ column }) => {
+      return (
+        <Button
+          className="p-0"
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Ngày cập nhật
+          <ArrowUpDown />
+        </Button>
+      );
+    },
+    cell: ({ row }) => (
+      <div className="lowercase">{row.getValue("updatedAt")}</div>
+    ),
   },
 ];
-interface StockOutTableProps {
-  dataStockOut: StockOutItemTable[];
+
+interface DataTableDemoProps {
   columnVisible: MenuVisibilityColumnTable[];
+  warrantyList: Warranty[];
+  onSelectedRow: (warrantyId: number) => void;
+  paging: PagingSpu;
+  setPaging: (page: number) => void;
 }
-export function StockOutTable({
-  dataStockOut,
+
+export const DataTableWarranty: React.FC<DataTableDemoProps> = ({
   columnVisible,
-}: StockOutTableProps) {
+  warrantyList,
+  onSelectedRow,
+  paging,
+  setPaging,
+}) => {
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     [],
   );
+  // console.log(data?.[0].images?.[0].url);
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>(
       columnVisible.reduce((acc, col) => {
@@ -236,32 +284,15 @@ export function StockOutTable({
       }, {} as VisibilityState),
     );
   const [rowSelection, setRowSelection] = React.useState({});
-  const [isOpenStockTakesModal, setIsOpenStockTakesModal] = useState(false);
 
-  const [selectedStockOutReport, setSelectedStockOutReport] = useState<
-    StockOutItemTable | undefined
-  >(undefined);
-  const [stockOutReportDetails, setStockOutReportDetails] = useState<
-    StockOutDetail | undefined
-  >(undefined);
-
-  const getStockOutDetail = async (id: number) => {
-    try {
-      const response = await getStockOutDetailById(id);
-      setStockOutReportDetails(response.data);
-      console.log(response.data);
-    } catch (error) {
-      console.error("Error fetching stock in report details:", error);
-    }
-  };
-  const table = useReactTable<StockOutItemTable>({
+  const table = useReactTable({
     initialState: {
       pagination: {
         pageSize: 10,
       },
     },
-    data: dataStockOut,
-    columns: columnsStockOut,
+    data: warrantyList as Warranty[],
+    columns: warrantyColumn,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
     getCoreRowModel: getCoreRowModel(),
@@ -277,6 +308,7 @@ export function StockOutTable({
       rowSelection,
     },
   });
+
   useEffect(() => {
     setColumnVisibility(
       columnVisible.reduce((acc, col) => {
@@ -285,13 +317,19 @@ export function StockOutTable({
       }, {} as VisibilityState),
     );
   }, [columnVisible]);
+
+  const handleClickPrevious = () => {
+    if (paging.page === 1) return;
+    setPaging(paging.page - 1);
+  };
+
+  const handleClickNext = () => {
+    if (paging.page === Math.ceil(paging.total / paging.limit)) return;
+    setPaging(paging.page + 1);
+  };
+
   return (
     <div className="w-full">
-      <StockOutDetailModal
-        isOpen={isOpenStockTakesModal}
-        onOpenChange={setIsOpenStockTakesModal}
-        stockItem={stockOutReportDetails}
-      ></StockOutDetailModal>
       <div className="rounded-md border">
         <Table>
           <TableHeader>
@@ -317,14 +355,11 @@ export function StockOutTable({
               table.getRowModel().rows.map((row) => (
                 <TableRow
                   className="cursor-pointer"
-                  onClick={async (event) => {
+                  onClick={(event) => {
                     event.preventDefault();
                     event.stopPropagation();
-                    const selectedReport = row.original;
-                    setSelectedStockOutReport(selectedReport);
-                    console.log(selectedStockOutReport);
-                    await getStockOutDetail(selectedReport.id);
-                    setIsOpenStockTakesModal(true);
+                    onSelectedRow(row.original.id);
+                    console.log("Open");
                   }}
                   key={row.id}
                   data-state={row.getIsSelected() && "selected"}
@@ -342,7 +377,7 @@ export function StockOutTable({
             ) : (
               <TableRow>
                 <TableCell
-                  colSpan={columnsStockOut.length}
+                  colSpan={warrantyColumn.length}
                   className="h-24 text-center"
                 >
                   No results.
@@ -361,16 +396,16 @@ export function StockOutTable({
           <Button
             variant="outline"
             size="sm"
-            onClick={() => table.previousPage()}
-            disabled={!table.getCanPreviousPage()}
+            onClick={() => handleClickPrevious()}
+            disabled={paging.page === 1}
           >
             Previous
           </Button>
           <Button
             variant="outline"
             size="sm"
-            onClick={() => table.nextPage()}
-            disabled={!table.getCanNextPage()}
+            onClick={() => handleClickNext()}
+            disabled={paging.page >= Math.ceil(paging.total / paging.limit)}
           >
             Next
           </Button>
@@ -378,4 +413,4 @@ export function StockOutTable({
       </div>
     </div>
   );
-}
+};
