@@ -86,6 +86,7 @@ export const TopBar = () => {
             >
               <EyeIcon size={20} />
               <p>Tổng quan</p>
+
             </Button>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -160,6 +161,7 @@ export const TopBar = () => {
               className="bg-blue-600 hover:bg-blue-700 text-white text-lg"
               onClick={() => navigate("/partner")}
             >
+
               <Handshake size={20} />
               <p>Đối tác</p>
             </Button>
