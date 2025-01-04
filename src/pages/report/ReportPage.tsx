@@ -173,7 +173,7 @@ export const ReportPage = () => {
     <Fragment>
       <Container className={"grid grid-cols-5 gap-4 grid-flow-row"}>
         <div className={"text-2xl col-span-1 font-bold"}>
-          <p>Nhân viên</p>
+          <p>Báo cáo</p>
         </div>
         <div className={"col-span-4 w-full flex  justify-between"}></div>
         <div className={"col-span-1 space-y-4"}>
