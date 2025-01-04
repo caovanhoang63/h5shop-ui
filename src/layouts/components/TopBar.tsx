@@ -1,7 +1,10 @@
 import { Button } from "@/components/ui/button.tsx";
 import {
+  ArrowDown,
+  ArrowRightLeft,
   BarChart3,
   ChartColumn,
+  Download,
   EyeIcon,
   FileText,
   Handshake,
@@ -11,7 +14,6 @@ import {
   Package,
   Settings,
   ShoppingBasket,
-  ShoppingCart,
   User,
   Users,
 } from "lucide-react";
@@ -86,7 +88,6 @@ export const TopBar = () => {
             >
               <EyeIcon size={20} />
               <p>Tổng quan</p>
-
             </Button>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -122,7 +123,7 @@ export const TopBar = () => {
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
-            {/*<DropdownMenu>
+            <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button
                   variant="default"
@@ -135,33 +136,25 @@ export const TopBar = () => {
               <DropdownMenuContent className="w-56 bg-blue-600 text-white border-blue-700">
                 <DropdownMenuItem
                   className="hover:bg-blue-700 focus:bg-blue-700 cursor-pointer"
-                  onClick={() => navigate("/product")}
+                  onClick={() => navigate("/stock-in")}
                 >
-                  <List size={20} />
-                  Danh mục
+                  <Download size={20} />
+                  <p>Nhập hàng</p>
                 </DropdownMenuItem>
                 <DropdownMenuItem
                   className="hover:bg-blue-700 focus:bg-blue-700 cursor-pointer"
-                  onClick={() => navigate("/warranty")}
+                  onClick={() => navigate("/stock-out")}
                 >
-                  <FileText className="mr-2 h-4 w-4" />
-                  Phiếu bảo hành
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  className="hover:bg-blue-700 focus:bg-blue-700 cursor-pointer"
-                  onClick={() => navigate("/inventory")}
-                >
-                  <BarChart3 size={20} />
-                  Kiểm kho
+                  <ArrowDown className="mr-2 h-4 w-4" />
+                  <p>Xuất hàng</p>
                 </DropdownMenuItem>
               </DropdownMenuContent>
-            </DropdownMenu>*/}
+            </DropdownMenu>
             <Button
               variant="default"
               className="bg-blue-600 hover:bg-blue-700 text-white text-lg"
               onClick={() => navigate("/partner")}
             >
-
               <Handshake size={20} />
               <p>Đối tác</p>
             </Button>
@@ -181,14 +174,14 @@ export const TopBar = () => {
               <ChartColumn size={20} />
               <p>Báo cáo</p>
             </Button>
-            <Button
+            {/*<Button
               variant="default"
               className="bg-blue-600 hover:bg-blue-700 text-white text-lg"
               onClick={() => navigate("/warranty")}
             >
               <ShoppingCart size={20} />
               <p>Bảo hành</p>
-            </Button>
+            </Button>*/}
             <Button
               variant="default"
               className="bg-blue-600 hover:bg-blue-700 text-white text-lg"
