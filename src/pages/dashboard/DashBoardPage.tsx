@@ -44,6 +44,8 @@ interface IAuditMap {
 const AuditMap: IAuditMap = {
   "CREATE+inventory": "Kiểm hàng",
   "PAYORDER+order": "bán hàng",
+  "CREATE+stock-in": "nhập hàng",
+  "CREATE+stock-out": "xuất hàng",
 };
 
 const AuditMessage = (audit: Audit) => {
@@ -67,7 +69,7 @@ export const formatMoney = (money: number) => {
 export const DashBoardPage = () => {
   const [filter, setFilter] = useState<IAuditFilter>({
     action: [],
-    objectType: ["order", "inventory"],
+    objectType: ["order", "inventory", "stock-in", "stock-out"],
   });
   const [currentRevenue, setCurrentRevenue] = useState<Revenue[]>([]);
   const [lastRevenue, setLastRevenue] = useState<Revenue[]>([]);
