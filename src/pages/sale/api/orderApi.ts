@@ -86,9 +86,12 @@ export async function deleteOrder(id: number) {
   }
 }
 
+interface PayOrderResponse {
+  data: never;
+}
 export async function payOrder(id: number | null, order: OrderPay) {
   try {
-    const response = await axiosInstance.post<Order>(
+    const response = await axiosInstance.post<PayOrderResponse>(
       `/v1/order/${id}/pay`,
       order,
     );

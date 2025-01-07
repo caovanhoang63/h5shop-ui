@@ -87,8 +87,6 @@ export default function SalePage() {
   const [skuData, setSkuData] = useState<SkuGetDetail[]>([]);
 
   // Pagination
-  // const [page, setPage] = useState(1);
-  // const limit = 12;
   const [totalPages, setTotalPages] = useState(1);
   const skuListRef = useRef<HTMLDivElement>(null);
 
@@ -976,6 +974,8 @@ export default function SalePage() {
                 console.log("Error adding tab after deleting:", error);
               });
             }
+
+            setSelectedCustomer(undefined);
 
             // Update sku list
             fetchSku();

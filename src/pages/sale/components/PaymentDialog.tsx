@@ -18,13 +18,12 @@ import {
 import { OrderGetDetail } from "@/types/order/orderGetDetail.ts";
 import { Customer } from "@/types/customer/customer.ts";
 import { Checkbox } from "@/components/ui/checkbox.tsx";
-import { getOrderById, payOrder } from "@/pages/sale/api/orderApi.ts";
+import { payOrder } from "@/pages/sale/api/orderApi.ts";
 import { toast } from "react-toastify";
-import { payOrderReport } from "@/pages/sale/components/PayOrderReport.tsx";
 import { format } from "date-fns";
-import { vi } from "date-fns/locale";
 import html2canvas from "html2canvas-pro";
 import jsPDF from "jspdf";
+import { vi } from "date-fns/locale";
 
 interface PaymentDialogProps {
   isOpen: boolean;
@@ -43,28 +42,17 @@ const PaymentDialog: React.FC<PaymentDialogProps> = ({
   onPaymentSuccess,
 }) => {
   const [isProcessing, setIsProcessing] = useState(false);
-  const [isPrint, setIsPrint] = useState(false);
-  const [report, setReport] = useState<string>(
-    payOrderReport
-      .replace(
-        "{{created_at}}",
-        format(new Date(), "dd/MM/yyyy HH:mm:ss", { locale: vi }),
-      )
-      .replace(
-        "{{customerName}}",
-        customer ? customer.lastName + " " + customer.firstName : "Khách lẻ",
-      )
-      .replace("{{customerPhone}}", customer ? customer.phoneNumber : ""),
-  );
   const [usePoints, setUsePoints] = useState(false);
 
   const handleConfirmPayment = async () => {
     setIsProcessing(true);
     payOrder(orderDetails.id, { isUsePoint: usePoints })
-      .then(() => {
+      .then((res) => {
         onPaymentSuccess();
         onClose();
+        setUsePoints(false);
         toast.success("Thanh toán thành công");
+        printReport(res.data);
       })
       .catch((error) => {
         console.error(error);
@@ -73,85 +61,183 @@ const PaymentDialog: React.FC<PaymentDialogProps> = ({
       .finally(() => {
         setIsProcessing(false);
       });
+    return orderDetails.id;
   };
 
-  const printReport = () => {
-    getOrderById(orderDetails.id)
-      .then((response) => {
-        const order = response.data;
+  const printReport = (order: OrderGetDetail) => {
+    try {
+      console.log("Print:", order);
+      if (order) {
+        const payOrderReport = `<html  lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Báo cáo bán hàng cuối ngày</title>
+      <style>
+          body {
+              font-family: Arial, sans-serif;
+              margin: 0;
+              padding: 0;
+              background-color: #f4f4f4;
+          }
+  
+          .container {
+              margin: 20px auto;
+              padding: 20px;
+              max-width: 800px;
+              background-color: #ffffff;
+              border-radius: 8px;
+              box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+          }
+  
+          .header {
+              text-align: center;
+              margin-bottom: 20px;
+          }
+  
+          .header h1 {
+              margin: 0;
+              font-size: 24px;
+              color: #333333;
+          }
+  
+          .info {
+              margin-bottom: 20px;
+          }
+  
+          .info p {
+              margin: 5px 0;
+              font-size: 14px;
+              color: #666666;
+          }
+  
+          table {
+              width: 100%;
+              border-collapse: collapse;
+              margin-top: 20px;
+          }
+  
+          table th, table td {
+              border: 1px solid #dddddd;
+              padding: 8px;
+              text-align: center;
+          }
+  
+          table th {
+              background-color: #f4f4f4;
+              color: #333333;
+              font-weight: bold;
+          }
+  
+          .no-data {
+              text-align: center;
+              font-size: 14px;
+              color: #999999;
+              padding: 20px;
+              background-color: #fefefe;
+          }
+          
+          .summary {
+            margin-top: 20px;
+            padding: 15px;
+          }
 
-        if (order) {
-          setReport(
-            payOrderReport
-              .replace(
-                "{{created_at}}",
-                format(new Date(), "dd/MM/yyyy HH:mm:ss", { locale: vi }),
-              )
-              .replace(
-                "{{customerName}}",
-                customer
-                  ? customer.lastName + " " + customer.firstName
-                  : "Khách lẻ",
-              )
-              .replace(
-                "{{customerPhone}}",
-                customer ? customer.phoneNumber : "",
-              )
-              .replace(
-                "{{body}}",
-                order.items
-                  .map(
-                    (item, index) =>
-                      `<tr>
-                    <td>${index + 1}</td>
-                    <td>${item.skuDetail?.name}</td>
-                    <td>${item.amount}</td>
-                    <td>${new Intl.NumberFormat("vi-VN", {
-                      style: "currency",
-                      currency: "VND",
-                    }).format(item.unitPrice)}</td>
-                    <td>${new Intl.NumberFormat("vi-VN", {
-                      style: "currency",
-                      currency: "VND",
-                    }).format(item.unitPrice * item.amount)}</td>
-                    <td>${item.description ? item.description : ""}</td>
-                  </tr>`,
-                  )
-                  .join("\n"),
-              )
-              .replace("{{description}}", orderDetails.description || "")
-              .replace(
-                "{{pointsUsed}}",
-                orderDetails.pointUsed.toString() || "0",
-              )
-              .replace(
-                "{{totalAmount}}",
-                new Intl.NumberFormat("vi-VN", {
-                  style: "currency",
-                  currency: "VND",
-                }).format(orderDetails.totalAmount ?? 0),
-              )
-              .replace(
-                "{{discountAmount}}",
-                new Intl.NumberFormat("vi-VN", {
-                  style: "currency",
-                  currency: "VND",
-                }).format(orderDetails.discountAmount ?? 0),
-              )
-              .replace(
-                "{{finalAmount}}",
-                new Intl.NumberFormat("vi-VN", {
-                  style: "currency",
-                  currency: "VND",
-                }).format(orderDetails.finalAmount ?? 0),
-              ),
-          );
-        }
+          .summary div {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            font-size: 14px;
+            color: #333333;
+          }
+  
+          .summary .large-text {
+            font-size: 18px;
+            font-weight: bold;
+            color: #000000;
+          }
+  
+          .summary strong {
+              color: #000000;
+          }
+      </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Hoá đơn</h1>
+        </div>
+        <div class="info">
+            <p><strong>Thời gian tạo:</strong> ${
+              order.updatedAt
+                ? format(new Date(order.updatedAt), "dd/MM/yyyy HH:mm:ss", {
+                    locale: vi,
+                  })
+                : ""
+            }</p>
+        </div>
+        <div>Khách hàng: ${order.customerName || "Khách lẻ"}</div>
+        <div>Số điện thoại: ${order.customerPhone || ""}</div>
+        <table>
+            <thead>
+                <tr>
+                    <th>STT</th>
+                    <th>Tên sản phẩm</th>
+                    <th>Số lượng</th>
+                    <th>Đơn giá</th>
+                    <th>Tổng</th>
+                    <th>Ghi chú</th>
+                </tr>
+            </thead>
+            <tbody>
+              ${order.items
+                .map(
+                  (item, index) => `
+          <tr>
+            <td>${index + 1}</td>
+            <td>${item.skuDetail?.name || ""}</td>
+            <td>${item.amount}</td>
+            <td>${new Intl.NumberFormat("vi-VN", {
+              style: "currency",
+              currency: "VND",
+            }).format(item.unitPrice || 0)}</td>
+            <td>${new Intl.NumberFormat("vi-VN", {
+              style: "currency",
+              currency: "VND",
+            }).format((item.unitPrice || 0) * (item.amount || 0))}</td>
+            <td>${item.description || ""}</td>
+          </tr>
+        `,
+                )
+                .join("")}
+            </tbody>
+        </table>
+        <br>
 
+        <div class="summary">
+            <div><span><strong>Ghi chú:</strong></span><span>${order.description || ""}</span></div>
+            <div><span><strong>Điểm đã sử dụng:</strong></span><span>${order.pointUsed}</span></div>
+            <div>
+              <span><strong>Tổng tiền:</strong></span>
+              <span class="large-text">
+                ${new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(order.totalAmount)}
+              </span>
+            </div>
+            <div>
+              <span><strong>Giảm giá:</strong></span>
+              <span class="large-text">${new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(order.discountAmount)}</span></div>
+            <div>
+              <span><strong>Thành tiền:</strong></span>
+              <span class="large-text">${new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(order.finalAmount)}</span>
+            </div>
+        </div>
+    </div>
+</body>
+</html>`;
         const ele = document.createElement("div");
         ele.style.position = "absolute";
         ele.style.left = "-9999px";
-        ele.innerHTML = report;
+        ele.innerHTML = payOrderReport;
         document.body.appendChild(ele);
         if (ele)
           html2canvas(ele).then(function (canvas) {
@@ -173,13 +259,13 @@ const PaymentDialog: React.FC<PaymentDialogProps> = ({
               scaledWidth,
               scaledHeight,
             );
-            pdf.save("ban-hang-" + format(new Date(), "yyyy-MM-dd") + ".pdf");
+            pdf.save("hoa-don-" + format(new Date(), "yyyy-MM-dd") + ".pdf");
           });
-      })
-      .catch((error) => {
-        console.error(error);
-        toast.error("Lỗi khi lấy dữ liệu hoá đơn");
-      });
+      }
+    } catch (e) {
+      console.error(e);
+      toast.error("Không thể in");
+    }
   };
 
   return (
@@ -277,6 +363,7 @@ const PaymentDialog: React.FC<PaymentDialogProps> = ({
             </div>
             <div className="flex items-center mt-2">
               <Checkbox
+                disabled={!customer}
                 id="usePoints"
                 checked={usePoints}
                 onCheckedChange={(checked) => setUsePoints(!!checked)}
@@ -286,23 +373,15 @@ const PaymentDialog: React.FC<PaymentDialogProps> = ({
               </label>
             </div>
           </div>
-          <Dialog open={isPrint} onOpenChange={() => setIsPrint(false)}>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Hoá đơn</DialogTitle>
-              </DialogHeader>
-              <DialogContent>
-                <div
-                  className="text-left"
-                  dangerouslySetInnerHTML={{ __html: report }}
-                ></div>
-              </DialogContent>
-            </DialogContent>
-          </Dialog>
         </div>
         <DialogFooter>
-          <Button onClick={() => printReport()}>Print</Button>
-          <Button onClick={handleConfirmPayment} disabled={isProcessing}>
+          {/*<Button onClick={() => printReport()}>Print</Button>*/}
+          <Button
+            onClick={() => {
+              handleConfirmPayment();
+            }}
+            disabled={isProcessing}
+          >
             {isProcessing ? "Đang xử lý..." : "Thanh toán"}
           </Button>
           <Button variant="outline" onClick={onClose}>
