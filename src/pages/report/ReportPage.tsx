@@ -32,7 +32,7 @@ import {
 } from "@/components/ui/popover.tsx";
 import { Calendar } from "@/components/ui/calendar.tsx";
 import { cn } from "@/lib/utils.ts";
-import { DateRange } from "react-day-picker";
+import { DateRange, SelectRangeEventHandler } from "react-day-picker";
 import { getRevenue, getSkuOrder } from "@/pages/dashboard/api.ts";
 import { revenueAndExpenditureReport } from "@/pages/report/revenueAndExpenditureReport.ts";
 import { ExportButton } from "@/components/ExportButton.tsx";
@@ -233,6 +233,23 @@ export const ReportPage = () => {
     });
   }, [reportType, date]);
 
+  const handleDateRangeChange: SelectRangeEventHandler = (range) => {
+    if (range?.from) {
+      const startDate = new Date(range.from);
+      startDate.setHours(0, 0, 0, 0);
+
+      const endDate = range.to ? new Date(range.to) : new Date(range.from);
+      endDate.setHours(23, 59, 59, 999);
+
+      setDate({
+        from: startDate,
+        to: endDate,
+      });
+    } else {
+      setDate({ from: undefined, to: undefined });
+    }
+  };
+
   return (
     <Fragment>
       <Container className={"grid grid-cols-5 gap-4 grid-flow-row"}>
@@ -370,7 +387,7 @@ export const ReportPage = () => {
                             mode="range"
                             defaultMonth={date?.from}
                             selected={date}
-                            onSelect={setDate}
+                            onSelect={handleDateRangeChange}
                             numberOfMonths={2}
                           />
                         </PopoverContent>
