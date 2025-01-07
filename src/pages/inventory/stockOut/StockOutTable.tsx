@@ -13,18 +13,11 @@ import {
   useReactTable,
   VisibilityState,
 } from "@tanstack/react-table";
-import { ArrowUpDown, MoreHorizontal } from "lucide-react";
+import { ArrowUpDown } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+
 import {
   Table,
   TableBody,
@@ -186,7 +179,7 @@ const columnsStockOut: ColumnDef<StockOutItemTable>[] = [
     cell: ({ row }) => <StatusStockInRow status={row.getValue("status")} />,
   },
 
-  {
+  /* {
     id: "actions",
     enableHiding: false,
     cell: ({ row }) => {
@@ -215,7 +208,7 @@ const columnsStockOut: ColumnDef<StockOutItemTable>[] = [
         </DropdownMenu>
       );
     },
-  },
+  },*/
 ];
 interface StockOutTableProps {
   dataStockOut: StockOutItemTable[];

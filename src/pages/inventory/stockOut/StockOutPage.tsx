@@ -137,6 +137,8 @@ export const StockOutPage = () => {
     { label: "Thời gian", key: "updatedAt", visible: true },
     { label: "Tổng số lượng", key: "totalAmount", visible: true },
     { label: "Trạng thái", key: "status", visible: true },
+    { label: "Mô tả", key: "stockOutReasonDescription", visible: true },
+    { label: "Loại xuất hàng", key: "stockOutReasonName", visible: true },
     /*{ label: "Action", key: "actions", visible: true },*/
   ]);
   const handleCheckField = (key: string, visible: boolean) => {
