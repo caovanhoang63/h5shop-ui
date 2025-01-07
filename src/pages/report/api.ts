@@ -48,3 +48,21 @@ export const categoryReport = (startDate: Date, endDate: Date) =>
       endDate: endDate,
     },
   });
+
+export interface RevenueAndExpenditure {
+  day: Date;
+  revenue: number;
+  expenditure: number;
+  profit: number;
+}
+
+export const rneReport = (startDate: Date, endDate: Date) =>
+  axiosInstance.get<{ data: RevenueAndExpenditure[] }>(
+    "v1/report/revenue-and-expenditure",
+    {
+      params: {
+        startDate: startDate,
+        endDate: endDate,
+      },
+    },
+  );

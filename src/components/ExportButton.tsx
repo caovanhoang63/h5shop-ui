@@ -4,9 +4,14 @@ import { FileOutputIcon } from "lucide-react";
 interface ExportButtonProps {
   data: unknown[];
   fileName: string;
+  className?: string;
 }
 
-export const ExportButton = ({ data, fileName }: ExportButtonProps) => {
+export const ExportButton = ({
+  data,
+  fileName,
+  className = "",
+}: ExportButtonProps) => {
   function getCurrentTimeFormatted(): string {
     const now = new Date();
     const year = now.getFullYear();
@@ -26,7 +31,7 @@ export const ExportButton = ({ data, fileName }: ExportButtonProps) => {
 
   return (
     <Button
-      className={"bg-green-500"}
+      className={`bg-green-500 ${className}`}
       onClick={() =>
         exportToExcel(`${fileName}-${getCurrentTimeFormatted()}.xlsx`)
       }

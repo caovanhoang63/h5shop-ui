@@ -16,6 +16,7 @@ import {
   categoryReport,
   inventoryReport,
   listOrderByDate,
+  rneReport,
 } from "@/pages/report/api.ts";
 import { Button } from "@/components/ui/button";
 import html2canvas from "html2canvas-pro";
@@ -33,47 +34,26 @@ import { Calendar } from "@/components/ui/calendar.tsx";
 import { cn } from "@/lib/utils.ts";
 import { DateRange } from "react-day-picker";
 import { getRevenue, getSkuOrder } from "@/pages/dashboard/api.ts";
+import { revenueAndExpenditureReport } from "@/pages/report/revenueAndExpenditureReport.ts";
+import { ExportButton } from "@/components/ExportButton.tsx";
 
 export const ReportPage = () => {
   const [date, setDate] = React.useState<DateRange | undefined>({
     from: new Date(),
     to: addDays(new Date(), 30),
   });
-  const [endDateReport, setEndDateReport] = useState<string>(
-    baocaocuoingayC
-      .replace("{{date}}", format(new Date(), "dd/MM/yyyy", { locale: vi }))
-      .replace(
-        "{{created_at}}",
-        format(new Date(), "dd/MM/yyyy HH:mm:ss", { locale: vi }),
-      ),
-  );
-  const [inventoryReportT, setInventoryReportT] = useState<string>(
-    inventoryReportTemplate.replace(
-      "{{created_at}}",
-      format(new Date(), "dd/MM/yyyy HH:mm:ss", { locale: vi }),
-    ),
-  );
-  const [saleReport, setSaleReport] = useState<string>(
-    saleReportTemplate
-      .replace(
-        "{{created_at}}",
-        format(new Date(), "dd/MM/yyyy HH:mm:ss", { locale: vi }),
-      )
-      .replace(
-        "{{startDate}}",
-        format(date?.from || new Date(), "dd/MM/yyyy", { locale: vi }),
-      )
-      .replace(
-        "{{endDate}}",
-        format(date?.to || new Date(), "dd/MM/yyyy", { locale: vi }),
-      ),
-  );
+  const [reportType, setReportType] = useState<
+    "daily" | "sale" | "inventory" | "RnE"
+  >("daily");
 
-  const [reportTemplate, setReportTemplate] = useState<string>(endDateReport);
+  const [csvData, setCsvData] = useState<any[]>([]);
+  const [reportTemplate, setReportTemplate] = useState<string>("");
   useEffect(() => {
+    if (reportType != "daily") return;
     listOrderByDate(new Date(), new Date()).then((r) => {
       let totalAmount = 0;
       let totalOrder = 0;
+      setCsvData(r.data.data);
       const body = r.data.data
         .map((d) => {
           totalAmount += parseFloat(d.finalAmount.toString());
@@ -92,18 +72,25 @@ export const ReportPage = () => {
         `;
         })
         .join("\n");
-      setEndDateReport((a) => {
-        const v = a
+      setReportTemplate(
+        baocaocuoingayC
+          .replace("{{date}}", format(new Date(), "dd/MM/yyyy", { locale: vi }))
+          .replace(
+            "{{created_at}}",
+            format(new Date(), "dd/MM/yyyy HH:mm:ss", { locale: vi }),
+          )
           .replace("{{body}}", body)
           .replace("{{totalOrder}}", totalOrder.toString())
-          .replace("{{totalAmount}}", formatMoney(totalAmount).toString());
-        setReportTemplate(v);
-        return v;
-      });
+          .replace("{{totalAmount}}", formatMoney(totalAmount).toString()),
+      );
     });
+  }, [reportType]);
 
+  useEffect(() => {
+    if (reportType != "inventory") return;
     inventoryReport().then((r) => {
       let totalInventory = 0;
+      setCsvData(r.data.data);
       const body = r.data.data
         .map((d) => {
           totalInventory += d.stock;
@@ -117,22 +104,27 @@ export const ReportPage = () => {
         `;
         })
         .join("\n");
-      setInventoryReportT((a) => {
-        return a
+      setReportTemplate(
+        inventoryReportTemplate
+          .replace(
+            "{{created_at}}",
+            format(new Date(), "dd/MM/yyyy HH:mm:ss", { locale: vi }),
+          )
           .replace("{{body}}", body)
-          .replace("{{totalInventory}}", totalInventory.toString());
-      });
+          .replace("{{totalInventory}}", totalInventory.toString()),
+      );
     });
-  }, []);
-
+  }, [reportType]);
   useEffect(() => {
-    getSkuOrder(
-      date?.from || new Date(),
-      date?.to || new Date(),
-      10,
-      "amount",
-    ).then((r) => {
-      const body = r.data.data
+    if (reportType != "sale") return;
+    const startDate = date?.from || new Date();
+    const endDate = date?.to || new Date();
+    Promise.all([
+      getSkuOrder(startDate, endDate, 10, "amount"),
+      categoryReport(startDate, endDate),
+      getRevenue(startDate, endDate),
+    ]).then(([sku, cate, reve]) => {
+      const skuBody = sku.data.data
         .map((d, i) => {
           return `
             <tr class="">
@@ -145,16 +137,9 @@ export const ReportPage = () => {
           `;
         })
         .join("\n");
-      setSaleReport((a) => {
-        return a.replace("{{skuBody}}", body);
-      });
-    });
-
-    categoryReport(date?.from || new Date(), date?.to || new Date()).then(
-      (r) => {
-        const body = r.data.data
-          .map((d, i) => {
-            return `
+      const cateBody = cate.data.data
+        .map((d, i) => {
+          return `
             <tr class="">
                 <td>${i + 1}</td>
                 <td>${d.id}</td>
@@ -163,18 +148,11 @@ export const ReportPage = () => {
                 <td>${formatMoney(d.revenue)}</td>
             </tr>
           `;
-          })
-          .join("\n");
-        setSaleReport((a) => {
-          return a.replace("{{categoryBody}}", body);
-        });
-      },
-    );
-
-    getRevenue(date?.from || new Date(), date?.to || new Date()).then((r) => {
+        })
+        .join("\n");
       let totalAmount = 0;
       let totalOrder = 0;
-      const body = r.data.data
+      const body = reve.data.data
         .map((d) => {
           totalAmount += parseFloat(d.revenue.toString());
           totalOrder += d.totalOrder;
@@ -187,14 +165,74 @@ export const ReportPage = () => {
           `;
         })
         .join("\n");
-      setSaleReport((a) => {
-        return a
+      setReportTemplate(
+        saleReportTemplate
+          .replace(
+            "{{created_at}}",
+            format(new Date(), "dd/MM/yyyy HH:mm:ss", { locale: vi }),
+          )
+          .replace(
+            "{{startDate}}",
+            format(date?.from || new Date(), "dd/MM/yyyy", { locale: vi }),
+          )
+          .replace(
+            "{{endDate}}",
+            format(date?.to || new Date(), "dd/MM/yyyy", { locale: vi }),
+          )
+          .replace("{{skuBody}}", skuBody)
+          .replace("{{categoryBody}}", cateBody)
           .replace("{{revenueBody}}", body)
           .replace("{{totalAmount}}", formatMoney(totalAmount).toString())
-          .replace("{{totalOrder}}", totalOrder.toString());
-      });
+          .replace("{{totalOrder}}", totalOrder.toString()),
+      );
     });
-  }, [date]);
+  }, [reportType, date]);
+  useEffect(() => {
+    if (reportType != "RnE") return;
+    const startDate = date?.from || new Date();
+    const endDate = date?.to || new Date();
+    rneReport(startDate, endDate).then((r) => {
+      let totalRevenue = 0;
+      let totalExp = 0;
+      let totalProfit = 0;
+      setCsvData(r.data.data);
+      const body = r.data.data
+        .map((d) => {
+          totalRevenue += parseFloat(d.revenue.toString());
+          totalExp += parseFloat(d.expenditure.toString());
+          totalProfit += parseFloat(d.profit.toString());
+          return `
+            <tr class="">
+                <td>${format(d.day, "dd-MM-yyyy")}</td>
+                <td>${formatMoney(d.revenue)} </td>
+                <td>${formatMoney(d.expenditure)} </td>
+                <td>${formatMoney(d.profit)} </td>
+            </tr>
+          `;
+        })
+        .join("\n");
+      setReportTemplate(
+        revenueAndExpenditureReport
+          .replace(
+            "{{created_at}}",
+            format(new Date(), "dd/MM/yyyy HH:mm:ss", { locale: vi }),
+          )
+          .replace(
+            "{{startDate}}",
+            format(date?.from || new Date(), "dd/MM/yyyy", { locale: vi }),
+          )
+          .replace(
+            "{{endDate}}",
+            format(date?.to || new Date(), "dd/MM/yyyy", { locale: vi }),
+          )
+          .replace("{{totalRevenue}}", formatMoney(totalRevenue))
+          .replace("{{totalExpenditure}}", formatMoney(totalExp))
+          .replace("{{totalProfit}}", formatMoney(totalProfit))
+          .replace("{{body}}", body),
+      );
+    });
+  }, [reportType, date]);
+
   return (
     <Fragment>
       <Container className={"grid grid-cols-5 gap-4 grid-flow-row"}>
@@ -238,6 +276,11 @@ export const ReportPage = () => {
             <FileDown className="w-4 h-4 mr-2" />
             Tải xuống
           </Button>
+          <ExportButton
+            className={"w-full"}
+            data={csvData}
+            fileName={"bao-cao"}
+          ></ExportButton>
           <Card>
             <CardContent>
               <Accordion type="single" collapsible>
@@ -247,23 +290,26 @@ export const ReportPage = () => {
                   </AccordionTrigger>
                   <AccordionContent className={"pb-2 space-y-2"}>
                     <RadioGroup
-                      defaultValue="endDay"
+                      defaultValue="daily"
                       onValueChange={(v) => {
                         switch (v) {
-                          case "endDay":
-                            setReportTemplate(endDateReport);
+                          case "daily":
+                            setReportType(v);
                             break;
                           case "inventory":
-                            setReportTemplate(inventoryReportT);
+                            setReportType(v);
                             break;
                           case "sale":
-                            setReportTemplate(saleReport);
+                            setReportType(v);
+                            break;
+                          case "RnE":
+                            setReportType(v);
                             break;
                         }
                       }}
                     >
                       <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="endDay" id="r1" />
+                        <RadioGroupItem value="daily" id="r1" />
                         <Label>Báo cáo cuối ngày</Label>
                       </div>
                       <div className="flex items-center space-x-2">
@@ -275,11 +321,7 @@ export const ReportPage = () => {
                         <Label>Báo cáo tồn kho</Label>
                       </div>
                       <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="warrenty" id="r4" />
-                        <Label>Báo cáo bảo hành</Label>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="thuchi" id="r5" />
+                        <RadioGroupItem value="RnE" id="r5" />
                         <Label>Báo cáo thu chi</Label>
                       </div>
                     </RadioGroup>
