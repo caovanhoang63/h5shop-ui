@@ -9,7 +9,7 @@ import { Paging } from "@/types/paging.ts";
 interface ResponseStockInTable {
   data: StockInItemTable[];
   extra?: never;
-  paging?: never;
+  paging?: Paging;
 }
 interface ResponseStockInDetail {
   data: StockInDetails;
@@ -28,6 +28,7 @@ export interface StockInFilter {
   gtUpdatedAt?: Date | null;
   status?: [] | null;
   lk_Id?: string | null;
+  page?: number | null;
 }
 
 interface Response {

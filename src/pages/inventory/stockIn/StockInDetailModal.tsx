@@ -7,8 +7,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { FileDown, Save, XCircle } from "lucide-react";
+import { FileDown, XCircle } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -131,9 +130,9 @@ export default function StockInDetailModal({
             </div>
           )}
           <div className="space-y-4">
-            <div className="flex gap-4 mb-4">
+            {/*<div className="flex gap-4 mb-4">
               <Input placeholder="Tìm tên hàng" className="max-w-[200px]" />
-            </div>
+            </div>*/}
             <ScrollArea className={"h-[300px] px-2"}>
               <Table>
                 <TableHeader className="bg-blue-50">
@@ -169,17 +168,20 @@ export default function StockInDetailModal({
           </div>
         </div>
         <DialogFooter className="">
-          <Button className="bg-green-500 hover:bg-green-600">
+          {/*<Button className="bg-green-500 hover:bg-green-600">
             <Save className="w-4 h-4 mr-2" />
             Lưu
-          </Button>
-          <Button variant="secondary" onClick={handlePrint}>
+          </Button>*/}
+          <Button
+            className={"bg-green-500 hover:bg-green-600 text-white"}
+            onClick={handlePrint}
+          >
             <FileDown className="w-4 h-4 mr-2" />
             In tem mã
           </Button>
           <Button variant="destructive" onClick={() => onOpenChange(false)}>
             <XCircle className="w-4 h-4 mr-2" />
-            Hủy bỏ
+            Thoát
           </Button>
         </DialogFooter>
       </DialogContent>

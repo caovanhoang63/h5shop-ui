@@ -44,6 +44,7 @@ export const StockInPage = () => {
     ltUpdatedAt: null,
     status: [],
     lk_Id: null,
+    page: null,
   });
   const [paging, setPaging] = useState<Paging>({
     limit: 10,
@@ -122,8 +123,8 @@ export const StockInPage = () => {
   const getStockInTable = async () => {
     try {
       const response = await getStockInTableApi(filters, paging);
-      console.log("api", response.data);
       setStockInReport(response.data);
+      setPaging({ ...paging, total: response.paging?.total });
     } catch (error) {
       toast.error("Lỗi hệ thống!", {
         position: "top-right",
@@ -136,14 +137,20 @@ export const StockInPage = () => {
       console.log(error);
     }
   };
+  const handleSetPaging = (page: number) => {
+    setPaging({ ...paging, page });
+    setFilters({ ...filters, page });
+  };
   useEffect(() => {
     getStockInTable();
-  }, [filters, paging]);
+  }, [filters]);
   const [fields, setFields] = useState<MenuVisibilityColumnTable[]>([
     { label: "Mã nhập kho", key: "id", visible: true },
     { label: "Thời gian", key: "updatedAt", visible: true },
     { label: "Tổng số lượng", key: "totalAmount", visible: true },
     { label: "Trạng thái", key: "status", visible: true },
+    { label: "Nhà cung cấp", key: "providerName", visible: true },
+
     /*{ label: "Action", key: "actions", visible: true },*/
   ]);
   const handleCheckField = (key: string, visible: boolean) => {
@@ -153,8 +160,6 @@ export const StockInPage = () => {
       ),
     );
   };
-  console.log("fillet", filters);
-
   return (
     <Container className={"grid grid-cols-5 gap-4 grid-flow-row"}>
       <div className={"text-2xl col-span-1 font-bold"}>
@@ -290,7 +295,7 @@ export const StockInPage = () => {
             </Accordion>
           </CardContent>
         </Card>
-        <Card>
+        {/*<Card>
           <CardContent>
             <Accordion type="single" collapsible>
               <AccordionItem value="item-1">
@@ -306,13 +311,13 @@ export const StockInPage = () => {
               </AccordionItem>
             </Accordion>
           </CardContent>
-        </Card>
+        </Card>*/}
       </div>
       <div className={"col-span-4"}>
         <StockInTable
           columnVisible={fields}
           dataStockIn={stockInReport}
-          setPaging={setPaging}
+          setPaging={handleSetPaging}
           paging={paging}
         ></StockInTable>
       </div>
