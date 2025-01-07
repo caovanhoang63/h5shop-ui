@@ -99,23 +99,23 @@ export const TopBar = () => {
                   Hàng hóa
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-56 bg-blue-600 text-white border-blue-700">
+              <DropdownMenuContent className="w-56 bg-blue-600 text-white border-blue-700 ml-24">
                 <DropdownMenuItem
-                  className="hover:bg-blue-700 focus:bg-blue-700 cursor-pointer"
+                  className="hover:bg-blue-700 focus:bg-blue-700 focus:text-white cursor-pointer"
                   onClick={() => navigate("/product")}
                 >
                   <List size={20} />
                   Danh mục
                 </DropdownMenuItem>
                 <DropdownMenuItem
-                  className="hover:bg-blue-700 focus:bg-blue-700 cursor-pointer"
+                  className="hover:bg-blue-700 focus:bg-blue-700 focus:text-white cursor-pointer"
                   onClick={() => navigate("/warranty")}
                 >
-                  <FileText className="mr-2 h-4 w-4" />
+                  <FileText size={20} />
                   Phiếu bảo hành
                 </DropdownMenuItem>
                 <DropdownMenuItem
-                  className="hover:bg-blue-700 focus:bg-blue-700 cursor-pointer"
+                  className="hover:bg-blue-700 focus:bg-blue-700 focus:text-white cursor-pointer"
                   onClick={() => navigate("/inventory")}
                 >
                   <BarChart3 size={20} />
@@ -133,19 +133,19 @@ export const TopBar = () => {
                   <p>Giao dịch</p>
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-56 bg-blue-600 text-white border-blue-700">
+              <DropdownMenuContent className="w-56 bg-blue-600 text-white border-blue-700 ml-24 ">
                 <DropdownMenuItem
-                  className="hover:bg-blue-700 focus:bg-blue-700 cursor-pointer"
+                  className="hover:bg-blue-700 focus:bg-blue-700 focus:text-white cursor-pointer"
                   onClick={() => navigate("/stock-in")}
                 >
                   <Download size={20} />
                   <p>Nhập hàng</p>
                 </DropdownMenuItem>
                 <DropdownMenuItem
-                  className="hover:bg-blue-700 focus:bg-blue-700 cursor-pointer"
+                  className="hover:bg-blue-700 focus:bg-blue-700 focus:text-white cursor-pointer"
                   onClick={() => navigate("/stock-out")}
                 >
-                  <ArrowDown className="mr-2 h-4 w-4" />
+                  <ArrowDown size={20} />
                   <p>Xuất hàng</p>
                 </DropdownMenuItem>
               </DropdownMenuContent>
