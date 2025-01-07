@@ -27,6 +27,7 @@ import { formatCurrency } from "@/utils/convert.ts";
 import _ from "lodash";
 import { toast } from "react-toastify";
 import { useUserStore } from "@/stores/userStore.ts";
+import NewPartnerModalStockIn from "@/pages/inventory/stockIn/NewPartnerModalStockIn.tsx";
 
 export default function StockInAddPage() {
   const rawData: StockInItemAdd[] = [];
@@ -233,9 +234,14 @@ export default function StockInAddPage() {
       console.error("Lỗi khi tạo báo cáo kiểm kho:", error);
     }
   };
+  const [isOpenNewPartnerModal, setIsOpenNewPartnerModal] = useState(false);
+
   return (
     <div className=" mx-auto p-4">
-      {/* Header */}
+      <NewPartnerModalStockIn
+        isOpen={isOpenNewPartnerModal}
+        onOpenChange={setIsOpenNewPartnerModal}
+      />
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-4 ">
           <Link to="/stock-in" className="hover:opacity-80">
@@ -347,7 +353,9 @@ export default function StockInAddPage() {
         <Card className="w-[300px]">
           <CardContent className="p-4 space-y-4">
             <div className="flex items-center justify-between text-sm">
-              <span>Nguyễn Huỳnh Duy Hiếu</span>
+              <span>
+                {userProfile?.firstName + " " + userProfile?.lastName}
+              </span>
               <Pencil className="h-4 w-4 text-gray-500" />
             </div>
             <div className="flex items-center justify-between text-sm relative">
@@ -356,7 +364,13 @@ export default function StockInAddPage() {
                 value={searchProviderQuery}
                 onChange={handleSearchProviderChange}
               />
-              <Button variant={"ghost"} className={"rounded-full "}>
+              <Button
+                variant={"ghost"}
+                onClick={() => {
+                  setIsOpenNewPartnerModal(true);
+                }}
+                className={"rounded-full "}
+              >
                 <PlusCircle
                   className={
                     "h-4 w-4 text-gray-500 cursor-pointer hover:text-red-500"
