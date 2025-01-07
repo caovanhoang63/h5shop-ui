@@ -68,7 +68,7 @@ export async function updateEmployee(
 ): Promise<EmployeeUpdateResponse> {
   try {
     const response = await axiosInstance.patch<EmployeeCreateResponse>(
-      `/v1/employee/${id}`,
+      `/v1/users/${id}`,
       body,
     );
     console.log("Fetch success:", response.data);
