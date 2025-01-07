@@ -25,10 +25,26 @@ export interface SkuStock {
   stock: number;
   status: number;
 }
+
 export const inventoryReport = () =>
   axiosInstance.get<{ data: SkuStock[] }>("v1/report/inventory", {
     params: {
       gtStock: 0,
       ltStock: 10000000,
+    },
+  });
+
+export interface Category {
+  id: number;
+  name: string;
+  amount: number;
+  revenue: number;
+}
+
+export const categoryReport = (startDate: Date, endDate: Date) =>
+  axiosInstance.get<{ data: Category[] }>("v1/report/category", {
+    params: {
+      startDate: startDate,
+      endDate: endDate,
     },
   });

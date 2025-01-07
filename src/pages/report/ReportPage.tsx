@@ -12,7 +12,11 @@ import { Label } from "@radix-ui/react-dropdown-menu";
 import jsPDF from "jspdf";
 import { addDays, format } from "date-fns";
 import { vi } from "date-fns/locale";
-import { inventoryReport, listOrderByDate } from "@/pages/report/api.ts";
+import {
+  categoryReport,
+  inventoryReport,
+  listOrderByDate,
+} from "@/pages/report/api.ts";
 import { Button } from "@/components/ui/button";
 import html2canvas from "html2canvas-pro";
 import { formatMoney } from "@/pages/dashboard/DashBoardPage.tsx";
@@ -145,6 +149,28 @@ export const ReportPage = () => {
         return a.replace("{{skuBody}}", body);
       });
     });
+
+    categoryReport(date?.from || new Date(), date?.to || new Date()).then(
+      (r) => {
+        const body = r.data.data
+          .map((d, i) => {
+            return `
+            <tr class="">
+                <td>${i + 1}</td>
+                <td>${d.id}</td>
+                <td>${d.name}</td>
+                <td>${d.amount}</td>
+                <td>${formatMoney(d.revenue)}</td>
+            </tr>
+          `;
+          })
+          .join("\n");
+        setSaleReport((a) => {
+          return a.replace("{{categoryBody}}", body);
+        });
+      },
+    );
+
     getRevenue(date?.from || new Date(), date?.to || new Date()).then((r) => {
       let totalAmount = 0;
       let totalOrder = 0;

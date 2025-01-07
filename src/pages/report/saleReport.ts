@@ -99,8 +99,22 @@ export const saleReportTemplate = `
             </tbody>
         </table>
         <br>
-        
-      
+        <h2 class="header">Danh mục bán chạy</h2>
+        <table>
+            <thead>
+                <or>
+                    <th>STT</th>
+                    <th>Mã danh mục </th>
+                    <th>Tên danh mục</th>
+                    <th>Số lượng</th>
+                    <th>Doanh thu</th>
+                </or>
+            </thead>
+            <tbody>
+              {{categoryBody}} <!-- Dữ liệu này sẽ được điền vào động -->
+            </tbody>
+        </table>
+        <br>
         <br>
         <h2 class="header">Doanh thu theo ngày</h2>
         <br>
