@@ -201,6 +201,22 @@ export default function SpuModal({
     }
   };
 
+  const handleDeleteSpu = () => {
+    if (spuIdSelected) {
+      CallApiDeleteSpu(spuIdSelected)
+        .then(() => {
+          toast.success("Xóa thành công");
+          if (actionSuccess) {
+            actionSuccess();
+          }
+        })
+        .catch((error) => {
+          toast.error(error.response.data.message);
+        })
+        .finally(() => setIsLoading(false));
+    }
+  };
+
   const handleAddAttr = () => {
     setAttrs((prev) => [
       ...prev,
@@ -642,7 +658,7 @@ export default function SpuModal({
                   className={"bg-red-500 hover:bg-red-600"}
                   onClick={() => {
                     if (spuIdSelected) {
-                      CallApiDeleteSpu(spuIdSelected);
+                      handleDeleteSpu();
                     }
                   }}
                 >

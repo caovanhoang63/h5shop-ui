@@ -27,7 +27,11 @@ import {
 } from "@/components/ui/popover.tsx";
 import { format } from "date-fns";
 import { Calendar } from "@/components/ui/calendar.tsx";
-import { createWarrantyForm } from "@/pages/warranty/api/warrantyApi.ts";
+import {
+  createWarrantyForm,
+  updateWarrantyForm,
+} from "@/pages/warranty/api/warrantyApi.ts";
+import { toast } from "react-toastify";
 
 interface IWarrantyModalProps {
   isOpen: boolean;
@@ -100,15 +104,34 @@ export default function WarrantyModal({
       setIsLoading(true);
       await createWarrantyForm(warranty);
       if (actionSuccess) actionSuccess();
+      toast.success("Thêm mới thành công");
+      if (actionSuccess) actionSuccess();
       onOpenChange(false);
     } catch (error) {
-      console.error("Error: ", error);
+      console.log("Error: ", error);
+      toast.error(
+        (error as any)?.response?.data?.message || "An error occurred",
+      );
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleClickBtnUpdate = () => {};
+  const handleClickBtnUpdate = () => {
+    updateWarrantyForm(warranty)
+      .then(() => {
+        setIsLoading(true);
+        toast.success("Cập nhật thành công");
+        if (actionSuccess) actionSuccess();
+        onOpenChange(false);
+      })
+      .catch((error) => {
+        toast.error(error.response.data.message);
+      })
+      .finally(() => {
+        setIsLoading(false);
+      });
+  };
 
   const handleClickBtnDelete = () => {};
 
@@ -252,6 +275,26 @@ export default function WarrantyModal({
                     />
                   </PopoverContent>
                 </Popover>
+              </div>
+              <div className={"flex flex-row space-x-4"}>
+                <label className={"w-6/12 font-semibold"}>Tình trạng</label>
+                <Select
+                  defaultValue={"0"}
+                  value={warranty.status.toString()}
+                  onValueChange={(value) =>
+                    setWarrantyByField("status", Number(value))
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue
+                      placeholder={"Chọn loại bảo hành"}
+                    ></SelectValue>
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value={"1"}>Đang bảo hành</SelectItem>
+                    <SelectItem value={"2"}>Đã xong</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </div>
           </div>

@@ -35,6 +35,7 @@ import { cn } from "@/lib/utils.ts";
 import { endOfMonth, format, startOfMonth } from "date-fns";
 import { Calendar } from "@/components/ui/calendar.tsx";
 import { SelectRangeEventHandler } from "react-day-picker";
+import { CheckBoxWithText } from "@/components/CheckBoxWithText.tsx";
 
 export default function WarrantyPage() {
   const [fields, setFields] = useState<MenuVisibilityColumnTable[]>([
@@ -61,9 +62,13 @@ export default function WarrantyPage() {
     { value: WarrantyType.MF_FIX, label: "Gửi nhà cung cấp" },
   ]);
   const [warrantyType, setWarrantyType] = useState<string | null>(null);
-  const [isOpenedModal, setIsOpenedModal] = useState<boolean>(false);
+  const [isOpenedModalAdd, setIsOpenedModalAdd] = useState<boolean>(false);
+  const [isOpenedModalUpdate, setIsOpenedModalUpdate] =
+    useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [warrantyList, setWarrantyList] = useState<Warranty[]>([]);
+  const [warrantySelected, setWarrantySelected] = useState<Warranty>();
+  const [status, setStatus] = useState<number[] | null>(null);
   const [paging, setPaging] = useState<PagingSpu>({
     page: 1,
     limit: 10,
@@ -75,21 +80,11 @@ export default function WarrantyPage() {
   });
 
   useEffect(() => {
-    setIsLoading(true);
-    getListWarrantyForm(warrantyFilter)
-      .then((response) => {
-        console.log(response.data);
-        setWarrantyList(response.data);
-        setPaging({ ...response.paging, total: response.data.length });
-      })
-      .catch((error) => {
-        console.error("Fetch error:", error);
-        throw error;
-      })
-      .finally(() => {
-        setIsLoading(false);
-      });
-  }, []);
+    setWarrantyFilter((prevFilters) => ({
+      ...prevFilters,
+      status: status,
+    }));
+  }, [status]);
 
   useEffect(() => {
     console.log(warrantyFilter);
@@ -124,8 +119,9 @@ export default function WarrantyPage() {
     );
   };
 
-  const handleSelectItemTable = (spuId: number) => {
-    console.log(spuId);
+  const handleSelectItemTable = (value: Warranty) => {
+    setWarrantySelected(value);
+    setIsOpenedModalUpdate(true);
   };
 
   const handleSetPaging = (page: number) => {
@@ -187,6 +183,42 @@ export default function WarrantyPage() {
     setWarrantyFilter(newFilters);
   };
 
+  const handleStatusChange = (status: number, checked: boolean) => {
+    if (checked) {
+      setStatus((prevStatus) => {
+        if (prevStatus) {
+          return [...prevStatus, status];
+        } else {
+          return [status];
+        }
+      });
+    } else {
+      setStatus((prevStatus) => {
+        if (prevStatus) {
+          return prevStatus.filter((item) => item !== status);
+        } else {
+          return null;
+        }
+      });
+    }
+  };
+
+  const handleAcctionSuccess = () => {
+    getListWarrantyForm(warrantyFilter)
+      .then((response) => {
+        console.log(response.data);
+        setWarrantyList(response.data);
+        setPaging({ ...response.paging, total: response.data.length });
+      })
+      .catch((error) => {
+        console.error("Fetch error:", error);
+        throw error;
+      })
+      .finally(() => {
+        setIsLoading(false);
+      });
+  };
+
   return (
     <Fragment>
       {isLoading && <LoadingAnimation></LoadingAnimation>}
@@ -214,7 +246,7 @@ export default function WarrantyPage() {
             <Button
               className={"bg-green-500"}
               onClick={() => {
-                setIsOpenedModal(true);
+                setIsOpenedModalAdd(true);
               }}
             >
               <Plus />
@@ -345,6 +377,31 @@ export default function WarrantyPage() {
               </Accordion>
             </CardContent>
           </Card>
+          <Card>
+            <CardContent>
+              <Accordion type="single" collapsible>
+                <AccordionItem value="item-1">
+                  <AccordionTrigger className={"hover:no-underline"}>
+                    Trạng thái
+                  </AccordionTrigger>
+                  <AccordionContent className={"pb-2 space-y-2"}>
+                    <CheckBoxWithText
+                      id={"serial"}
+                      onCheckChange={(value) => handleStatusChange(1, !!value)}
+                    >
+                      Đang bảo hành
+                    </CheckBoxWithText>
+                    <CheckBoxWithText
+                      id={"service"}
+                      onCheckChange={(value) => handleStatusChange(2, !!value)}
+                    >
+                      Đã xong
+                    </CheckBoxWithText>
+                  </AccordionContent>
+                </AccordionItem>
+              </Accordion>
+            </CardContent>
+          </Card>
         </div>
         <div className={"col-span-4"}>
           <DataTableWarranty
@@ -358,9 +415,18 @@ export default function WarrantyPage() {
       </Container>
 
       <WarrantyModal
-        isOpen={isOpenedModal}
-        onOpenChange={setIsOpenedModal}
+        isOpen={isOpenedModalAdd}
+        onOpenChange={setIsOpenedModalAdd}
         isAdd={true}
+        actionSuccess={handleAcctionSuccess}
+      />
+
+      <WarrantyModal
+        isOpen={isOpenedModalUpdate}
+        onOpenChange={setIsOpenedModalUpdate}
+        isAdd={false}
+        warrantyUpdate={warrantySelected}
+        actionSuccess={handleAcctionSuccess}
       />
     </Fragment>
   );

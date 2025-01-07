@@ -26,6 +26,7 @@ import {
   TableRow,
 } from "@/components/ui/table.tsx";
 import { Warranty } from "@/types/warranty/warranty.ts";
+import { WarrantyType } from "@/types/enumTime.ts";
 
 export const warrantyColumn: ColumnDef<Warranty>[] = [
   {
@@ -70,7 +71,19 @@ export const warrantyColumn: ColumnDef<Warranty>[] = [
         </Button>
       );
     },
-    cell: ({ row }) => <div>{row.getValue("warrantyType")}</div>,
+    cell: ({ row }) => (
+      <div>
+        {row.getValue("warrantyType") == WarrantyType.FIX
+          ? "Sửa chữa"
+          : row.getValue("warrantyType") == WarrantyType.NEW
+            ? "Đổi mới"
+            : row.getValue("warrantyType") == WarrantyType.PART
+              ? "Thay thế linh kiện"
+              : row.getValue("warrantyType") == WarrantyType.MF_FIX
+                ? "Gửi nhà cung cấp"
+                : ""}
+      </div>
+    ),
   },
   {
     accessorKey: "customerId",
@@ -198,7 +211,7 @@ export const warrantyColumn: ColumnDef<Warranty>[] = [
         </Button>
       );
     },
-    cell: ({ row }) => <div className="lowercase">{row.getValue("note")}</div>,
+    cell: ({ row }) => <div>{row.getValue("note")}</div>,
   },
   {
     accessorKey: "status",
@@ -215,7 +228,13 @@ export const warrantyColumn: ColumnDef<Warranty>[] = [
       );
     },
     cell: ({ row }) => (
-      <div className="lowercase">{row.getValue("status")}</div>
+      <div
+        className={
+          row.getValue("status") == 1 ? "text-blue-500" : "text-green-500"
+        }
+      >
+        {row.getValue("status") == 1 ? "Đang bảo hành" : "Đã xong"}
+      </div>
     ),
   },
   {
@@ -232,9 +251,7 @@ export const warrantyColumn: ColumnDef<Warranty>[] = [
         </Button>
       );
     },
-    cell: ({ row }) => (
-      <div className="lowercase">{row.getValue("createdAt")}</div>
-    ),
+    cell: ({ row }) => <div>{row.getValue("createdAt")}</div>,
   },
   {
     accessorKey: "updatedAt",
@@ -250,16 +267,14 @@ export const warrantyColumn: ColumnDef<Warranty>[] = [
         </Button>
       );
     },
-    cell: ({ row }) => (
-      <div className="lowercase">{row.getValue("updatedAt")}</div>
-    ),
+    cell: ({ row }) => <div>{row.getValue("updatedAt")}</div>,
   },
 ];
 
 interface DataTableDemoProps {
   columnVisible: MenuVisibilityColumnTable[];
   warrantyList: Warranty[];
-  onSelectedRow: (warrantyId: number) => void;
+  onSelectedRow: (warrantyId: Warranty) => void;
   paging: PagingSpu;
   setPaging: (page: number) => void;
 }
@@ -358,7 +373,7 @@ export const DataTableWarranty: React.FC<DataTableDemoProps> = ({
                   onClick={(event) => {
                     event.preventDefault();
                     event.stopPropagation();
-                    onSelectedRow(row.original.id);
+                    onSelectedRow(row.original);
                     console.log("Open");
                   }}
                   key={row.id}

@@ -22,4 +22,5 @@ export interface WarrantyFilter {
   gtUpdatedAt?: Date | null;
   page?: number;
   limit?: number;
+  status?: number[] | null;
 }
