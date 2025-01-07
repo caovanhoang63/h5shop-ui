@@ -93,7 +93,7 @@ export default function WarrantyPage() {
       .then((response) => {
         console.log(response.data);
         setWarrantyList(response.data);
-        setPaging({ ...response.paging, total: response.data.length });
+        setPaging({ ...response.paging });
       })
       .catch((error) => {
         console.error("Fetch error:", error);
@@ -208,7 +208,7 @@ export default function WarrantyPage() {
       .then((response) => {
         console.log(response.data);
         setWarrantyList(response.data);
-        setPaging({ ...response.paging, total: response.data.length });
+        setPaging({ ...response.paging });
       })
       .catch((error) => {
         console.error("Fetch error:", error);
