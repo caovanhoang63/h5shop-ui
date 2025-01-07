@@ -195,9 +195,34 @@ export default function StockInAddPage() {
       });
       return;
     }
+
+    if (items.some((item) => item.amount === 0)) {
+      toast.warning("Vui lòng nhập số lượng  !", {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+      });
+      return;
+    }
+
+    /*if (selectedProvider) {
+      toast.warning("Vui lòng chọn nhà cung cấp  !", {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+      });
+      return;
+    }*/
     const report: StockInCreate = {
       warehouseMen: 8,
       providerId: selectedProvider || 1,
+      totalPrice: calculateTotalPrice() || 0,
       items: items.map((item) => ({
         skuId: item.id,
         amount: item.amount,

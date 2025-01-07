@@ -4,6 +4,7 @@ import {
   StockInDetails,
   StockInItemTable,
 } from "@/types/stockIn/stockIn.ts";
+import { Paging } from "@/types/paging.ts";
 
 interface ResponseStockInTable {
   data: StockInItemTable[];
@@ -38,6 +39,7 @@ const token = localStorage.getItem("token");
 
 export async function getStockInTableApi(
   filters: StockInFilter,
+  paging: Paging,
 ): Promise<ResponseStockInTable> {
   try {
     const response = await axiosInstance.get<ResponseStockInTable>(
@@ -45,6 +47,7 @@ export async function getStockInTableApi(
       {
         params: {
           ...filters,
+          ...paging,
         },
         headers: {
           Authorization: `Bearer ${token}`,

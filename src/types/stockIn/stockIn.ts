@@ -31,6 +31,7 @@ export interface StockInItemTable {
 export interface StockInCreate {
   warehouseMen: number;
   providerId: number;
+  totalPrice: number;
   items: StockInDetailCreate[];
 }
 interface StockInDetailCreate {
