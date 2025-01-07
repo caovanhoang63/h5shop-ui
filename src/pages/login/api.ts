@@ -30,3 +30,6 @@ export async function login(
     throw error;
   }
 }
+
+export const getProfile = () =>
+  axiosInstance.get<{ data: never }>("v1/users/profile");

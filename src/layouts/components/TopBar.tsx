@@ -10,7 +10,6 @@ import {
   Handshake,
   List,
   LogOut,
-  Mail,
   Package,
   Settings,
   ShoppingBasket,
@@ -33,28 +32,44 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useUserStore } from "@/stores/userStore.ts";
 
 export const TopBar = () => {
   const navigate = useNavigate();
+  const userProfile = useUserStore((state) => state.user);
+  const logout = useUserStore((state) => state.logout);
+
   return (
     <div className="sticky top-0 z-50">
       <div className="flex justify-between items-center px-5 bg-background">
-        <Button variant={"ghost"} className={"text-2xl font-bold"}>
+        <Button
+          onClick={() => navigate("/")}
+          variant={"ghost"}
+          className={"text-2xl font-bold"}
+        >
           H5Shop
         </Button>
-        <div className={"flex space-x-5 items-center"}>
-          <button className={"hover:bg-accent p-1 rounded-md"}>
+        <div className={"flex space-x-2 items-center"}>
+          {/*<button className={"hover:bg-accent p-1 rounded-md"}>
             <Mail size={32} />
-          </button>
+          </button>*/}
           {/* <button className={"hover:bg-accent p-1  rounded-md"}>
             <Settings size={32} />
           </button>*/}
-          <div className={"content-center text-xl "}>0896374872</div>
+          <div className={"content-center text-xl "}>
+            {userProfile?.firstName + " " + userProfile?.lastName}
+          </div>
+          <div className={"content-center text-xl "}>
+            {userProfile?.phoneNumber}
+          </div>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Avatar className="cursor-pointer">
+              <Avatar className="cursor-pointer content-center">
                 <AvatarImage
-                  src="https://github.com/shadcn.png"
+                  src={
+                    userProfile?.avatar ||
+                    "https://media.istockphoto.com/id/1300845620/vector/user-icon-flat-isolated-on-white-background-user-symbol-vector-illustration.jpg?s=612x612&w=0&k=20&c=yBeyba0hUkh14_jgv1OKqIH0CCSWU_4ckRkAoy2p73o="
+                  }
                   alt="@shadcn"
                 />
                 <AvatarFallback>CN</AvatarFallback>
@@ -69,6 +84,7 @@ export const TopBar = () => {
                 onClick={() => {
                   localStorage.removeItem("token");
                   window.location.reload();
+                  logout();
                 }}
               >
                 <LogOut />
