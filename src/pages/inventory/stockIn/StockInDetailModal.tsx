@@ -130,9 +130,6 @@ export default function StockInDetailModal({
             </div>
           )}
           <div className="space-y-4">
-            {/*<div className="flex gap-4 mb-4">
-              <Input placeholder="Tìm tên hàng" className="max-w-[200px]" />
-            </div>*/}
             <ScrollArea className={"h-[300px] px-2"}>
               <Table>
                 <TableHeader className="bg-blue-50">

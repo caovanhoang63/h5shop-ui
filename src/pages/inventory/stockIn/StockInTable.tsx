@@ -357,7 +357,8 @@ export function StockInTable({
             disabled={
               /*!table.getCanNextPage()*/
               paging.page ===
-              Math.ceil((paging.total || 0) / (paging.limit || 20))
+                Math.ceil((paging.total || 0) / (paging.limit || 20)) ||
+              Math.ceil((paging.total || 0) / (paging.limit || 20)) === 0
             }
           >
             Sau
