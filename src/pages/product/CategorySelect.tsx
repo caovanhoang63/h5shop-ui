@@ -45,6 +45,7 @@ export const CardCategorySelect = ({
   }, [listCategories]);
 
   useEffect(() => {
+    setCategoryName("");
     if (parentIdSelected === null) {
       setIdCategorySelected(0);
       setCategoryName("Không chọn cha");

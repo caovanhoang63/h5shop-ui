@@ -12,10 +12,12 @@ import { CardCategorySelect } from "@/pages/product/CategorySelect.tsx";
 import { Category, CategoryCreate } from "@/types/category/category.ts";
 import {
   createCategory,
+  deleteCategory,
   updateCategory,
 } from "@/pages/product/api/categoryApi.ts";
 import { Fragment, useEffect, useState } from "react";
 import { LoadingAnimation } from "@/components/ui/LoadingAnimation.tsx";
+import { toast } from "react-toastify";
 
 interface ICategoryModalProps {
   isOpen: boolean;
@@ -60,10 +62,24 @@ export default function CategoryModal({
     try {
       setIsLoading(true);
       await updateCategory(category);
-      setIsLoading(false);
     } catch (error) {
       console.error("Fetch error:", error);
       throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const CallApiDeleteCategory = async (id: number) => {
+    try {
+      setIsLoading(true);
+      await deleteCategory(id);
+      toast.success("Xóa thành công");
+    } catch (error) {
+      console.error("Fetch error:", error);
+      throw error;
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -97,6 +113,18 @@ export default function CategoryModal({
       })
       .catch((error) => {
         console.error("Fetch error:", error);
+      });
+  };
+
+  const handleClickBtnDelete = () => {
+    CallApiDeleteCategory(category?.id as number)
+      .then(() => {
+        onOpenChange(false);
+        if (actionSuccess) actionSuccess();
+      })
+      .catch((error) => {
+        console.error("Fetch error:", error);
+        toast.error(error.response.data.message);
       });
   };
 
@@ -152,7 +180,10 @@ export default function CategoryModal({
               </Button>
             )}
             {!isAdd && (
-              <Button className={"bg-red-500 hover:bg-red-600"}>
+              <Button
+                className={"bg-red-500 hover:bg-red-600"}
+                onClick={() => handleClickBtnDelete()}
+              >
                 <Trash2Icon />
                 Xóa
               </Button>

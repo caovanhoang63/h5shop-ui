@@ -73,6 +73,7 @@ interface ISpuModalProps {
   listCategories: Category[];
   listBrands: Brand[];
   spuIdSelected?: number;
+  actionSuccess?: () => void;
 }
 
 export default function SpuModal({
@@ -82,6 +83,7 @@ export default function SpuModal({
   listCategories,
   listBrands,
   spuIdSelected,
+  actionSuccess,
 }: ISpuModalProps) {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [id, setId] = useState<number>();
@@ -282,7 +284,7 @@ export default function SpuModal({
     }
   };
 
-  const mapSpuUpsert = () => {
+  const handleUpsertSpu = () => {
     const spuTest = {
       id: id,
       name: name,
@@ -302,9 +304,13 @@ export default function SpuModal({
     CallApiUpsertSpuDetail(spuTest as SpuUpsert)
       .then(() => {
         toast.success("Thành công");
+        if (actionSuccess) {
+          actionSuccess();
+        }
       })
       .catch((error) => {
         console.error("Error: ", error);
+        toast.error(error.response.data.message);
       });
   };
 
@@ -616,7 +622,7 @@ export default function SpuModal({
               {isAdd && (
                 <Button
                   className={"bg-green-500 hover:bg-green-600"}
-                  onClick={() => mapSpuUpsert()}
+                  onClick={() => handleUpsertSpu()}
                 >
                   <Plus />
                   Thêm mới
@@ -625,7 +631,7 @@ export default function SpuModal({
               {!isAdd && (
                 <Button
                   className={"bg-green-500 hover:bg-green-600"}
-                  onClick={() => mapSpuUpsert()}
+                  onClick={() => handleUpsertSpu()}
                 >
                   <FileInput />
                   Lưu
