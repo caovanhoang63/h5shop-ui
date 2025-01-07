@@ -1,10 +1,18 @@
-﻿import { Filter, List, Pen, Search } from "lucide-react";
+﻿import {
+  ChartColumn,
+  Filter,
+  ImageIcon,
+  List,
+  Pen,
+  Search,
+} from "lucide-react";
 import { Input } from "@/components/ui/input.tsx";
 import React, {
   ChangeEvent,
   Fragment,
   useCallback,
   useEffect,
+  useMemo,
   useRef,
   useState,
 } from "react";
@@ -13,7 +21,7 @@ import { OrderItemCard } from "@/pages/sale/components/OrderItemCard.tsx";
 import { Button } from "@/components/ui/button.tsx";
 import { SkuCard } from "@/pages/sale/components/SkuCard.tsx";
 import { OrderTabsList, Tab } from "@/pages/sale/components/OrderTabsList.tsx";
-import { getListSku } from "@/pages/sale/api/skuApi.ts";
+import { getListSku, searchListSku } from "@/pages/sale/api/skuApi.ts";
 import { SkuGetDetail } from "@/types/sku/skuGetDetail.ts";
 import { Pagination } from "@/pages/sale/components/Pagination.tsx";
 import { OrderGetDetail } from "@/types/order/orderGetDetail.ts";
@@ -42,13 +50,22 @@ import { BrandFilterDialog } from "@/pages/sale/components/BrandFilterDialog.tsx
 import { getBrands } from "@/pages/product/api/brandApi.ts";
 import { getCategories } from "@/pages/product/api/categoryApi.ts";
 import { CategoryFilterDialog } from "@/pages/sale/components/CategoryFilterDialog.tsx";
+import _ from "lodash";
+import { SkuSearchFilter } from "@/types/sku/skuSearchFilter.ts";
+import { formatCurrency } from "@/utils/convert.ts";
+import { useNavigate } from "react-router-dom";
 
 export default function SalePage() {
+  const navigate = useNavigate();
+
+  // Loading
   const [isLoadingPage, setIsLoadingPage] = useState<boolean>(false);
   const [isLoadingSku, setIsLoadingSku] = useState<boolean>(false);
-  const [isLoadingCustomer, setIsLoadingCustomer] = useState<boolean>(false);
+  // const [isLoadingCustomer, setIsLoadingCustomer] = useState<boolean>(false);
+
   // Input
-  const [searchValue, setSearchValue] = useState("");
+  const [searchSku, setSearchSku] = useState("");
+  const [searchSkuResult, setSearchSkuResult] = useState<SkuGetDetail[]>();
 
   // Customer
   const [selectedCustomer, setSelectedCustomer] = useState<
@@ -70,8 +87,6 @@ export default function SalePage() {
   const [skuData, setSkuData] = useState<SkuGetDetail[]>([]);
 
   // Pagination
-  // const [page, setPage] = useState(1);
-  // const limit = 12;
   const [totalPages, setTotalPages] = useState(1);
   const skuListRef = useRef<HTMLDivElement>(null);
 
@@ -92,6 +107,27 @@ export default function SalePage() {
 
   // Dialog
   const [isPaymentDialogOpen, setIsPaymentDialogOpen] = useState(false);
+
+  const debounceSearchSku = useMemo(
+    () =>
+      _.debounce(async (query: string) => {
+        if (query.trim() === "") {
+          setSearchSkuResult(undefined);
+        } else {
+          const filter: SkuSearchFilter = {
+            lkName: query,
+          };
+          searchListSku(filter)
+            .then((response) => {
+              setSearchSkuResult(response.data);
+            })
+            .catch((error) => {
+              console.error(error);
+            });
+        }
+      }, 500),
+    [],
+  );
 
   // Check if the tabs list is overflowing
   const checkOverflow = () => {
@@ -144,8 +180,10 @@ export default function SalePage() {
   }, [tabs, activeTab]);
 
   // Text input
-  const handleSearchInput = (e: ChangeEvent<HTMLInputElement>) => {
-    setSearchValue(e.target.value);
+  const handleSearchSku = (e: ChangeEvent<HTMLInputElement>) => {
+    const query = e.target.value;
+    setSearchSku(query);
+    debounceSearchSku(query);
   };
   const handleDescriptionBlur = useCallback(
     (e: React.FocusEvent<HTMLInputElement>) => {
@@ -167,14 +205,14 @@ export default function SalePage() {
     },
     [activeTab, tabs],
   );
-  const handleDescriptionChange = (e: ChangeEvent<HTMLInputElement>) => {
-    if (!tabs[activeTab]) return;
-    setOrderDescription(e.target.value);
-
-    const updatedTabs = [...tabs];
-    updatedTabs[activeTab].order.description = e.target.value;
-    setTabs(updatedTabs);
-  };
+  // const handleDescriptionChange = (e: ChangeEvent<HTMLInputElement>) => {
+  //   if (!tabs[activeTab]) return;
+  //   setOrderDescription(e.target.value);
+  //
+  //   const updatedTabs = [...tabs];
+  //   updatedTabs[activeTab].order.description = e.target.value;
+  //   setTabs(updatedTabs);
+  // };
 
   // Tabs stuff
   const addTab = useCallback(async () => {
@@ -356,14 +394,11 @@ export default function SalePage() {
   const handleSkuClick = async (sku: SkuGetDetail) => {
     const activeOrder = tabs[activeTab]?.order;
     if (!activeOrder) {
-      toast.error("Xin hãy tạo đơn hàng trước khi thêm sản phẩm", {
-        position: "top-right",
-        autoClose: 3000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-      });
+      toast.error("Xin hãy tạo đơn hàng trước khi thêm sản phẩm");
+      return;
+    }
+    if (activeOrder.items.some((item) => item.skuId === sku.id)) {
+      toast.error("Sản phẩm đã tồn tại trong đơn hàng");
       return;
     }
     // Add the clicked SKU to the existing order
@@ -374,6 +409,15 @@ export default function SalePage() {
       unitPrice: 1,
     })
       .then((response) => {
+        // Check if the item already exists in the order
+        const currentItems = tabs[activeTab].order.items;
+        const isItemExists = currentItems.some((item) => item.skuId === sku.id);
+
+        if (isItemExists) {
+          toast.warn("Sản phẩm đã tồn tại trong đơn hàng");
+          return; // Do not add the item again
+        }
+
         // Update the active tab with the new item
         const updatedTabs = [...tabs];
         response.data.skuDetail = sku;
@@ -384,14 +428,7 @@ export default function SalePage() {
       })
       .catch((error) => {
         console.error("Error handling SKU click:", error);
-        toast.error("Thêm sản phẩm thất bại, thử lại", {
-          position: "top-right",
-          autoClose: 3000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-        });
+        toast.error("Thêm sản phẩm thất bại, thử lại");
       });
   };
 
@@ -585,6 +622,7 @@ export default function SalePage() {
   }, [totalPages, skuFilter]);
 
   useEffect(() => {
+    // fetchCustomerOnTab(activeTab);
     updateTotalPrice();
   }, [tabs, activeTab, updateTotalPrice]);
 
@@ -608,10 +646,11 @@ export default function SalePage() {
   }, []);
 
   const fetchCustomerOnTab = async (index: number) => {
-    setIsLoadingCustomer(true);
+    // console.log("run")
+    // setIsLoadingCustomer(true);
     if (!tabs[index].order.customerId) {
       setSelectedCustomer(undefined);
-      setIsLoadingCustomer(false);
+      // setIsLoadingCustomer(false);
       return;
     }
     getCustomerById(tabs[index].order.customerId)
@@ -624,7 +663,7 @@ export default function SalePage() {
         toast.error("Lấy thông tin khách hàng thất bại");
       })
       .finally(() => {
-        setIsLoadingCustomer(false);
+        // setIsLoadingCustomer(false);
       });
   };
 
@@ -637,11 +676,77 @@ export default function SalePage() {
           <div className="relative w-1/3 p-2">
             <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 transform bg-background" />
             <Input
-              value={searchValue}
-              onChange={handleSearchInput}
+              value={searchSku}
+              onChange={handleSearchSku}
               className="pl-9 bg-background "
               placeholder="Tìm hàng hoá"
             />
+            {searchSkuResult && searchSku.trim() !== "" && (
+              <div className="absolute top-full mt-2 left-0 w-full bg-white border rounded-lg shadow-md z-50 max-h-60 overflow-y-auto">
+                {searchSkuResult.map((sku) => (
+                  <div
+                    key={sku.id}
+                    className="flex flex-wrap items-center gap-2 p-2 hover:bg-gray-100 cursor-pointer"
+                    onClick={() => {
+                      if (sku.stock > 0) {
+                        handleSkuClick(sku).catch((error) => {
+                          console.error("Error handling SKU click:", error);
+                        });
+                      }
+                      setSearchSku("");
+                      setSearchSkuResult(undefined);
+                    }}
+                  >
+                    <div
+                      className={`w-16 h-16 flex-shrink-0 ${
+                        sku.stock === 0 ? "bg-gray-300" : "bg-gray-200"
+                      } flex items-center justify-center rounded`}
+                    >
+                      {sku.images && sku.images.length > 0 ? (
+                        <img
+                          src={sku.images[0].url}
+                          alt={sku.name}
+                          className={`w-full h-full object-cover rounded ${
+                            sku.stock === 0 && "grayscale"
+                          }`}
+                        />
+                      ) : (
+                        <ImageIcon className="text-gray-400 w-8 h-8" />
+                      )}
+                    </div>
+
+                    {/* Name and Price Section */}
+                    <div className="flex flex-col flex-grow">
+                      {/* Product Name */}
+                      <div
+                        className={`text-sm font-medium max-w-120 ${
+                          sku.stock === 0 ? "text-gray-500" : "text-gray-800"
+                        } line-clamp-2`}
+                      >
+                        {sku.name}
+                      </div>
+                      {/* Product Price */}
+                      <div className="flex flex-row items-end">
+                        <div
+                          className={`text-sm font-semibold mt-2 ${
+                            sku.stock === 0 ? "text-gray-500" : "text-primary"
+                          }`}
+                        >
+                          {formatCurrency(sku.price)}
+                        </div>
+                        <div
+                          className={`ml-auto ${
+                            sku.stock === 0 ? "text-gray-500" : "text-primary"
+                          }`}
+                        >
+                          {sku.stock}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Tabs list */}
@@ -652,7 +757,6 @@ export default function SalePage() {
               onTabChange={async (index) => {
                 fetchCustomerOnTab(index).then(() => {
                   setActiveTab(index);
-                  console.log(tabs[index].order.id);
                 });
               }}
               onDeleteTab={(index: number) => {
@@ -664,6 +768,14 @@ export default function SalePage() {
               tabListRef={tabListRef}
             />
           </div>
+          <Button
+            variant="default"
+            className="ml-auto h-full bg-blue-600 hover:bg-blue-700 text-white text-lg"
+            onClick={() => navigate("/")}
+          >
+            <ChartColumn />
+            <p>Quản lý</p>
+          </Button>
         </div>
 
         {/* Body */}
@@ -682,7 +794,6 @@ export default function SalePage() {
                   key={item.orderId + "" + item.skuId} // Ensure each card has a unique key
                   index={index + 1} // Optionally use 1-based indexing
                   item={item}
-                  quantity={item.amount}
                   onRemove={() => handleOrderItemRemove(index)} // Remove this item from the order
                   onQuantityBlur={async (value) => {
                     return await handleOrderItemQuantityChange(index, value);
@@ -701,7 +812,7 @@ export default function SalePage() {
                 <div className="flex-grow relative">
                   <Input
                     value={orderDescription}
-                    onChange={handleDescriptionChange}
+                    onChange={(e) => setOrderDescription(e.target.value)}
                     className="bg-white p-2 rounded-md border-0 shadow-none pl-10"
                     placeholder="Ghi chú đơn hàng"
                     onBlur={handleDescriptionBlur}
@@ -730,43 +841,44 @@ export default function SalePage() {
               {/*Filter*/}
               <div className="flex flex-row">
                 <div className="relative w-3/4 flex items-center">
-                  {isLoadingCustomer ? (
-                    <div>Loading...</div>
-                  ) : (
-                    <CustomerSearch
-                      customerValue={selectedCustomer}
-                      onCustomerChange={(customer) => {
-                        setSelectedCustomer(customer);
-                        if (customer) {
-                          // Update order with customer ID
-                          updateOrder(tabs[activeTab]?.order.id, {
-                            customerId: customer.id,
-                          }).catch((error) => {
+                  {/*{isLoadingCustomer ? (*/}
+                  {/*  <div>Loading...</div>*/}
+                  {/*) : (*/}
+                  <CustomerSearch
+                    customerValue={selectedCustomer}
+                    onCustomerChange={(customer) => {
+                      setSelectedCustomer(customer);
+                      if (tabs[activeTab]) {
+                        tabs[activeTab].order.customerId = customer?.id;
+                      }
+                      if (customer) {
+                        // Update order with customer ID
+                        updateOrder(tabs[activeTab]?.order.id, {
+                          customerId: customer.id,
+                        }).catch((error) => {
+                          console.error(
+                            "Error updating order with customer:",
+                            error,
+                          );
+                          toast.error("Cập nhập khách hàng thất bại.");
+                        });
+                      } else {
+                        // Remove customer from order
+                        removeCustomer(tabs[activeTab]?.order.id).catch(
+                          (error) => {
                             console.error(
-                              "Error updating order with customer:",
+                              "Error removing customer from order:",
                               error,
                             );
                             toast.error(
-                              "Failed to update order with customer.",
+                              "Failed to remove customer from order.",
                             );
-                          });
-                        } else {
-                          // Remove customer from order
-                          removeCustomer(tabs[activeTab]?.order.id).catch(
-                            (error) => {
-                              console.error(
-                                "Error removing customer from order:",
-                                error,
-                              );
-                              toast.error(
-                                "Failed to remove customer from order.",
-                              );
-                            },
-                          );
-                        }
-                      }}
-                    />
-                  )}
+                          },
+                        );
+                      }
+                    }}
+                  />
+                  {/*)}*/}
                 </div>
                 <div className="flex flex-row flex-grow px-2 w-auto items-center justify-end gap-2">
                   <Button
@@ -795,7 +907,16 @@ export default function SalePage() {
               >
                 {isLoadingSku && <LoadingAnimation />}
                 {skuData.map((sku) => (
-                  <div key={sku.id} onClick={() => handleSkuClick(sku)}>
+                  <div
+                    key={sku.id}
+                    onClick={() => {
+                      if (sku.stock > 0) {
+                        handleSkuClick(sku).catch((error) => {
+                          console.error("Error handling SKU click:", error);
+                        });
+                      }
+                    }}
+                  >
                     <SkuCard {...sku} />
                   </div>
                 ))}
@@ -821,7 +942,20 @@ export default function SalePage() {
                 />
                 <Button
                   className="p-4 w-full h-12"
-                  onClick={() => setIsPaymentDialogOpen(true)}
+                  onClick={() => {
+                    if (tabs[activeTab]?.order.items.length === 0) {
+                      toast.warning("Đơn hàng không có sản phẩm", {
+                        position: "top-right",
+                        autoClose: 3000,
+                        hideProgressBar: false,
+                        closeOnClick: true,
+                        pauseOnHover: true,
+                        draggable: true,
+                      });
+                      return;
+                    }
+                    setIsPaymentDialogOpen(true);
+                  }}
                 >
                   THANH TOÁN
                 </Button>
@@ -849,6 +983,8 @@ export default function SalePage() {
                 console.log("Error adding tab after deleting:", error);
               });
             }
+
+            setSelectedCustomer(undefined);
 
             // Update sku list
             fetchSku();

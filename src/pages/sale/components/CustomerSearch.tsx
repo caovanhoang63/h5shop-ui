@@ -25,6 +25,7 @@ export const CustomerSearch: React.FC<CustomerSearchProps> = ({
   useEffect(() => {
     if (customerValue) {
       setSearchCustomerResult(undefined); // Clear search results if customer is set
+      console.log("customerValue", customerValue);
     }
   }, [customerValue]);
 

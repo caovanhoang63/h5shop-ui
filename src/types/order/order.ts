@@ -8,6 +8,7 @@
   totalAmount: number;
   discountAmount: number;
   finalAmount: number;
+  pointUsed: number;
   createdAt: Date;
   updatedAt: Date;
 }

@@ -12,6 +12,7 @@ export interface Customer {
   lastName: string;
   dateOfBirth?: Date;
   paymentAmount: number;
+  discountPoint: number;
   gender: CustomerGender;
   status: number;
 }
