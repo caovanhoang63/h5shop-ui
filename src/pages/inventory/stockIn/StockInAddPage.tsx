@@ -12,7 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Link, useNavigate } from "react-router-dom";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   StockInCreate,
   StockInItemAdd,
@@ -28,6 +28,11 @@ import _ from "lodash";
 import { toast } from "react-toastify";
 import { useUserStore } from "@/stores/userStore.ts";
 import NewPartnerModalStockIn from "@/pages/inventory/stockIn/NewPartnerModalStockIn.tsx";
+import SpuModal from "@/pages/product/SpuModal.tsx";
+import { Category } from "@/types/category/category.ts";
+import { Brand } from "@/types/brand/brand.ts";
+import { getBrands } from "@/pages/product/api/brandApi.ts";
+import { getCategories } from "@/pages/product/api/categoryApi.ts";
 
 export default function StockInAddPage() {
   const rawData: StockInItemAdd[] = [];
@@ -235,12 +240,50 @@ export default function StockInAddPage() {
     }
   };
   const [isOpenNewPartnerModal, setIsOpenNewPartnerModal] = useState(false);
-
+  const [isAdd, setIsAdd] = useState<boolean>(true);
+  const [isOpenModalSpu, setIsOpenModalSpu] = useState<boolean>(false);
+  const handleCloseModalSpu = () => {
+    setIsOpenModalSpu(false);
+  };
+  const [listCategories, setListCategories] = useState<Category[]>([]);
+  const [listBrands, setListBrands] = useState<Brand[]>([]);
+  const handleActionSuccessSpuModal = () => {
+    setIsOpenModalSpu(false);
+  };
+  const fetchBrands = async () => {
+    try {
+      const response = await getBrands();
+      setListBrands(response.data);
+    } catch (error) {
+      console.error("Fetch error:", error);
+    }
+  };
+  const fetchCategories = async () => {
+    try {
+      const response = await getCategories();
+      console.log(response);
+      setListCategories(response.data);
+    } catch (error) {
+      console.error("Fetch error:", error);
+    }
+  };
+  useEffect(() => {
+    fetchBrands();
+    fetchCategories();
+  }, []);
   return (
     <div className=" mx-auto p-4">
       <NewPartnerModalStockIn
         isOpen={isOpenNewPartnerModal}
         onOpenChange={setIsOpenNewPartnerModal}
+      />
+      <SpuModal
+        isAdd={isAdd}
+        isOpen={isOpenModalSpu}
+        onOpenChange={handleCloseModalSpu}
+        listCategories={listCategories}
+        listBrands={listBrands}
+        actionSuccess={handleActionSuccessSpuModal}
       />
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-4 ">
@@ -256,7 +299,13 @@ export default function StockInAddPage() {
               value={searchQuery}
               onChange={handleSearchChange}
             />
-            <Button variant={"ghost"}>
+            <Button
+              variant={"ghost"}
+              onClick={() => {
+                setIsOpenModalSpu(true);
+                setIsAdd(true);
+              }}
+            >
               <PlusCircle className="h-6 w-6" />
             </Button>
 
