@@ -34,6 +34,7 @@ import {
 } from "@/pages/inventory/stockIn/api/stockInApi.ts";
 import { StockInItemTable } from "@/types/stockIn/stockIn.ts";
 import { toast } from "react-toastify";
+import { Paging } from "@/types/paging.ts";
 
 export const StockInPage = () => {
   const [stockInReport, setStockInReport] = useState<StockInItemTable[]>([]);
@@ -43,6 +44,10 @@ export const StockInPage = () => {
     ltUpdatedAt: null,
     status: [],
     lk_Id: null,
+  });
+  const [paging, setPaging] = useState<Paging>({
+    limit: 10,
+    page: 1,
   });
   const [selectedTimeOption, setSelectedTimeOption] = useState("all");
   const [dateRange, setDateRange] = useState<{
@@ -116,7 +121,7 @@ export const StockInPage = () => {
   };
   const getStockInTable = async () => {
     try {
-      const response = await getStockInTableApi(filters);
+      const response = await getStockInTableApi(filters, paging);
       console.log("api", response.data);
       setStockInReport(response.data);
     } catch (error) {
@@ -133,7 +138,7 @@ export const StockInPage = () => {
   };
   useEffect(() => {
     getStockInTable();
-  }, [filters]);
+  }, [filters, paging]);
   const [fields, setFields] = useState<MenuVisibilityColumnTable[]>([
     { label: "Mã nhập kho", key: "id", visible: true },
     { label: "Thời gian", key: "updatedAt", visible: true },
@@ -307,6 +312,8 @@ export const StockInPage = () => {
         <StockInTable
           columnVisible={fields}
           dataStockIn={stockInReport}
+          setPaging={setPaging}
+          paging={paging}
         ></StockInTable>
       </div>
     </Container>

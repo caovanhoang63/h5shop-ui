@@ -37,6 +37,7 @@ import { MenuVisibilityColumnTable } from "@/components/ButtonVisibilityColumnTa
 import { StockInDetails, StockInItemTable } from "@/types/stockIn/stockIn.ts";
 import StockInDetailModal from "@/pages/inventory/stockIn/StockInDetailModal.tsx";
 import { getStockInDetailById } from "@/pages/inventory/stockIn/api/stockInApi.ts";
+import { Paging } from "@/types/paging.ts";
 
 interface IColorMap {
   [key: number]: string;
@@ -191,10 +192,14 @@ const columnsStockIn: ColumnDef<StockInItemTable>[] = [
 interface StockInTableProps {
   dataStockIn: StockInItemTable[];
   columnVisible: MenuVisibilityColumnTable[];
+  setPaging: React.Dispatch<React.SetStateAction<Paging>>;
+  paging: Paging;
 }
 export function StockInTable({
   dataStockIn,
   columnVisible,
+  setPaging,
+  paging,
 }: StockInTableProps) {
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
@@ -225,6 +230,21 @@ export function StockInTable({
       console.error("Error fetching stock in report details:", error);
     }
   };
+  const handleClickPrevious = () => {
+    if (paging.page === 1) return;
+    setPaging({ limit: 10, page: paging.page ? paging.page - 1 : 1 });
+  };
+
+  const handleClickNext = () => {
+    if (
+      paging.total &&
+      paging.limit &&
+      paging.page === Math.ceil(paging.total / paging.limit)
+    )
+      return;
+    setPaging({ limit: 10, page: paging.page ? paging.page + 1 : 1 });
+  };
+
   const table = useReactTable<StockInItemTable>({
     initialState: {
       pagination: {
@@ -332,16 +352,22 @@ export function StockInTable({
           <Button
             variant="outline"
             size="sm"
-            onClick={() => table.previousPage()}
-            disabled={!table.getCanPreviousPage()}
+            onClick={/*() => table.previousPage()*/ handleClickPrevious}
+            disabled={/*!table.getCanPreviousPage()*/ paging.page === 1}
           >
             Previous
           </Button>
           <Button
             variant="outline"
             size="sm"
-            onClick={() => table.nextPage()}
-            disabled={!table.getCanNextPage()}
+            onClick={/*() => table.nextPage()*/ handleClickNext}
+            //eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            //@ts-expect-error
+            disabled={
+              /*!table.getCanNextPage()*/ paging.total &&
+              paging.limit &&
+              paging.page === Math.ceil(paging.total / paging.limit)
+            }
           >
             Next
           </Button>
