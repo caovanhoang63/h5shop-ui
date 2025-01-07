@@ -26,11 +26,13 @@ import {
 import { formatCurrency } from "@/utils/convert.ts";
 import _ from "lodash";
 import { toast } from "react-toastify";
+import { useUserStore } from "@/stores/userStore.ts";
 
 export default function StockInAddPage() {
   const rawData: StockInItemAdd[] = [];
   const [note, setNote] = useState("");
   const navigate = useNavigate();
+  const userProfile = useUserStore((store) => store.user);
   const searchData = [
     {
       id: 0,
@@ -60,7 +62,7 @@ export default function StockInAddPage() {
     ]
   >();
   const [filteredProducts, setFilteredProducts] = useState(searchData);
-  const [selectedProvider, setSelectedProvider] = useState<number>();
+  const [selectedProvider, setSelectedProvider] = useState<number>(-1);
   const debouncedSearch = useMemo(
     () =>
       _.debounce(async (query: string) => {
@@ -105,7 +107,7 @@ export default function StockInAddPage() {
         {
           ...product,
           amount: 0,
-          costPrice: product.price || 0,
+          costPrice: 0,
           totalPrice: 0,
         },
       ];
@@ -116,6 +118,7 @@ export default function StockInAddPage() {
     e: React.ChangeEvent<HTMLInputElement>,
   ) => {
     const query = e.target.value;
+    if (query.trim() === "") setSelectedProvider(-1);
     setSearchProviderQuery(query);
     debouncedSearchProvider(query);
   };
@@ -157,10 +160,10 @@ export default function StockInAddPage() {
     );
   };
   const handleAmountChange = (id: number, amount: number) => {
-    if (amount <= 0) amount = 0;
+    if (amount > 99999) amount = 99999;
     setItems((prevItems) =>
       prevItems.map((item) =>
-        item.id === id
+        item.id === id && amount >= 0 && amount <= 99999
           ? {
               ...item,
               amount: amount,
@@ -170,13 +173,16 @@ export default function StockInAddPage() {
     );
   };
 
-  const handlePriceChange = (id: number, price: number) => {
+  const handlePriceChange = (id: number, price: string) => {
+    let priceValue = Number(price);
+    if (priceValue > 999999999) priceValue = 999999999;
+
     setItems((prevItems) =>
       prevItems.map((item) =>
-        item.id === id && price >= 0 && price <= 999999999
+        item.id === id && priceValue >= 0 && priceValue <= 999999999
           ? {
               ...item,
-              costPrice: price,
+              costPrice: priceValue,
             }
           : item,
       ),
@@ -186,41 +192,26 @@ export default function StockInAddPage() {
   const handleComplete = async () => {
     if (items.length === 0) {
       toast.warning("Không có sản phẩm nào  !", {
-        position: "top-right",
-        autoClose: 3000,
-        hideProgressBar: false,
         closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
       });
       return;
     }
 
     if (items.some((item) => item.amount === 0)) {
       toast.warning("Vui lòng nhập số lượng  !", {
-        position: "top-right",
-        autoClose: 3000,
-        hideProgressBar: false,
         closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
       });
       return;
     }
-
-    /*if (selectedProvider) {
+    console.log("nha cung cap", selectedProvider);
+    if (selectedProvider === -1) {
       toast.warning("Vui lòng chọn nhà cung cấp  !", {
-        position: "top-right",
-        autoClose: 3000,
-        hideProgressBar: false,
         closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
       });
       return;
-    }*/
+    }
     const report: StockInCreate = {
-      warehouseMen: 8,
+      warehouseMen: userProfile?.id || 1,
       providerId: selectedProvider || 1,
       totalPrice: calculateTotalPrice() || 0,
       items: items.map((item) => ({
@@ -232,7 +223,9 @@ export default function StockInAddPage() {
     };
     try {
       const response = await createStockInReport(report);
-      toast.success("Nhập hàng thành công!");
+      toast.success("Nhập hàng thành công!", {
+        closeOnClick: true,
+      });
       console.log("Báo cáo nhập kho đã được tạo:", response);
       navigate("/stock-in");
     } catch (error) {
@@ -325,12 +318,15 @@ export default function StockInAddPage() {
 
                   <TableCell className="">
                     <Input
-                      type="number"
+                      type="text"
                       placeholder="Đơn giá"
                       className="shadow-none w-fit text-center"
-                      value={item.costPrice}
+                      value={Intl.NumberFormat("en-US").format(item.costPrice)}
                       onChange={(e) =>
-                        handlePriceChange(item.id, Number(e.target.value))
+                        handlePriceChange(
+                          item.id,
+                          e.target.value.replace(/,/g, ""),
+                        )
                       }
                     />
                   </TableCell>
