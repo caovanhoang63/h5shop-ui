@@ -33,16 +33,6 @@ export default function StockInAddPage() {
   const [note, setNote] = useState("");
   const navigate = useNavigate();
   const userProfile = useUserStore((store) => store.user);
-  const searchData = [
-    {
-      id: 0,
-      code: "",
-      name: "",
-      amount: 0,
-      price: 0,
-      url: "",
-    },
-  ];
   const [items, setItems] = React.useState<StockInItemAdd[]>(
     rawData.map((item) => ({
       ...item,
@@ -61,13 +51,23 @@ export default function StockInAddPage() {
       },
     ]
   >();
-  const [filteredProducts, setFilteredProducts] = useState(searchData);
+  const [filteredProducts, setFilteredProducts] = useState<
+    [
+      {
+        id: number;
+        name: string;
+        amount: number;
+        price: number;
+        url: string;
+      },
+    ]
+  >();
   const [selectedProvider, setSelectedProvider] = useState<number>(-1);
   const debouncedSearch = useMemo(
     () =>
       _.debounce(async (query: string) => {
         if (query.trim() === "") {
-          setFilteredProducts(searchData);
+          setFilteredProducts(undefined);
         } else {
           try {
             const response = await searchSku(query);
@@ -85,7 +85,7 @@ export default function StockInAddPage() {
             console.error(error);
           }
         }
-      }, 700),
+      }, 300),
     [],
   );
 
@@ -257,21 +257,23 @@ export default function StockInAddPage() {
             {/*
             <Plus className="h-5 w-5 text-gray-500" />
 */}
-            {filteredProducts.length > 0 && searchQuery.trim() !== "" && (
-              <div className="absolute top-full mt-2 left-0 w-full bg-white border rounded-lg shadow-md z-50 max-h-60 overflow-y-auto">
-                {filteredProducts.map((product) => (
-                  <div
-                    key={product.id}
-                    className="p-2 hover:bg-gray-100 cursor-pointer"
-                    onClick={() => handleAddItem(product)}
-                  >
-                    <span className="text-gray-500">{product.id}</span>
-                    {" - "}
-                    <span className="font-medium">{product.name}</span>
-                  </div>
-                ))}
-              </div>
-            )}
+            {filteredProducts &&
+              filteredProducts.length > 0 &&
+              searchQuery.trim() !== "" && (
+                <div className="absolute top-full mt-2 left-0 w-full bg-white border rounded-lg shadow-md z-50 max-h-60 overflow-y-auto">
+                  {filteredProducts.map((product) => (
+                    <div
+                      key={product.id}
+                      className="p-2 hover:bg-gray-100 cursor-pointer"
+                      onClick={() => handleAddItem(product)}
+                    >
+                      <span className="text-gray-500">{product.id}</span>
+                      {" - "}
+                      <span className="font-medium">{product.name}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
           </div>
         </div>
       </div>
