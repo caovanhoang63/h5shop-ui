@@ -22,7 +22,7 @@ import { ReportPage } from "@/pages/report/ReportPage.tsx";
 import StockOutAddPage from "@/pages/inventory/stockOut/StockOutAddPage.tsx";
 
 import WarrantyPage from "@/pages/warranty/WarrantyPage.tsx";
-// import OrderPage from "@/pages/order/OrderPage.tsx";
+import { OrderPage } from "@/pages/order/OrderPage.tsx";
 
 export const MainRoute = () => {
   const navigate = useNavigate();
@@ -50,7 +50,7 @@ export const MainRoute = () => {
         <Route path={"stock-out"} element={<StockOutPage />} />
         <Route path={"stock-out/new"} element={<StockOutAddPage />} />
         <Route path={"warranty"} element={<WarrantyPage />} />
-        {/*<Route path={"order"} element={<OrderPage />} />*/}
+        <Route path={"order"} element={<OrderPage />} />
       </Route>
       <Route path="/sale" element={<SalePage />} />
       <Route path="/error" element={<ErrorPage />} />
