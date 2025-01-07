@@ -16,9 +16,11 @@ export interface Warranty {
 
 export interface WarrantyFilter {
   id?: number;
+  warrantyType?: string | null;
   lkCustomerPhoneNumber?: string;
-  ltUpdatedAt?: Date;
-  gtUpdatedAt?: Date;
+  ltUpdatedAt?: Date | null;
+  gtUpdatedAt?: Date | null;
   page?: number;
   limit?: number;
+  status?: number[] | null;
 }

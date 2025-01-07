@@ -1,6 +1,6 @@
 import Container from "@/layouts/components/Container.tsx";
 import { Input } from "@/components/ui/input.tsx";
-import { FileInput, FileOutputIcon, Plus, Search } from "lucide-react";
+import { FileOutputIcon, Plus, Search } from "lucide-react";
 import { Button } from "@/components/ui/button.tsx";
 import TriangleDown from "@/components/icons/TriangleDown.tsx";
 import { DataTableDemo } from "@/pages/product/DataTable.tsx";
@@ -178,6 +178,10 @@ export default function ProductPage() {
     setIsOpenModalBrandAdd(true);
   };
 
+  const handleActonSuccessSpuModal = () => {
+    fetchSpuListTable();
+  };
+
   return (
     <Fragment>
       {isLoading && <LoadingAnimation></LoadingAnimation>}
@@ -208,10 +212,6 @@ export default function ProductPage() {
               <Plus />
               Thêm mới
               <TriangleDown />
-            </Button>
-            <Button className={"bg-green-500"}>
-              <FileInput />
-              Import
             </Button>
             <Button className={"bg-green-500"}>
               <FileOutputIcon />
@@ -255,6 +255,7 @@ export default function ProductPage() {
           listCategories={listCategories}
           listBrands={listBrands}
           spuIdSelected={spuIdSelected}
+          actionSuccess={handleActonSuccessSpuModal}
         />
         <CategoryModal
           isOpen={isOpenModalCategoryAdd}

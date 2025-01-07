@@ -16,6 +16,7 @@ import {
   updateBrand,
 } from "@/pages/product/api/brandApi.ts";
 import { LoadingAnimation } from "@/components/ui/LoadingAnimation.tsx";
+import { toast } from "react-toastify";
 
 interface IBrandModalProps {
   isOpen: boolean;
@@ -64,9 +65,10 @@ export default function BrandModal({
     try {
       setIsLoading(true);
       await deleteBrand(brandId);
-      setIsLoading(false);
     } catch (error) {
       console.error("Fetch error:", error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -100,10 +102,12 @@ export default function BrandModal({
     CallApiDeleteBrand(brand.id)
       .then(() => {
         onOpenChange(false);
-        alert("Xóa thương hiệu thành công");
+        toast.success("Xóa thành công");
+        if (actionSuccess) actionSuccess();
       })
       .catch((error) => {
         console.error("Fetch error:", error);
+        toast.error(error.response.data.message);
       });
   };
 

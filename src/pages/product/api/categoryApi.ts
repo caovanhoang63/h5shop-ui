@@ -42,3 +42,12 @@ export async function updateCategory(category: Category): Promise<void> {
     throw error;
   }
 }
+
+export async function deleteCategory(id: number): Promise<void> {
+  try {
+    await axiosInstance.delete(`/v1/category/${id}`);
+  } catch (error) {
+    console.error("Fetch error:", error);
+    throw error;
+  }
+}
