@@ -9,6 +9,8 @@ import {
   VisibilityState,
   SortingState,
   ColumnFiltersState,
+  CellContext,
+  ColumnDef,
 } from "@tanstack/react-table";
 import {
   Table,
@@ -32,6 +34,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import EmployeeEditModal from "@/pages/employee/component/EmployeeEditModal.tsx";
+import { GenderMap, RoleMap } from "@/utils/constants.ts";
+import { format } from "date-fns";
 
 interface EmployeeTableProps {
   dataEmployee: Employee[];
@@ -55,124 +59,68 @@ export function EmployeeTable({
   const [selectedEmployee, setSelectedEmployee] = useState<
     Employee | undefined
   >(undefined);
-
-  const columnsEmployee = [
+  const columnsEmployee: ColumnDef<Employee>[] = [
     {
       accessorKey: "id",
       header: "Mã nhân viên",
 
-      cell: ({ row }: { row: unknown }) => (
-        <div>
-          {
-            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-            // @ts-expect-error
-            row.getValue("id")
-          }
-        </div>
-      ),
+      cell: ({ row }) => <div>{row.getValue("id")}</div>,
     },
     {
       accessorKey: "firstName",
       header: "Tên",
-      cell: ({ row }: { row: unknown }) => (
-
-        <div>
-          {
-            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-            // @ts-expect-error
-            row.getValue("firstName")
-          }
-        </div>
-      ),
+      cell: ({ row }) => <div>{row.getValue("firstName")}</div>,
     },
     {
       accessorKey: "lastName",
       header: "Họ",
-      cell: ({ row }: { row: unknown }) => (
-
-        <div>
-          {
-            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-            // @ts-expect-error
-            row.getValue("lastName")
-          }
-        </div>
-      ),
+      cell: ({ row }) => <div>{row.getValue("lastName")}</div>,
     },
     {
       accessorKey: "email",
       header: "Email",
 
-      cell: ({ row }: { row: unknown }) => (
-        <div>
-          {
-            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-            // @ts-expect-error
-            row.getValue("email")
-          }
-        </div>
-      ),
+      cell: ({ row }) => <div>{row.getValue("email")}</div>,
     },
     {
       accessorKey: "phoneNumber",
       header: "Số điện thoại",
-      cell: ({ row }: { row: unknown }) => (
-
-        <div>
-          {
-            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-            // @ts-expect-error
-            row.getValue("phoneNumber")
-          }
-        </div>
-      ),
+      cell: ({ row }) => <div>{row.getValue("phoneNumber")}</div>,
     },
     {
       accessorKey: "address",
       header: "Địa chỉ",
 
-      cell: ({ row }: { row: unknown }) => (
-        <div>
-          {
-            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-            // @ts-expect-error
-            row.getValue("address")
-          }
-        </div>
-      ),
+      cell: ({ row }) => <div>{row.getValue("address")}</div>,
     },
     {
       accessorKey: "gender",
       header: "Giới tính",
 
-      cell: ({ row }: { row: unknown }) => (
-        <div>
-          {
-            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-            // @ts-expect-error
-            row.getValue("gender")
-          }
-        </div>
+      cell: ({ row }) => (
+        <div>{GenderMap[row.getValue("gender") as string]}</div>
       ),
     },
     {
       accessorKey: "dateOfBirth",
       header: "Ngày sinh",
-      cell: ({ row }: { row: unknown }) => (
-
-        <div>
-          {
-            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-            // @ts-expect-error
-            row.getValue("dateOfBirth")
-          }
-        </div>
-      ),
+      cell: ({ row }: CellContext<any, any>) => {
+        const date = row.original.dateOfBirth;
+        return <div>{date ? format(date, "dd-MM-yyyy") : ""}</div>;
+      },
+    },
+    {
+      accessorKey: "systemRole",
+      header: "Quyền",
+      cell: ({ row }) => {
+        const role = row.original.systemRole;
+        return <div>{RoleMap[role]}</div>;
+      },
     },
     {
       accessorKey: "status",
       header: "Trạng thái",
-      cell: ({ row }: { row: unknown }) => {
+      cell: ({ row }) => {
         const status = row.getValue("status");
         return (
           <div className={status === 1 ? "text-green-500" : "text-red-500"}>
@@ -185,11 +133,7 @@ export function EmployeeTable({
       id: "actions",
       enableHiding: false,
 
-      cell: ({
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-expect-error
-        row,
-      }) => {
+      cell: ({ row }) => {
         const employee = row.original;
         return (
           <DropdownMenu>

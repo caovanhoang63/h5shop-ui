@@ -23,7 +23,7 @@ export async function getEmployee(
   if (filters.lk_first_name) params.lk_first_name = filters.lk_first_name;
   if (filters.status) params.status = filters.status;
   try {
-    const response = await axiosInstance.get<EmployeeResponse>("/v1/employee", {
+    const response = await axiosInstance.get<EmployeeResponse>("/v1/users", {
       params: params,
     });
     console.log("Fetch success:", response.data);
@@ -38,7 +38,7 @@ export async function createEmployee(
 ): Promise<EmployeeCreateResponse> {
   try {
     const response = await axiosInstance.post<EmployeeCreateResponse>(
-      "/v1/employee",
+      "/v1/auth/register",
       body,
     );
     console.log("Fetch success:", response.data);
@@ -53,7 +53,7 @@ export async function deleteEmployee(
 ): Promise<EmployeeCreateResponse> {
   try {
     const response = await axiosInstance.delete<EmployeeCreateResponse>(
-      `/v1/employee/${id}`,
+      `/v1/users/${id}`,
     );
     console.log("Fetch success:", response.data);
     return response.data;

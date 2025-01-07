@@ -8,9 +8,11 @@ export interface Employee {
   dateOfBirth: Date | null;
   gender: "male" | "female" | "other";
   status: number;
+  systemRole: string;
   createdAt: Date | null;
   updatedAt: Date | null;
 }
+
 export interface EmployeeCreate {
   phoneNumber: string;
   address: string;
@@ -18,8 +20,11 @@ export interface EmployeeCreate {
   lastName: string;
   email: string;
   dateOfBirth: Date;
-  gender: "male" | "female" | "other";
+  gender: string;
+  userName: string;
+  password: string;
 }
+
 export interface EmployeeUpdate {
   phoneNumber?: string;
   address?: string;
