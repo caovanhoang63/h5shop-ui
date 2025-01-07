@@ -409,6 +409,15 @@ export default function SalePage() {
       unitPrice: 1,
     })
       .then((response) => {
+        // Check if the item already exists in the order
+        const currentItems = tabs[activeTab].order.items;
+        const isItemExists = currentItems.some((item) => item.skuId === sku.id);
+
+        if (isItemExists) {
+          toast.warn("Sản phẩm đã tồn tại trong đơn hàng");
+          return; // Do not add the item again
+        }
+
         // Update the active tab with the new item
         const updatedTabs = [...tabs];
         response.data.skuDetail = sku;
