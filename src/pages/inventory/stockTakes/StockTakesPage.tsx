@@ -123,7 +123,7 @@ export default function InventoryCheckPage() {
       return;
     }
     const report: InventoryReportCreate = {
-      warehouseMan1: 2,
+      warehouseMan1: userProfile?.id || 1,
       note: note,
       items: items.map((item) => ({
         skuId: item.id,
