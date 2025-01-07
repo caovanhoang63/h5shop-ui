@@ -2,7 +2,7 @@
 import { Info, Minus, MoreVertical, Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button.tsx";
 import { Input } from "@/components/ui/input.tsx";
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { NoSpinnerNumberInput } from "@/components/NoSpinnerNumberInput.tsx";
 import {
   Tooltip,
@@ -21,7 +21,6 @@ import { OrderItem } from "@/types/orderItem/orderItem.ts";
 interface OrderItemCardProps {
   index: number;
   item: OrderItem;
-  quantity: number;
   onRemove: () => void;
   onQuantityBlur: (newQuantity: number) => Promise<boolean>;
   onDescriptionBlur: (newDescription: string) => void;
@@ -30,19 +29,22 @@ interface OrderItemCardProps {
 export function OrderItemCard({
   index,
   item,
-  quantity,
   onRemove,
   onQuantityBlur,
   onDescriptionBlur,
 }: OrderItemCardProps): JSX.Element {
   const [localDescription, setLocalDescription] = useState(item.description);
-  const [localQuantity, setLocalQuantity] = useState(quantity);
+  const [localQuantity, setLocalQuantity] = useState(item.amount);
   const safeOriginalPrice = Number(item.unitPrice) || 0;
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const quantityInputRef = useRef<HTMLInputElement>(null);
-  const previousQuantityRef = useRef(quantity);
+  const previousQuantityRef = useRef(item.amount);
   // Calculate the final price
-  const finalPrice = safeOriginalPrice * quantity;
+  const finalPrice = safeOriginalPrice * item.amount;
+
+  useEffect(() => {
+    setLocalQuantity(item.amount);
+  }, [item.amount]);
 
   const handleDescriptionBlur = useCallback(
     (e: React.FocusEvent<HTMLInputElement>) => {
@@ -121,7 +123,9 @@ export function OrderItemCard({
                 <NoSpinnerNumberInput
                   type="number"
                   value={localQuantity}
-                  onChange={(e) => setLocalQuantity(parseInt(e.target.value))}
+                  onChange={(e) => {
+                    setLocalQuantity(parseInt(e.target.value));
+                  }}
                   ref={quantityInputRef}
                   className="w-16 text-sm text-center border-b-2 border-gray-300 focus:border-b-primary focus:outline-none shadow-none rounded-none"
                   onBlur={handleQuantityBlur}

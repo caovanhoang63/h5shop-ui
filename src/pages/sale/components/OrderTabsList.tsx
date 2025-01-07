@@ -1,18 +1,6 @@
 ﻿import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import {
-  ChevronLeft,
-  ChevronRight,
-  CirclePlus,
-  X,
-  ChevronDown,
-} from "lucide-react";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { ChevronLeft, ChevronRight, CirclePlus, X } from "lucide-react";
 import { RefObject, useState } from "react";
 import { OrderGetDetail } from "@/types/order/orderGetDetail.ts";
 import ConfirmDeleteDialog from "@/components/ConfirmDeleteDialog.tsx";
@@ -129,21 +117,21 @@ export const OrderTabsList = ({
         >
           <CirclePlus />
         </Button>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button className="p-1 h-7 w-7 bg-primary text-white rounded-full shadow-none hover:bg-blue-800">
-              <ChevronDown />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent className="bg-white shadow-md rounded-md p-2">
-            <DropdownMenuItem onClick={() => onAddTab("sale")}>
-              Thêm hoá đơn
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => onAddTab("order")}>
-              Thêm đặt hàng
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        {/*<DropdownMenu>*/}
+        {/*  <DropdownMenuTrigger asChild>*/}
+        {/*    <Button className="p-1 h-7 w-7 bg-primary text-white rounded-full shadow-none hover:bg-blue-800">*/}
+        {/*      <ChevronDown />*/}
+        {/*    </Button>*/}
+        {/*  </DropdownMenuTrigger>*/}
+        {/*  <DropdownMenuContent className="bg-white shadow-md rounded-md p-2">*/}
+        {/*    <DropdownMenuItem onClick={() => onAddTab("sale")}>*/}
+        {/*      Thêm hoá đơn*/}
+        {/*    </DropdownMenuItem>*/}
+        {/*    <DropdownMenuItem onClick={() => onAddTab("order")}>*/}
+        {/*      Thêm đặt hàng*/}
+        {/*    </DropdownMenuItem>*/}
+        {/*  </DropdownMenuContent>*/}
+        {/*</DropdownMenu>*/}
       </div>
 
       <ConfirmDeleteDialog

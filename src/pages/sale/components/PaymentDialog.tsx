@@ -1,4 +1,4 @@
-﻿import React, { useMemo, useState } from "react";
+﻿import React, { useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -18,13 +18,19 @@ import {
 import { OrderGetDetail } from "@/types/order/orderGetDetail.ts";
 import { Customer } from "@/types/customer/customer.ts";
 import { Checkbox } from "@/components/ui/checkbox.tsx";
-import { payOrder } from "@/pages/sale/api/orderApi.ts";
+import { getOrderById, payOrder } from "@/pages/sale/api/orderApi.ts";
 import { toast } from "react-toastify";
+import { payOrderReport } from "@/pages/sale/components/PayOrderReport.tsx";
+import { format } from "date-fns";
+import { vi } from "date-fns/locale";
+import html2canvas from "html2canvas-pro";
+import jsPDF from "jspdf";
 
 interface PaymentDialogProps {
   isOpen: boolean;
   onClose: () => void;
   customer: Customer | undefined;
+
   orderDetails: OrderGetDetail;
   onPaymentSuccess: () => void;
 }
@@ -36,24 +42,20 @@ const PaymentDialog: React.FC<PaymentDialogProps> = ({
   orderDetails,
   onPaymentSuccess,
 }) => {
-  const totalAmount = useMemo(
-    () =>
-      orderDetails
-        ? orderDetails.items.reduce(
-            (sum, item) => sum + item.unitPrice * item.amount,
-            0,
-          )
-        : 0,
-    [orderDetails],
-  );
-  const numberOfItems = useMemo(
-    () =>
-      orderDetails
-        ? orderDetails.items.reduce((sum, item) => sum + item.amount, 0)
-        : 0,
-    [orderDetails],
-  );
   const [isProcessing, setIsProcessing] = useState(false);
+  const [isPrint, setIsPrint] = useState(false);
+  const [report, setReport] = useState<string>(
+    payOrderReport
+      .replace(
+        "{{created_at}}",
+        format(new Date(), "dd/MM/yyyy HH:mm:ss", { locale: vi }),
+      )
+      .replace(
+        "{{customerName}}",
+        customer ? customer.lastName + " " + customer.firstName : "Khách lẻ",
+      )
+      .replace("{{customerPhone}}", customer ? customer.phoneNumber : ""),
+  );
   const [usePoints, setUsePoints] = useState(false);
 
   const handleConfirmPayment = async () => {
@@ -62,28 +64,121 @@ const PaymentDialog: React.FC<PaymentDialogProps> = ({
       .then(() => {
         onPaymentSuccess();
         onClose();
-        toast.success("Thanh toán thành công", {
-          position: "top-right",
-          autoClose: 3000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-        });
+        toast.success("Thanh toán thành công");
       })
       .catch((error) => {
         console.error(error);
-        toast.error("Thanh toán thất bại", {
-          position: "top-right",
-          autoClose: 3000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-        });
+        toast.error("Thanh toán thất bại");
       })
       .finally(() => {
         setIsProcessing(false);
+      });
+  };
+
+  const printReport = () => {
+    getOrderById(orderDetails.id)
+      .then((response) => {
+        const order = response.data;
+
+        if (order) {
+          setReport(
+            payOrderReport
+              .replace(
+                "{{created_at}}",
+                format(new Date(), "dd/MM/yyyy HH:mm:ss", { locale: vi }),
+              )
+              .replace(
+                "{{customerName}}",
+                customer
+                  ? customer.lastName + " " + customer.firstName
+                  : "Khách lẻ",
+              )
+              .replace(
+                "{{customerPhone}}",
+                customer ? customer.phoneNumber : "",
+              )
+              .replace(
+                "{{body}}",
+                order.items
+                  .map(
+                    (item, index) =>
+                      `<tr>
+                    <td>${index + 1}</td>
+                    <td>${item.skuDetail?.name}</td>
+                    <td>${item.amount}</td>
+                    <td>${new Intl.NumberFormat("vi-VN", {
+                      style: "currency",
+                      currency: "VND",
+                    }).format(item.unitPrice)}</td>
+                    <td>${new Intl.NumberFormat("vi-VN", {
+                      style: "currency",
+                      currency: "VND",
+                    }).format(item.unitPrice * item.amount)}</td>
+                    <td>${item.description ? item.description : ""}</td>
+                  </tr>`,
+                  )
+                  .join("\n"),
+              )
+              .replace("{{description}}", orderDetails.description || "")
+              .replace(
+                "{{pointsUsed}}",
+                orderDetails.pointUsed.toString() || "0",
+              )
+              .replace(
+                "{{totalAmount}}",
+                new Intl.NumberFormat("vi-VN", {
+                  style: "currency",
+                  currency: "VND",
+                }).format(orderDetails.totalAmount ?? 0),
+              )
+              .replace(
+                "{{discountAmount}}",
+                new Intl.NumberFormat("vi-VN", {
+                  style: "currency",
+                  currency: "VND",
+                }).format(orderDetails.discountAmount ?? 0),
+              )
+              .replace(
+                "{{finalAmount}}",
+                new Intl.NumberFormat("vi-VN", {
+                  style: "currency",
+                  currency: "VND",
+                }).format(orderDetails.finalAmount ?? 0),
+              ),
+          );
+        }
+
+        const ele = document.createElement("div");
+        ele.style.position = "absolute";
+        ele.style.left = "-9999px";
+        ele.innerHTML = report;
+        document.body.appendChild(ele);
+        if (ele)
+          html2canvas(ele).then(function (canvas) {
+            const imgData = canvas.toDataURL("image/png"); // Chuyển đổi HTML thành ảnh
+            const pdf = new jsPDF("p", "mm", "a5"); // Tạo một đối tượng PDF
+            const pdfWidth = pdf.internal.pageSize.getWidth();
+            document.body.removeChild(ele);
+            const scaleFactor = 2; // Bạn có thể điều chỉnh giá trị này để ảnh in ra lớn hơn
+            const scaledWidth = pdfWidth * scaleFactor;
+            const scaledHeight = (canvas.height * scaledWidth) / canvas.width;
+
+            const xOffset = (pdfWidth - scaledWidth) / 2;
+            const yOffset = 0;
+            pdf.addImage(
+              imgData,
+              "PNG",
+              xOffset,
+              yOffset,
+              scaledWidth,
+              scaledHeight,
+            );
+            pdf.save("ban-hang-" + format(new Date(), "yyyy-MM-dd") + ".pdf");
+          });
+      })
+      .catch((error) => {
+        console.error(error);
+        toast.error("Lỗi khi lấy dữ liệu hoá đơn");
       });
   };
 
@@ -105,6 +200,9 @@ const PaymentDialog: React.FC<PaymentDialogProps> = ({
                   <span>
                     <strong>Số điện thoại: </strong> {customer.phoneNumber}
                   </span>
+                  <span>
+                    <strong>Điểm tích luỹ: </strong> {customer.discountPoint}
+                  </span>
                 </span>
               ) : (
                 <strong>Khách lẻ</strong>
@@ -121,6 +219,7 @@ const PaymentDialog: React.FC<PaymentDialogProps> = ({
                     <TableHead>Số lượng</TableHead>
                     <TableHead>Đơn giá</TableHead>
                     <TableHead>Tổng</TableHead>
+                    <TableHead>Ghi Chú</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -139,6 +238,9 @@ const PaymentDialog: React.FC<PaymentDialogProps> = ({
                             item.unitPrice * item.amount,
                           )}
                         </TableCell>
+                        <TableCell>
+                          {item.description ? item.description : ""}
+                        </TableCell>
                       </TableRow>
                     ))}
                 </TableBody>
@@ -152,9 +254,22 @@ const PaymentDialog: React.FC<PaymentDialogProps> = ({
               <span className="text-sm font-medium">
                 Tổng số lượng sản phẩm:
               </span>
-              <span className="text-sm">{numberOfItems}</span>
+              <span className="text-sm">
+                {orderDetails
+                  ? orderDetails.items.reduce(
+                      (sum, item) => sum + item.amount,
+                      0,
+                    )
+                  : 0}
+              </span>
               <span className="pl-24 pr-8 text-lg font-semibold">
-                {totalAmount.toLocaleString("vi-VN", {
+                {(orderDetails
+                  ? orderDetails.items.reduce(
+                      (sum, item) => sum + item.unitPrice * item.amount,
+                      0,
+                    )
+                  : 0
+                ).toLocaleString("vi-VN", {
                   style: "currency",
                   currency: "VND",
                 })}
@@ -171,8 +286,22 @@ const PaymentDialog: React.FC<PaymentDialogProps> = ({
               </label>
             </div>
           </div>
+          <Dialog open={isPrint} onOpenChange={() => setIsPrint(false)}>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Hoá đơn</DialogTitle>
+              </DialogHeader>
+              <DialogContent>
+                <div
+                  className="text-left"
+                  dangerouslySetInnerHTML={{ __html: report }}
+                ></div>
+              </DialogContent>
+            </DialogContent>
+          </Dialog>
         </div>
         <DialogFooter>
+          <Button onClick={() => printReport()}>Print</Button>
           <Button onClick={handleConfirmPayment} disabled={isProcessing}>
             {isProcessing ? "Đang xử lý..." : "Thanh toán"}
           </Button>

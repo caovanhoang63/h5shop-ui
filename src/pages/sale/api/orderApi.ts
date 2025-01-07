@@ -18,6 +18,19 @@ interface OrderItemResponse {
   data: OrderItem;
 }
 
+interface OrderResponse {
+  data: OrderGetDetail;
+}
+export async function getOrderById(id: number) {
+  try {
+    const response = await axiosInstance.get<OrderResponse>(`/v1/order/${id}`);
+    return response.data;
+  } catch (error) {
+    console.error("Fetch error:", error);
+    throw error;
+  }
+}
+
 interface OrderListResponse {
   data: OrderGetDetail[];
 }
