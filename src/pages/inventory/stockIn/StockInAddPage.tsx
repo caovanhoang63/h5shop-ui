@@ -58,15 +58,12 @@ export default function StockInAddPage() {
     ]
   >();
   const [filteredProducts, setFilteredProducts] = useState<
-    [
-      {
-        id: number;
-        name: string;
-        amount: number;
-        price: number;
-        url: string;
-      },
-    ]
+    {
+      id: number;
+      name: string;
+      amount: number;
+      price: number;
+    }[]
   >();
   const [selectedProvider, setSelectedProvider] = useState<number>(-1);
   const debouncedSearch = useMemo(
@@ -77,13 +74,10 @@ export default function StockInAddPage() {
         } else {
           try {
             const response = await searchSku(query);
-            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-            // @ts-expect-error
             const searchResponse = response.data.map((item) => ({
               id: item.id,
               name: item.name,
-              code: item.code,
-              amount: item.amount,
+              amount: item.stock,
               price: item.price,
             }));
             setFilteredProducts(searchResponse);
