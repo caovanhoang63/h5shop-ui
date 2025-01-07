@@ -156,10 +156,10 @@ const PaymentDialog: React.FC<PaymentDialogProps> = ({
         if (ele)
           html2canvas(ele).then(function (canvas) {
             const imgData = canvas.toDataURL("image/png"); // Chuyển đổi HTML thành ảnh
-            const pdf = new jsPDF("p", "mm", "a5"); // Tạo một đối tượng PDF
+            const pdf = new jsPDF("p", "mm", "a6"); // Tạo một đối tượng PDF
             const pdfWidth = pdf.internal.pageSize.getWidth();
             document.body.removeChild(ele);
-            const scaleFactor = 2; // Bạn có thể điều chỉnh giá trị này để ảnh in ra lớn hơn
+            const scaleFactor = 1; // Bạn có thể điều chỉnh giá trị này để ảnh in ra lớn hơn
             const scaledWidth = pdfWidth * scaleFactor;
             const scaledHeight = (canvas.height * scaledWidth) / canvas.width;
 
