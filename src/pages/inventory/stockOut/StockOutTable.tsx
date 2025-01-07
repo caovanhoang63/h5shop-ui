@@ -367,7 +367,7 @@ export function StockOutTable({
       <div className="flex items-center justify-end space-x-2 py-4">
         <div className="flex-1 text-sm text-muted-foreground">
           {table.getFilteredSelectedRowModel().rows.length} trong{" "}
-          {table.getFilteredRowModel().rows.length} hàng được chon.
+          {table.getFilteredRowModel().rows.length} hàng được chọn
         </div>
         <div className="space-x-2">
           <Button

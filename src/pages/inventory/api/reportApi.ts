@@ -27,6 +27,7 @@ export interface InventoryReportFilter {
   gtUpdatedAt?: Date | null;
   status?: [] | null;
   lk_Id?: string | null;
+  page?: number | null;
 }
 const token = localStorage.getItem("token");
 export async function getInventoryReports(
