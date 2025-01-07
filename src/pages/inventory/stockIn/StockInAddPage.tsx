@@ -349,7 +349,7 @@ export default function StockInAddPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {items.map((item) => (
+              {items.map((item, index) => (
                 <TableRow key={item.id}>
                   <TableCell>
                     <Trash2
@@ -357,8 +357,8 @@ export default function StockInAddPage() {
                       onClick={() => handleRemoveItem(item.id)}
                     />
                   </TableCell>
-                  <TableCell>{item.id}</TableCell>
-                  <TableCell className="text-blue-600">{item.code}</TableCell>
+                  <TableCell>{index + 1}</TableCell>
+                  <TableCell className="text-blue-600">{item.id}</TableCell>
                   <TableCell>{item.name}</TableCell>
 
                   <TableCell className="text-center items-center flex justify-center">

@@ -43,7 +43,6 @@ interface StockInDetailCreate {
 
 export interface StockInItemAdd {
   id: number;
-  code?: string;
   name?: string;
   amount: number;
   costPrice: number;

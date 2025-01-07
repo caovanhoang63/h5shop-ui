@@ -43,8 +43,8 @@ interface StockOutDetailCreate {
 
 export interface StockOutItemAdd {
   id: number;
-  code?: string;
   name?: string;
+  stock: number;
   amount: number;
   costPrice: number;
   totalPrice: number;
@@ -54,6 +54,7 @@ export interface StockOutItemSearch {
   id: number;
   name: string;
   price: number;
+  stock: number;
 }
 export interface StockOutReason {
   id: number;
