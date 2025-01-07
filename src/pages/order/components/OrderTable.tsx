@@ -13,18 +13,9 @@ import {
   useReactTable,
   VisibilityState,
 } from "@tanstack/react-table";
-import { ArrowUpDown, MoreHorizontal } from "lucide-react";
-
+import { ArrowUpDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import {
   Table,
   TableBody,
@@ -34,35 +25,41 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { MenuVisibilityColumnTable } from "@/components/ButtonVisibilityColumnTable.tsx";
-import { StockInDetails, StockInItemTable } from "@/types/stockIn/stockIn.ts";
-import StockInDetailModal from "@/pages/inventory/stockIn/StockInDetailModal.tsx";
-import { getStockInDetailById } from "@/pages/inventory/stockIn/api/stockInApi.ts";
+import { OrderItemTable } from "@/types/order/orderItemTable.ts";
+import { Paging } from "@/types/paging";
+import { OrderGetDetail } from "@/types/order/orderGetDetail.ts";
+import { getOrderById } from "@/pages/order/api/orderApi.ts";
+import OrderDetailModal from "@/pages/order/components/OrderDetailModal.tsx";
 
 interface IColorMap {
-  [key: number]: string;
+  [key: number | string]: string;
 }
 
-interface IStatusMap {
-  [key: number]: string;
+interface IValueMap {
+  [key: number | string]: string;
 }
 
 const colorMap: IColorMap = {
-  1: "text-success",
-  2: "text-warning",
+  2: "text-success",
+  1: "text-warning",
   0: "text-error",
+  retail: "text-success",
+  wholesale: "text-warning",
 };
 
-const statusMap: IStatusMap = {
-  1: "Đã nhập hàng",
+const valueMap: IValueMap = {
   0: "Đã hủy",
-  2: "Phiếu tạm",
+  1: "Đang bán",
+  2: "Đã hoàn thành",
+  retail: "Bán lẻ",
+  wholesale: "Bán sỉ",
 };
 
-function StatusStockInRow({ status }: { status: number }) {
-  return <div className={` ${colorMap[status]}`}>{statusMap[status]}</div>;
+function CollorOrderRow({ status }: { status: number }) {
+  return <div className={` ${colorMap[status]}`}>{valueMap[status]}</div>;
 }
 
-const columnsStockIn: ColumnDef<StockInItemTable>[] = [
+const columnsOrder: ColumnDef<OrderItemTable>[] = [
   {
     id: "select",
     header: ({ table }) => (
@@ -89,7 +86,7 @@ const columnsStockIn: ColumnDef<StockInItemTable>[] = [
   {
     accessorKey: "id",
     header: () => {
-      return <div className={"font-bold"}>Mã nhập kho</div>;
+      return <div className={"font-bold"}>Mã hoá đơn</div>;
     },
     cell: ({ row }) => <div className="capitalize">{row.getValue("id")}</div>,
   },
@@ -102,7 +99,7 @@ const columnsStockIn: ColumnDef<StockInItemTable>[] = [
           variant="ghost"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
-          Thời gian
+          Cập nhập lần cuối
           <ArrowUpDown />
         </Button>
       );
@@ -114,7 +111,7 @@ const columnsStockIn: ColumnDef<StockInItemTable>[] = [
     ),
   },
   {
-    accessorKey: "providerName",
+    accessorKey: "customerName",
     header: ({ column }) => {
       return (
         <Button
@@ -122,15 +119,61 @@ const columnsStockIn: ColumnDef<StockInItemTable>[] = [
           variant="ghost"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
-          Nhà cung cấp
+          Tên khách hàng
           <ArrowUpDown />
         </Button>
       );
     },
     cell: ({ row }) => (
-      <div className="lowercase ml-4">{row.getValue("providerName")}</div>
+      <div className="lowercase ml-4">{row.getValue("customerName")}</div>
     ),
   },
+  {
+    accessorKey: "customerPhone",
+    header: ({ column }) => {
+      return (
+        <Button
+          className={"p-0 font-bold"}
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Số điên thoại khách hàng
+          <ArrowUpDown />
+        </Button>
+      );
+    },
+    cell: ({ row }) => (
+      <div className="lowercase ml-4">{row.getValue("customerPhone")}</div>
+    ),
+  },
+
+  {
+    accessorKey: "sellerName",
+    header: ({ column }) => {
+      return (
+        <Button
+          className={"p-0 font-bold"}
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Tên người bán
+          <ArrowUpDown />
+        </Button>
+      );
+    },
+    cell: ({ row }) => (
+      <div className="lowercase ml-4">{row.getValue("sellerName")}</div>
+    ),
+  },
+
+  {
+    accessorKey: "orderType",
+    header: () => {
+      return <div className={"font-bold"}>Loại hoá đơn</div>;
+    },
+    cell: ({ row }) => <CollorOrderRow status={row.getValue("orderType")} />,
+  },
+
   {
     accessorKey: "totalAmount",
     header: ({ column }) => {
@@ -140,7 +183,7 @@ const columnsStockIn: ColumnDef<StockInItemTable>[] = [
           variant="ghost"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
-          Tổng số lượng
+          Tổng giá trị
           <ArrowUpDown />
         </Button>
       );
@@ -149,53 +192,84 @@ const columnsStockIn: ColumnDef<StockInItemTable>[] = [
       <div className="lowercase ml-4">{row.getValue("totalAmount")}</div>
     ),
   },
+
+  {
+    accessorKey: "discountAmount",
+    header: ({ column }) => {
+      return (
+        <Button
+          className={"p-0 font-bold"}
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Giảm giá
+          <ArrowUpDown />
+        </Button>
+      );
+    },
+    cell: ({ row }) => (
+      <div className="lowercase ml-4">{row.getValue("discountAmount")}</div>
+    ),
+  },
+
+  {
+    accessorKey: "finalAmount",
+    header: ({ column }) => {
+      return (
+        <Button
+          className={"p-0 font-bold"}
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Giá cuối
+          <ArrowUpDown />
+        </Button>
+      );
+    },
+    cell: ({ row }) => (
+      <div className="lowercase ml-4">{row.getValue("finalAmount")}</div>
+    ),
+  },
+
+  {
+    accessorKey: "pointUsed",
+    header: ({ column }) => {
+      return (
+        <Button
+          className={"p-0 font-bold"}
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Điểm sử dụng
+          <ArrowUpDown />
+        </Button>
+      );
+    },
+    cell: ({ row }) => (
+      <div className="lowercase ml-4">{row.getValue("pointUsed")}</div>
+    ),
+  },
+
   {
     accessorKey: "status",
     header: () => {
       return <div className={"font-bold"}>Trạng thái</div>;
     },
-    cell: ({ row }) => <StatusStockInRow status={row.getValue("status")} />,
-  },
-
-  {
-    id: "actions",
-    enableHiding: false,
-    cell: ({ row }) => {
-      const payment = row.original;
-      return (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="h-8 w-8 p-0">
-              <span className="sr-only">Open menu</span>
-              <MoreHorizontal />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuLabel>Actions</DropdownMenuLabel>
-            <DropdownMenuItem
-              onClick={() =>
-                navigator.clipboard.writeText(payment.id.toString())
-              }
-            >
-              Copy payment ID
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem>View customer</DropdownMenuItem>
-            <DropdownMenuItem>View payment details</DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      );
-    },
+    cell: ({ row }) => <CollorOrderRow status={row.getValue("status")} />,
   },
 ];
-interface StockInTableProps {
-  dataStockIn: StockInItemTable[];
+interface OrderTableProps {
+  dataOrder: OrderItemTable[];
   columnVisible: MenuVisibilityColumnTable[];
+  setPaging: React.Dispatch<React.SetStateAction<Paging>>;
+  paging: Paging;
 }
-export function StockInTable({
-  dataStockIn,
+export function OrderTable({
+  dataOrder,
   columnVisible,
-}: StockInTableProps) {
+  setPaging,
+  paging,
+}: OrderTableProps) {
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     [],
@@ -208,31 +282,47 @@ export function StockInTable({
       }, {} as VisibilityState),
     );
   const [rowSelection, setRowSelection] = React.useState({});
-  const [isOpenStockTakesModal, setIsOpenStockTakesModal] = useState(false);
+  const [isOpenOrderModal, setIsOpenOrderModal] = useState(false);
 
-  const [selectedStockInReport, setSelectedStockInReport] = useState<
-    StockInItemTable | undefined
+  const [selectedOrderReport, setSelectedOrderReport] = useState<
+    OrderItemTable | undefined
   >(undefined);
-  const [stockInReportDetails, setStockInReportDetails] = useState<
-    StockInDetails | undefined
+  const [orderReportDetails, setOrderReportDetails] = useState<
+    OrderGetDetail | undefined
   >(undefined);
 
-  const getStockInDetails = async (id: number) => {
+  const getOrderDetails = async (id: number) => {
     try {
-      const response = await getStockInDetailById(id);
-      setStockInReportDetails(response.data);
+      const response = await getOrderById(id);
+      setOrderReportDetails(response.data);
     } catch (error) {
-      console.error("Error fetching stock in report details:", error);
+      console.error("Error fetching order report details:", error);
     }
   };
-  const table = useReactTable<StockInItemTable>({
+
+  const handleClickPrevious = () => {
+    if (paging.page === 1) return;
+    setPaging({ limit: 10, page: paging.page ? paging.page - 1 : 1 });
+  };
+
+  const handleClickNext = () => {
+    if (
+      paging.total &&
+      paging.limit &&
+      paging.page === Math.ceil(paging.total / paging.limit)
+    )
+      return;
+    setPaging({ limit: 10, page: paging.page ? paging.page + 1 : 1 });
+  };
+
+  const table = useReactTable<OrderItemTable>({
     initialState: {
       pagination: {
         pageSize: 10,
       },
     },
-    data: dataStockIn,
-    columns: columnsStockIn,
+    data: dataOrder,
+    columns: columnsOrder,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
     getCoreRowModel: getCoreRowModel(),
@@ -258,11 +348,11 @@ export function StockInTable({
   }, [columnVisible]);
   return (
     <div className="w-full">
-      <StockInDetailModal
-        isOpen={isOpenStockTakesModal}
-        onOpenChange={setIsOpenStockTakesModal}
-        stockItem={stockInReportDetails}
-      ></StockInDetailModal>
+      <OrderDetailModal
+        isOpen={isOpenOrderModal}
+        onOpenChange={setIsOpenOrderModal}
+        order={orderReportDetails}
+      ></OrderDetailModal>
       <div className="rounded-md border">
         <Table>
           <TableHeader>
@@ -292,10 +382,10 @@ export function StockInTable({
                     event.preventDefault();
                     event.stopPropagation();
                     const selectedReport = row.original;
-                    setSelectedStockInReport(selectedReport);
-                    console.log(selectedStockInReport);
-                    await getStockInDetails(selectedReport.id);
-                    setIsOpenStockTakesModal(true);
+                    setSelectedOrderReport(selectedReport);
+                    console.log(selectedOrderReport);
+                    await getOrderDetails(selectedReport.id);
+                    setIsOpenOrderModal(true);
                   }}
                   key={row.id}
                   data-state={row.getIsSelected() && "selected"}
@@ -313,7 +403,7 @@ export function StockInTable({
             ) : (
               <TableRow>
                 <TableCell
-                  colSpan={columnsStockIn.length}
+                  colSpan={columnsOrder.length}
                   className="h-24 text-center"
                 >
                   No results.
@@ -332,16 +422,22 @@ export function StockInTable({
           <Button
             variant="outline"
             size="sm"
-            onClick={() => table.previousPage()}
-            disabled={!table.getCanPreviousPage()}
+            onClick={handleClickPrevious}
+            disabled={paging.page === 1}
           >
             Previous
           </Button>
           <Button
             variant="outline"
             size="sm"
-            onClick={() => table.nextPage()}
-            disabled={!table.getCanNextPage()}
+            onClick={handleClickNext}
+            //eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            //@ts-expect-error
+            disabled={
+              /*!table.getCanNextPage()*/ paging.total &&
+              paging.limit &&
+              paging.page === Math.ceil(paging.total / paging.limit)
+            }
           >
             Next
           </Button>

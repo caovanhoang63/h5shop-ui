@@ -12,6 +12,7 @@ import {
   LogOut,
   Mail,
   Package,
+  ScrollText,
   Settings,
   ShoppingBasket,
   User,
@@ -147,6 +148,13 @@ export const TopBar = () => {
                 >
                   <ArrowDown size={20} />
                   <p>Xuất hàng</p>
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  className="hover:bg-blue-700 focus:bg-blue-700 focus:text-white cursor-pointer"
+                  onClick={() => navigate("/order")}
+                >
+                  <ScrollText size={20} />
+                  <p>Hoá đơn</p>
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>

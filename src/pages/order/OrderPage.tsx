@@ -1,4 +1,4 @@
-﻿import { CalendarIcon, FileOutputIcon, Plus, Search } from "lucide-react";
+﻿import { CalendarIcon, Plus, Search } from "lucide-react";
 import { Input } from "@/components/ui/input.tsx";
 import { Button } from "@/components/ui/button.tsx";
 import { Card, CardContent } from "@/components/ui/card.tsx";
@@ -27,22 +27,24 @@ import { cn } from "@/lib/utils.ts";
 import { endOfMonth, format, startOfMonth } from "date-fns";
 import { Calendar } from "@/components/ui/calendar";
 import { SelectRangeEventHandler } from "react-day-picker";
-import { StockInTable } from "@/pages/inventory/stockIn/StockInTable.tsx";
-import {
-  getStockInTableApi,
-  StockInFilter,
-} from "@/pages/inventory/stockIn/api/stockInApi.ts";
-import { StockInItemTable } from "@/types/stockIn/stockIn.ts";
 import { toast } from "react-toastify";
+import { Paging } from "@/types/paging.ts";
+import { OrderItemTable } from "@/types/order/orderItemTable.ts";
+import { OrderListFilter } from "@/types/order/orderListFilter.ts";
+import { getOrderTableApi } from "@/pages/order/api/orderApi.ts";
+import { OrderTable } from "@/pages/order/components/OrderTable.tsx";
+import { ExportButton } from "@/components/ExportButton.tsx";
 
 export const OrderPage = () => {
-  const [stockInReport, setStockInReport] = useState<StockInItemTable[]>([]);
-  const [filters, setFilters] = useState<StockInFilter>({
-    lk_providerName: null,
+  const [orderReport, setOrderReport] = useState<OrderItemTable[]>([]);
+  const [filters, setFilters] = useState<OrderListFilter>({
     gtUpdatedAt: null,
     ltUpdatedAt: null,
     status: [],
-    lk_Id: null,
+  });
+  const [paging, setPaging] = useState<Paging>({
+    limit: 10,
+    page: 1,
   });
   const [selectedTimeOption, setSelectedTimeOption] = useState("all");
   const [dateRange, setDateRange] = useState<{
@@ -53,9 +55,7 @@ export const OrderPage = () => {
     to: undefined,
   });
   const [search, setSearch] = useState<string>();
-  const handleStatusChange = (value: string, checked: boolean) => {
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-expect-error
+  const handleStatusChange = (value: number, checked: boolean) => {
     setFilters((prevFilters) => {
       const updatedStatus = checked
         ? [...prevFilters.status!, value]
@@ -114,32 +114,29 @@ export const OrderPage = () => {
       }));
     }
   };
-  const getStockInTable = async () => {
-    try {
-      const response = await getStockInTableApi(filters);
-      console.log("api", response.data);
-      setStockInReport(response.data);
-    } catch (error) {
-      toast.error("Lỗi hệ thống!", {
-        position: "top-right",
-        autoClose: 3000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-      });
-      console.log(error);
-    }
-  };
   useEffect(() => {
-    getStockInTable();
-  }, [filters]);
+    getOrderTableApi(filters, paging)
+      .then((response) => {
+        setOrderReport(response.data);
+        console.log(response);
+      })
+      .catch((error) => {
+        toast.error("Lỗi hệ thống!");
+        console.log(error);
+      });
+  }, [filters, paging]);
   const [fields, setFields] = useState<MenuVisibilityColumnTable[]>([
-    { label: "Mã nhập kho", key: "id", visible: true },
-    { label: "Thời gian", key: "updatedAt", visible: true },
-    { label: "Tổng số lượng", key: "totalAmount", visible: true },
+    { label: "Mã hoá đơn", key: "id", visible: true },
+    { label: "Cập nhập lần cuối", key: "updatedAt", visible: true },
+    { label: "Tên khách hàng", key: "customerName", visible: true },
+    { label: "Số điên thoại khách hàng", key: "customerPhone", visible: false },
+    { label: "Tên người bán", key: "sellerName", visible: true },
+    { label: "Loại hoá đơn", key: "orderType", visible: true },
+    { label: "Tổng giá trị", key: "totalAmount", visible: false },
+    { label: "Giảm giá", key: "discountAmount", visible: false },
+    { label: "Giá cuối", key: "finalAmount", visible: true },
+    { label: "Điểm sử dụng", key: "pointUsed", visible: true },
     { label: "Trạng thái", key: "status", visible: true },
-    /*{ label: "Action", key: "actions", visible: true },*/
   ]);
   const handleCheckField = (key: string, visible: boolean) => {
     setFields((prevFields) =>
@@ -148,12 +145,13 @@ export const OrderPage = () => {
       ),
     );
   };
-  console.log("fillet", filters);
+  console.log("filter", filters);
+  console.log("paging", paging);
 
   return (
     <Container className={"grid grid-cols-5 gap-4 grid-flow-row"}>
       <div className={"text-2xl col-span-1 font-bold"}>
-        <p>Phiếu nhập hàng</p>
+        <p>Hoá đơn</p>
       </div>
       <div className={"col-span-4 w-full flex justify-between"}>
         <div className="relative flex items-center max-w-80">
@@ -169,16 +167,13 @@ export const OrderPage = () => {
           />
         </div>
         <div className={"flex space-x-2"}>
-          <Link to={"/stock-in/new"}>
+          <Link to={"/sale"}>
             <Button className={"bg-green-500"}>
               <Plus />
-              Nhập hàng
+              Bán hàng
             </Button>
           </Link>
-          <Button className={"bg-green-500"}>
-            <FileOutputIcon />
-            Xuất file
-          </Button>
+          <ExportButton data={orderReport} fileName={"Provider"} />
           <ButtonVisibilityColumnTable
             menus={fields}
             onCheckChange={handleCheckField}
@@ -270,13 +265,19 @@ export const OrderPage = () => {
                 <AccordionContent className={"pb-2 space-y-2"}>
                   <CheckBoxWithText
                     id={"serial"}
-                    onCheckChange={(value) => handleStatusChange("1", !!value)}
+                    onCheckChange={(value) => handleStatusChange(2, !!value)}
                   >
-                    Đã nhập hàng
+                    Đã hoàn thành
                   </CheckBoxWithText>
                   <CheckBoxWithText
                     id={"service"}
-                    onCheckChange={(value) => handleStatusChange("0", !!value)}
+                    onCheckChange={(value) => handleStatusChange(1, !!value)}
+                  >
+                    Đang bán
+                  </CheckBoxWithText>
+                  <CheckBoxWithText
+                    id={"service"}
+                    onCheckChange={(value) => handleStatusChange(0, !!value)}
                   >
                     Đã hủy
                   </CheckBoxWithText>
@@ -285,29 +286,14 @@ export const OrderPage = () => {
             </Accordion>
           </CardContent>
         </Card>
-        <Card>
-          <CardContent>
-            <Accordion type="single" collapsible>
-              <AccordionItem value="item-1">
-                <AccordionTrigger className={"hover:no-underline"}>
-                  Người tạo
-                </AccordionTrigger>
-                <AccordionContent className={"pb-0"}>
-                  <Input
-                    className={"focus-visible:ring-0 border-0 shadow-none"}
-                    placeholder={"Chọn người tạo "}
-                  />
-                </AccordionContent>
-              </AccordionItem>
-            </Accordion>
-          </CardContent>
-        </Card>
       </div>
       <div className={"col-span-4"}>
-        <StockInTable
+        <OrderTable
           columnVisible={fields}
-          dataStockIn={stockInReport}
-        ></StockInTable>
+          dataOrder={orderReport}
+          setPaging={setPaging}
+          paging={paging}
+        ></OrderTable>
       </div>
     </Container>
   );
