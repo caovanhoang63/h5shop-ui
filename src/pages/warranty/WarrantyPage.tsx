@@ -10,8 +10,11 @@ import { CalendarIcon, FileOutputIcon, Plus, Search } from "lucide-react";
 import { Input } from "@/components/ui/input.tsx";
 import { Button } from "@/components/ui/button.tsx";
 import TriangleDown from "@/components/icons/TriangleDown.tsx";
-import { Label } from "@/components/ui/label.tsx";
 
+import { DataTableWarranty } from "@/pages/warranty/component/DataTableWarranty.tsx";
+import WarrantyModal from "@/pages/warranty/component/WarrantyModal.tsx";
+import { getListWarrantyForm } from "@/pages/warranty/api/warrantyApi.ts";
+import { Warranty, WarrantyFilter } from "@/types/warranty/warranty.ts";
 import { Card, CardContent } from "@/components/ui/card.tsx";
 import {
   Accordion,
@@ -19,20 +22,19 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion.tsx";
+import { ScrollArea } from "@/components/ui/scroll-area.tsx";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group.tsx";
-import { DataTableWarranty } from "@/pages/warranty/component/DataTableWarranty.tsx";
-import WarrantyModal from "@/pages/warranty/api/WarrantyModal.tsx";
-import { getListWarrantyForm } from "@/pages/warranty/api/warrantyApi.ts";
-import { Warranty, WarrantyFilter } from "@/types/warranty/warranty.ts";
+import { Label } from "@/components/ui/label.tsx";
+import { WarrantyType } from "@/types/enumTime.ts";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover.tsx";
 import { cn } from "@/lib/utils.ts";
-import { format } from "date-fns";
+import { endOfMonth, format, startOfMonth } from "date-fns";
 import { Calendar } from "@/components/ui/calendar.tsx";
-import { DateRange, SelectRangeEventHandler } from "react-day-picker";
+import { SelectRangeEventHandler } from "react-day-picker";
 
 export default function WarrantyPage() {
   const [fields, setFields] = useState<MenuVisibilityColumnTable[]>([
@@ -51,17 +53,17 @@ export default function WarrantyPage() {
     { label: "Ngày cập nhật", key: "updatedAt", visible: false },
   ]);
 
+  const [listWarrantyType] = useState<{ value: string; label: string }[]>([
+    { value: "all", label: "Tất cả" },
+    { value: WarrantyType.FIX, label: "Sửa chữa" },
+    { value: WarrantyType.PART, label: "Thay thế linh kiện" },
+    { value: WarrantyType.NEW, label: "Đổi mới" },
+    { value: WarrantyType.MF_FIX, label: "Gửi nhà cung cấp" },
+  ]);
+  const [warrantyType, setWarrantyType] = useState<string | null>(null);
   const [isOpenedModal, setIsOpenedModal] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [warrantyList, setWarrantyList] = useState<Warranty[]>([]);
-  const [selectedTimeOption, setSelectedTimeOption] = useState<string>("all");
-  const [dateRange, setDateRange] = useState<{
-    from: Date | undefined;
-    to: Date | undefined;
-  }>({
-    from: undefined,
-    to: undefined,
-  });
   const [paging, setPaging] = useState<PagingSpu>({
     page: 1,
     limit: 10,
@@ -108,15 +110,11 @@ export default function WarrantyPage() {
   }, [warrantyFilter]);
 
   useEffect(() => {
-    if ((dateRange.from as Date) && (dateRange.to as Date)) {
-      setWarrantyFilter({
-        ...warrantyFilter,
-        ltUpdatedAt: dateRange.to,
-        gtUpdatedAt: dateRange.from,
-        page: 1,
-      });
-    }
-  }, [dateRange]);
+    setWarrantyFilter((prevFilters) => ({
+      ...prevFilters,
+      warrantyType: warrantyType,
+    }));
+  }, [warrantyType]);
 
   const handleCheckField = (key: string, visible: boolean) => {
     setFields((prevFields) =>
@@ -126,21 +124,6 @@ export default function WarrantyPage() {
     );
   };
 
-  const handleTimeOptionChange = (value: string) => {
-    setSelectedTimeOption(value);
-  };
-
-  const handleDateRangeChange: SelectRangeEventHandler = (
-    range: DateRange | undefined,
-  ) => {
-    if (range) {
-      setDateRange({
-        from: range.from,
-        to: range.to,
-      });
-    }
-  };
-
   const handleSelectItemTable = (spuId: number) => {
     console.log(spuId);
   };
@@ -148,6 +131,60 @@ export default function WarrantyPage() {
   const handleSetPaging = (page: number) => {
     setPaging({ ...paging, page });
     setWarrantyFilter({ ...warrantyFilter, page });
+  };
+
+  const [selectedTimeOption, setSelectedTimeOption] = useState("all");
+  const [dateRange, setDateRange] = useState<{
+    from: Date | undefined;
+    to: Date | undefined;
+  }>({
+    from: undefined,
+    to: undefined,
+  });
+
+  const handleDateRangeChange: SelectRangeEventHandler = (range) => {
+    if (range?.from) {
+      setDateRange({ from: range.from, to: range.to });
+      setWarrantyFilter((prevFilters) => ({
+        ...prevFilters,
+        gtUpdatedAt: range.from,
+        ltUpdatedAt: range.to
+          ? new Date(range.to!.getTime() + 24 * 60 * 60 * 1000)
+          : new Date(range.from!.getTime() + 24 * 60 * 60 * 1000),
+      }));
+    } else {
+      setDateRange({ from: undefined, to: undefined });
+      setWarrantyFilter((prevFilters) => ({
+        ...prevFilters,
+        gtUpdatedAt: null,
+        ltUpdatedAt: null,
+      }));
+    }
+  };
+
+  const handleTimeOptionChange = (value: string) => {
+    setSelectedTimeOption(value);
+    const newFilters = { ...warrantyFilter };
+
+    switch (value) {
+      case "all":
+        newFilters.gtUpdatedAt = null;
+        newFilters.ltUpdatedAt = null;
+        setDateRange({ from: undefined, to: undefined });
+        break;
+      case "this-month":
+        newFilters.gtUpdatedAt = startOfMonth(new Date());
+        newFilters.ltUpdatedAt = endOfMonth(new Date());
+        setDateRange({
+          from: newFilters.gtUpdatedAt,
+          to: newFilters.ltUpdatedAt,
+        });
+        break;
+      case "custom":
+        break;
+    }
+
+    setWarrantyFilter(newFilters);
   };
 
   return (
@@ -195,6 +232,51 @@ export default function WarrantyPage() {
           </div>
         </div>
         <div className={"col-span-1 space-y-4"}>
+          <Card>
+            <CardContent>
+              <Accordion type="single" collapsible>
+                <AccordionItem value="item-1">
+                  <AccordionTrigger className={"hover:no-underline"}>
+                    Loại bảo hành
+                  </AccordionTrigger>
+                  <AccordionContent className={"space-y-2"}>
+                    <ScrollArea>
+                      <RadioGroup
+                        defaultValue={warrantyType || "all"}
+                        onValueChange={(value) => {
+                          if (value === "all") {
+                            setWarrantyType(null);
+                          } else {
+                            setWarrantyType(value);
+                          }
+                        }}
+                      >
+                        {listWarrantyType.map((type, index) => (
+                          <div
+                            key={index}
+                            className="group flex items-center space-x-2"
+                            style={{ height: "24px" }}
+                          >
+                            <RadioGroupItem
+                              value={type.value}
+                              id={type.value}
+                            />
+                            <Label
+                              htmlFor="option-one"
+                              className={"font-normal flex-1"}
+                            >
+                              {type.label}
+                            </Label>
+                            <div style={{ width: "1x" }}></div>
+                          </div>
+                        ))}
+                      </RadioGroup>
+                    </ScrollArea>
+                  </AccordionContent>
+                </AccordionItem>
+              </Accordion>
+            </CardContent>
+          </Card>
           <Card>
             <CardContent>
               <Accordion type="single" collapsible>
@@ -253,7 +335,7 @@ export default function WarrantyPage() {
                             defaultMonth={dateRange?.from}
                             selected={dateRange}
                             onSelect={handleDateRangeChange}
-                            numberOfMonths={2}
+                            numberOfMonths={1}
                           />
                         </PopoverContent>
                       </Popover>

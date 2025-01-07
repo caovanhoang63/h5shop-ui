@@ -37,7 +37,7 @@ export async function getListWarrantyForm(
       page: warrantyFilter.page ?? 1,
       limit: warrantyFilter.limit ?? 10,
     };
-
+    console.log("---------------", newFilter);
     const response = await axiosInstance.get<ResponseWarranty>("/v1/warranty", {
       params: newFilter,
     });
