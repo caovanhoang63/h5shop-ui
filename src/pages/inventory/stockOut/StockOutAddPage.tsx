@@ -58,14 +58,12 @@ export default function StockOutAddPage() {
   );
   const [searchQuery, setSearchQuery] = useState("");
   const [filteredProducts, setFilteredProducts] = useState<
-    [
-      {
-        id: number;
-        name: string;
-        stock: number;
-        price: number;
-      },
-    ]
+    {
+      id: number;
+      name: string;
+      stock: number;
+      price: number;
+    }[]
   >();
   const debouncedSearch = useMemo(
     () =>
@@ -81,8 +79,6 @@ export default function StockOutAddPage() {
               stock: item.stock,
               price: item.price,
             }));
-            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-            // @ts-expect-error
             setFilteredProducts(searchResponse);
           } catch (error) {
             console.error(error);
@@ -179,8 +175,6 @@ export default function StockOutAddPage() {
   const getListReason = async () => {
     try {
       const response = await listReason();
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-expect-error
       setStockOutReason(response.data);
     } catch (error) {
       toast.error("Lỗi hệ thống!");
@@ -314,10 +308,7 @@ export default function StockOutAddPage() {
                 <span className="text-gray-500">Mã kiểm kho</span>
                 <span>Mã phiếu tự động</span>
               </div>
-              {/*<div className="flex justify-between text-sm">
-                <span className="text-gray-500">Trạng thái</span>
-                <span>Phiếu tạm</span>
-              </div>*/}
+
               <div className="flex justify-between text-sm">
                 <span className="text-gray-500">Tổng SL thực tế</span>
                 <span>{calculateTotalActualQuantity()}</span>

@@ -59,7 +59,7 @@ export interface StockOutItemSearch {
 export interface StockOutReason {
   id: number;
   name: string;
-  description: string;
+  description: string | null;
   status: number;
   updatedAt: Date | null;
   createdAt: Date | null;

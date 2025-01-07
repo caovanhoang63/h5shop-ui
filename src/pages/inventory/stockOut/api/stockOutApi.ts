@@ -3,6 +3,7 @@ import {
   StockOutCreate,
   StockOutDetail,
   StockOutItemTable,
+  StockOutReason,
 } from "@/types/stockOut/stockOut.ts";
 import { SkuGetDetail } from "@/types/sku/skuGetDetail.ts";
 
@@ -145,13 +146,21 @@ export async function searchProvider(query: string): Promise<Response> {
     throw error;
   }
 }
-export async function listReason(): Promise<Response> {
+
+interface responseListReason {
+  data: StockOutReason[];
+}
+
+export async function listReason(): Promise<responseListReason> {
   try {
-    const response = await axiosInstance.get<Response>("v1/stock-out/reasons", {
-      headers: {
-        Authorization: `Bearer ${token}`,
+    const response = await axiosInstance.get<responseListReason>(
+      "v1/stock-out/reasons",
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
       },
-    });
+    );
     return response.data;
   } catch (error) {
     console.error("Fetch error:", error);
