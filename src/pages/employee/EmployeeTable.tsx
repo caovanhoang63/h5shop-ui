@@ -36,6 +36,16 @@ import { Button } from "@/components/ui/button";
 import EmployeeEditModal from "@/pages/employee/component/EmployeeEditModal.tsx";
 import { GenderMap, RoleMap } from "@/utils/constants.ts";
 import { format } from "date-fns";
+import { toast } from "react-toastify";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog.tsx";
+import { Input } from "@/components/ui/input.tsx";
+import { changePassword } from "./api/employeeApi";
 
 interface EmployeeTableProps {
   dataEmployee: Employee[];
@@ -146,14 +156,31 @@ export function EmployeeTable({
             <DropdownMenuContent align="end">
               <DropdownMenuLabel>Actions</DropdownMenuLabel>
               <DropdownMenuItem
-                onClick={() =>
-                  navigator.clipboard.writeText(employee.id.toString())
-                }
+                onClick={(e) => {
+                  e.stopPropagation();
+                  e.preventDefault();
+                  navigator.clipboard
+                    .writeText(employee.id.toString())
+                    .then(() => {
+                      toast.success("Sao chép thành công");
+                    });
+                }}
               >
-                Copy employee ID
+                Sao chép mã nhân viên
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem>View employee details</DropdownMenuItem>
+              <DropdownMenuItem>Chi tiết</DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={(e) => {
+                  e.stopPropagation();
+                  e.preventDefault();
+                  setIsOpenChangePasswordModal(true);
+                  setSelectedEmployee(employee);
+                  setNewPassword("");
+                }}
+              >
+                Thay đổi mật khẩu
+              </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         );
@@ -184,7 +211,9 @@ export function EmployeeTable({
       rowSelection,
     },
   });
-
+  const [newPassword, setNewPassword] = useState<string>("");
+  const [isOpenChangePasswordModal, setIsOpenChangePasswordModal] =
+    useState<boolean>(false);
   useEffect(() => {
     setColumnVisibility(
       columnVisible.reduce((acc, col) => {
@@ -206,6 +235,43 @@ export function EmployeeTable({
         isOpen={isOpenEmployeeModal}
         onOpenChange={setIsOpenEmployeeModal}
       ></EmployeeEditModal>
+      <Dialog
+        open={isOpenChangePasswordModal}
+        onOpenChange={() => setIsOpenChangePasswordModal(false)}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Mật khẩu mới</DialogTitle>
+          </DialogHeader>
+          <Input
+            onChange={(v) => setNewPassword(v.target.value)}
+            id={"password"}
+            type={"password"}
+          ></Input>
+          <DialogFooter>
+            <Button
+              onClick={() => {
+                console.log(selectedEmployee);
+                if (!selectedEmployee || !selectedEmployee.id) {
+                  setIsOpenChangePasswordModal(false);
+                  toast.error("Lỗi");
+                  return;
+                }
+                changePassword(selectedEmployee.id, newPassword)
+                  .then(() => {
+                    toast.success("Thay đổi thành công");
+                    setIsOpenChangePasswordModal(false);
+                  })
+                  .catch(() => {
+                    toast.error("Thay đổi thất bại");
+                  });
+              }}
+            >
+              Thay đổi
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
       <div className="rounded-md border">
         <Table>
           <TableHeader>

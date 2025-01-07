@@ -33,6 +33,7 @@ export async function getEmployee(
     throw error;
   }
 }
+
 export async function createEmployee(
   body: EmployeeCreate,
 ): Promise<EmployeeCreateResponse> {
@@ -78,3 +79,8 @@ export async function updateEmployee(
     throw error;
   }
 }
+
+export const changePassword = (userId: number, password: string) =>
+  axiosInstance.post(`/v1/auth/${userId}/change-password`, {
+    password: password,
+  });
