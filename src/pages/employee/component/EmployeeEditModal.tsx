@@ -120,7 +120,6 @@ export default function EmployeeEditModal({
 
   const onSubmit = handleSubmit(async (data) => {
     try {
-
       const response = await updateEmployee(
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-expect-error
@@ -137,7 +136,6 @@ export default function EmployeeEditModal({
         draggable: true,
       });
       onOpenChange(false);
-
     } catch (e) {
       console.log(e);
       toast.error("Sửa nhân viên thất bại!", {
@@ -170,6 +168,17 @@ export default function EmployeeEditModal({
                       disabled={true}
                       id="id"
                       defaultValue={employee?.id}
+                    />
+                  </div>
+
+                  <div className={"flex flex-col"}>
+                    <Label className={"w-full mb-2"} htmlFor="id">
+                      Mã nhân viên
+                    </Label>
+                    <Input
+                      disabled={true}
+                      id="id"
+                      defaultValue={employee?.userName}
                     />
                   </div>
 

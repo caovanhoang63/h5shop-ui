@@ -49,7 +49,7 @@ export const ItemSku = ({
     SkuWholesalePriceCreate[]
   >([]);
   const [price, setPrice] = useState<number>(0);
-  //const [stock, setStock] = useState<number>(0);
+  const [stock, setStock] = useState<number>(0);
   const [skuTierIdx, setSkuTierIdx] = useState<number[]>([]);
   const [image, setImage] = useState<Image>();
 
@@ -77,7 +77,7 @@ export const ItemSku = ({
 
     // Price, Cost, Stock
     setPrice(sku.price);
-    //setStock(sku.stock);
+    setStock(sku.stock);
 
     // WholeSalePrice
     if (sku.wholesalePrices) {
@@ -92,7 +92,7 @@ export const ItemSku = ({
     } else {
       setImage(undefined);
     }
-  }, [sku]);
+  }, [attribute, sku]);
 
   const CallApiDeleteSkuWholeSalePrice = async (id: number) => {
     try {
@@ -199,17 +199,16 @@ export const ItemSku = ({
         <div className={"flex flex-row space-x-12"}>
           <div className={"flex flex-col flex-1 space-y-4"}>
             <div className={"flex flex-row items-center"}>
-              <Label className={"w-5/12"} htmlFor="name">
-                Tên sản phẩm
+              <Label className={"w-5/12"} htmlFor="stock">
+                Tồn kho
               </Label>
               <Input
-                id="name"
+                id="stock"
                 className={"h-8"}
                 disabled={true}
-                value={attrSelected.filter((item) => item !== "").join(" - ")}
+                value={stock}
               />
             </div>
-
             <Card>
               <CardContent className={"pb-0"}>
                 <Accordion type="single" collapsible>

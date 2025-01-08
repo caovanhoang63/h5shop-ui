@@ -12,7 +12,7 @@ export interface Sale {
   id: number;
   sellerName: string;
   customerPhoneNumber: string;
-  saleType: string;
+  orderType: string;
   totalAmount: number;
   discountAmount: number;
   finalAmount: number;
