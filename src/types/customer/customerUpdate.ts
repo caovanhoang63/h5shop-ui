@@ -7,6 +7,7 @@ export interface CustomerUpdate {
   lastName?: string;
   dateOfBirth?: Date;
   gender?: CustomerGender;
+  discountPoint?: number;
 }
 
 export const customerUpdateSchema = Yup.object().shape({

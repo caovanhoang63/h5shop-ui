@@ -50,6 +50,7 @@ export const DetailCustomerModal: React.FC<DetailCustomerModalProps> = ({
     lastName: customer?.lastName || "",
     dateOfBirth: customer?.dateOfBirth || undefined,
     gender: customer?.gender || CustomerGender.Other,
+    discountPoint: customer?.discountPoint,
   });
 
   const handleChange = <K extends keyof typeof formData>(
@@ -87,6 +88,7 @@ export const DetailCustomerModal: React.FC<DetailCustomerModalProps> = ({
       lastName: "",
       dateOfBirth: undefined,
       gender: CustomerGender.Other,
+      discountPoint: undefined,
     });
     onClose();
   };
@@ -115,15 +117,14 @@ export const DetailCustomerModal: React.FC<DetailCustomerModalProps> = ({
   };
 
   useEffect(() => {
-    if (customer) {
-      setFormData({
-        address: customer.address || "",
-        firstName: customer.firstName || "",
-        lastName: customer.lastName || "",
-        dateOfBirth: customer.dateOfBirth || undefined,
-        gender: customer.gender || CustomerGender.Other,
-      });
-    }
+    setFormData({
+      address: customer?.address || "",
+      firstName: customer?.firstName || "",
+      lastName: customer?.lastName || "",
+      dateOfBirth: customer?.dateOfBirth || undefined,
+      discountPoint: customer?.discountPoint,
+      gender: customer?.gender || CustomerGender.Other,
+    });
   }, [customer]);
 
   return (
@@ -178,6 +179,21 @@ export const DetailCustomerModal: React.FC<DetailCustomerModalProps> = ({
               placeholder="Địa chỉ"
               value={formData.address}
               onChange={(e) => handleChange("address", e.target.value)}
+              className="w-full"
+            />
+          </div>
+          <div className="flex flex-col gap-2">
+            <Label htmlFor="discountPoint" className="text-sm font-medium">
+              Điểm tích lũy
+            </Label>
+            <Input
+              type="number"
+              id="discountPoint"
+              placeholder="Điểm tích lũy"
+              value={formData.discountPoint}
+              onChange={(e) =>
+                handleChange("discountPoint", parseInt(e.target.value))
+              }
               className="w-full"
             />
           </div>
