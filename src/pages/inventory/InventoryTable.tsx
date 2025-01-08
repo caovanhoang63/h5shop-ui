@@ -13,18 +13,11 @@ import {
   useReactTable,
   VisibilityState,
 } from "@tanstack/react-table";
-import { ArrowUpDown, MoreHorizontal } from "lucide-react";
+import { ArrowUpDown } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+
 import {
   Table,
   TableBody,
@@ -40,22 +33,7 @@ import {
 import InventoryReportDetailModal from "@/pages/inventory/InventoryReportDetailModal.tsx";
 import { getInventoryReportDetailById } from "@/pages/inventory/api/reportApi.ts";
 import { MenuVisibilityColumnTable } from "@/components/ButtonVisibilityColumnTable.tsx";
-
-/*function generateMockSpus(count: number = 10): InventoryReport[] {
-  return Array.from({ length: count }, (_, index) => ({
-    id: index + 1,
-    amount: faker.number.int({ min: 0, max: 100 }),
-    warehouseMan: faker.number.int({ min: 0, max: 100 }),
-    inventoryDif: faker.number.int({ min: 0, max: 100 }),
-    status: faker.helpers.arrayElement([0, 1, 2]),
-    note: faker.lorem.sentence(),
-    createdAt: faker.date.past(),
-    updatedAt: faker.date.recent(),
-  }));
-}*/
-
-// Example usage
-//const data = generateMockSpus(25);
+import { Paging } from "@/types/paging.ts";
 
 interface IColorMap {
   [key: number]: string;
@@ -187,7 +165,7 @@ const columnsInventory: ColumnDef<InventoryReport>[] = [
     cell: ({ row }) => <StatusInventoryRow status={row.getValue("status")} />,
   },
 
-  {
+  /*{
     id: "actions",
     enableHiding: false,
     cell: ({ row }) => {
@@ -216,15 +194,19 @@ const columnsInventory: ColumnDef<InventoryReport>[] = [
         </DropdownMenu>
       );
     },
-  },
+  },*/
 ];
 interface InventoryTableProps {
   dataInventory: InventoryReport[];
   columnVisible: MenuVisibilityColumnTable[];
+  setPaging: (page: number) => void;
+  paging: Paging;
 }
 export function InventoryTable({
   dataInventory,
   columnVisible,
+  setPaging,
+  paging,
 }: InventoryTableProps) {
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
@@ -254,6 +236,20 @@ export function InventoryTable({
     } catch (error) {
       console.error("Error fetching inventory report details:", error);
     }
+  };
+  const handleClickPrevious = () => {
+    if (paging.page === 1) return;
+    setPaging(paging.page ? paging.page - 1 : 1);
+  };
+
+  const handleClickNext = () => {
+    if (
+      paging.total &&
+      paging.limit &&
+      paging.page === Math.ceil(paging.total / paging.limit)
+    )
+      return;
+    setPaging(paging.page ? paging.page + 1 : 1);
   };
   const table = useReactTable<InventoryReport>({
     initialState: {
@@ -286,6 +282,7 @@ export function InventoryTable({
       }, {} as VisibilityState),
     );
   }, [columnVisible]);
+
   return (
     <div className="w-full">
       <InventoryReportDetailModal
@@ -355,25 +352,29 @@ export function InventoryTable({
       </div>
       <div className="flex items-center justify-end space-x-2 py-4">
         <div className="flex-1 text-sm text-muted-foreground">
-          {table.getFilteredSelectedRowModel().rows.length} of{" "}
-          {table.getFilteredRowModel().rows.length} row(s) selected.
+          {table.getFilteredSelectedRowModel().rows.length} trong{" "}
+          {table.getFilteredRowModel().rows.length} hàng được chọn.
         </div>
         <div className="space-x-2">
           <Button
             variant="outline"
             size="sm"
-            onClick={() => table.previousPage()}
-            disabled={!table.getCanPreviousPage()}
+            onClick={handleClickPrevious}
+            disabled={paging.page === 1}
           >
-            Previous
+            Trước
           </Button>
           <Button
             variant="outline"
             size="sm"
-            onClick={() => table.nextPage()}
-            disabled={!table.getCanNextPage()}
+            onClick={handleClickNext}
+            disabled={
+              paging.page ===
+                Math.ceil((paging.total || 0) / (paging.limit || 20)) ||
+              Math.ceil((paging.total || 0) / (paging.limit || 20)) === 0
+            }
           >
-            Next
+            Sau
           </Button>
         </div>
       </div>

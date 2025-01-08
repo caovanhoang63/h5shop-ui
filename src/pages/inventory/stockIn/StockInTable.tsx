@@ -13,18 +13,11 @@ import {
   useReactTable,
   VisibilityState,
 } from "@tanstack/react-table";
-import { ArrowUpDown, MoreHorizontal } from "lucide-react";
+import { ArrowUpDown } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+
 import {
   Table,
   TableBody,
@@ -158,7 +151,7 @@ const columnsStockIn: ColumnDef<StockInItemTable>[] = [
     cell: ({ row }) => <StatusStockInRow status={row.getValue("status")} />,
   },
 
-  {
+  /*{
     id: "actions",
     enableHiding: false,
     cell: ({ row }) => {
@@ -187,12 +180,12 @@ const columnsStockIn: ColumnDef<StockInItemTable>[] = [
         </DropdownMenu>
       );
     },
-  },
+  },*/
 ];
 interface StockInTableProps {
   dataStockIn: StockInItemTable[];
   columnVisible: MenuVisibilityColumnTable[];
-  setPaging: React.Dispatch<React.SetStateAction<Paging>>;
+  setPaging: (page: number) => void;
   paging: Paging;
 }
 export function StockInTable({
@@ -232,7 +225,7 @@ export function StockInTable({
   };
   const handleClickPrevious = () => {
     if (paging.page === 1) return;
-    setPaging({ limit: 10, page: paging.page ? paging.page - 1 : 1 });
+    setPaging(paging.page ? paging.page - 1 : 1);
   };
 
   const handleClickNext = () => {
@@ -242,7 +235,7 @@ export function StockInTable({
       paging.page === Math.ceil(paging.total / paging.limit)
     )
       return;
-    setPaging({ limit: 10, page: paging.page ? paging.page + 1 : 1 });
+    setPaging(paging.page ? paging.page + 1 : 1);
   };
 
   const table = useReactTable<StockInItemTable>({
@@ -336,7 +329,7 @@ export function StockInTable({
                   colSpan={columnsStockIn.length}
                   className="h-24 text-center"
                 >
-                  No results.
+                  Không có dữ liệu
                 </TableCell>
               </TableRow>
             )}
@@ -345,8 +338,8 @@ export function StockInTable({
       </div>
       <div className="flex items-center justify-end space-x-2 py-4">
         <div className="flex-1 text-sm text-muted-foreground">
-          {table.getFilteredSelectedRowModel().rows.length} of{" "}
-          {table.getFilteredRowModel().rows.length} row(s) selected.
+          {table.getFilteredSelectedRowModel().rows.length} trong{" "}
+          {table.getFilteredRowModel().rows.length} hàng được chọn.
         </div>
         <div className="space-x-2">
           <Button
@@ -355,21 +348,20 @@ export function StockInTable({
             onClick={/*() => table.previousPage()*/ handleClickPrevious}
             disabled={/*!table.getCanPreviousPage()*/ paging.page === 1}
           >
-            Previous
+            Trước
           </Button>
           <Button
             variant="outline"
             size="sm"
             onClick={/*() => table.nextPage()*/ handleClickNext}
-            //eslint-disable-next-line @typescript-eslint/ban-ts-comment
-            //@ts-expect-error
             disabled={
-              /*!table.getCanNextPage()*/ paging.total &&
-              paging.limit &&
-              paging.page === Math.ceil(paging.total / paging.limit)
+              /*!table.getCanNextPage()*/
+              paging.page ===
+                Math.ceil((paging.total || 0) / (paging.limit || 20)) ||
+              Math.ceil((paging.total || 0) / (paging.limit || 20)) === 0
             }
           >
-            Next
+            Sau
           </Button>
         </div>
       </div>

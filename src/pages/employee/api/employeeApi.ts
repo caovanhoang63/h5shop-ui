@@ -23,7 +23,7 @@ export async function getEmployee(
   if (filters.lk_first_name) params.lk_first_name = filters.lk_first_name;
   if (filters.status) params.status = filters.status;
   try {
-    const response = await axiosInstance.get<EmployeeResponse>("/v1/employee", {
+    const response = await axiosInstance.get<EmployeeResponse>("/v1/users", {
       params: params,
     });
     console.log("Fetch success:", response.data);
@@ -33,12 +33,13 @@ export async function getEmployee(
     throw error;
   }
 }
+
 export async function createEmployee(
   body: EmployeeCreate,
 ): Promise<EmployeeCreateResponse> {
   try {
     const response = await axiosInstance.post<EmployeeCreateResponse>(
-      "/v1/employee",
+      "/v1/auth/register",
       body,
     );
     console.log("Fetch success:", response.data);
@@ -53,7 +54,7 @@ export async function deleteEmployee(
 ): Promise<EmployeeCreateResponse> {
   try {
     const response = await axiosInstance.delete<EmployeeCreateResponse>(
-      `/v1/employee/${id}`,
+      `/v1/users/${id}`,
     );
     console.log("Fetch success:", response.data);
     return response.data;
@@ -68,7 +69,7 @@ export async function updateEmployee(
 ): Promise<EmployeeUpdateResponse> {
   try {
     const response = await axiosInstance.patch<EmployeeCreateResponse>(
-      `/v1/employee/${id}`,
+      `/v1/users/${id}`,
       body,
     );
     console.log("Fetch success:", response.data);
@@ -78,3 +79,8 @@ export async function updateEmployee(
     throw error;
   }
 }
+
+export const changePassword = (userId: number, password: string) =>
+  axiosInstance.post(`/v1/auth/${userId}/change-password`, {
+    password: password,
+  });

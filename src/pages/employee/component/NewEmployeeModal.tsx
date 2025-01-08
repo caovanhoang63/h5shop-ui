@@ -22,6 +22,7 @@ import { toast } from "react-toastify";
 import { useForm } from "react-hook-form";
 import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
+import { RoleMap, SystemRole } from "@/utils/constants.ts";
 
 const validationSchema = yup
   .object({
@@ -34,7 +35,18 @@ const validationSchema = yup
       .required("Email không được để trống"),
     gender: yup.string().required("Giới tính không được để trống"),
     address: yup.string().required("Địa chỉ không được để trống"),
-    dateOfBirth: yup.string().required("Ngày sinh không được để trống"),
+    dateOfBirth: yup.date().required("Ngày sinh không được để trống"),
+    userName: yup.string().required("Tên đăng nhập không được để trống"),
+    systemRole: yup.string().required("Vị trí nhân viên không được trống"),
+    password: yup
+      .string()
+      .matches(
+        new RegExp(
+          "^(?=.*[A-Za-z])(?=.*\\d)(?=.*[@$!%*#?&])[A-Za-z\\d@$!%*#?&]{8,}$",
+        ),
+        "Mật khẩu không đủ mạnh",
+      )
+      .required(),
   })
   .required();
 
@@ -66,38 +78,23 @@ export default function NewEmployeeModal({
         email: "",
         gender: "",
         address: "",
-        dateOfBirth: "",
+        dateOfBirth: new Date(),
+        systemRole: "sale_staff",
       });
     }
   }, [isOpen, reset]);
 
   const onSubmit = handleSubmit(async (data) => {
-    try {
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-expect-error
-      const response = await createEmployee(data);
-      console.log(response.data);
-      toast.success("Tạo nhân viên thành công!", {
-        position: "top-right",
-        autoClose: 3000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
+    createEmployee(data)
+      .then(() => {
+        toast.success("Tạo nhân viên thành công!");
+        onOpenChange(false);
+        window.location.reload();
+      })
+      .catch((e) => {
+        console.log(e);
+        toast.error("Tạo nhân viên thất bại!");
       });
-      onOpenChange(false);
-      window.location.reload();
-    } catch (e) {
-      console.log(e);
-      toast.error("Tạo nhân viên thất bại!", {
-        position: "top-right",
-        autoClose: 3000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-      });
-    }
   });
 
   return (
@@ -119,6 +116,17 @@ export default function NewEmployeeModal({
                     {errors.firstName && (
                       <p className="text-red-500 mt-1">
                         {errors.firstName.message}
+                      </p>
+                    )}
+                  </div>
+                  <div className={"flex flex-col"}>
+                    <Label className={"w-full mb-2"} htmlFor="firstName">
+                      Tên đăng nhập
+                    </Label>
+                    <Input id="userName" {...register("userName")} />
+                    {errors.userName && (
+                      <p className="text-red-500 mt-1">
+                        {errors.userName.message}
                       </p>
                     )}
                   </div>
@@ -181,12 +189,66 @@ export default function NewEmployeeModal({
                   </div>
                   <div className={"flex flex-col"}>
                     <Label className={"w-full mb-2"} htmlFor="address">
+                      Mật khẩu
+                    </Label>
+                    <Input
+                      type={"password"}
+                      id="password"
+                      {...register("password")}
+                    />
+                    {errors.password && (
+                      <p className="text-red-500 mt-1">
+                        {errors.password.message}
+                      </p>
+                    )}
+                  </div>
+                  <div className={"flex flex-col"}>
+                    <Label className={"w-full mb-2"} htmlFor="address">
                       Địa chỉ
                     </Label>
                     <Input id="address" {...register("address")} />
                     {errors.address && (
                       <p className="text-red-500 mt-1">
                         {errors.address.message}
+                      </p>
+                    )}
+                  </div>
+                  <div className={"flex flex-col"}>
+                    <Label className={"w-full mb-2"} htmlFor="systemRole">
+                      Vị trí
+                    </Label>
+                    <Select
+                      onValueChange={(value) => setValue("systemRole", value)}
+                    >
+                      <SelectTrigger id="systemRole">
+                        <SelectValue
+                          placeholder={"Chọn vị trí nhân viên"}
+                        ></SelectValue>
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value={SystemRole.admin}>
+                          {RoleMap[SystemRole.admin]}
+                        </SelectItem>
+                        <SelectItem value={SystemRole.owner}>
+                          {RoleMap[SystemRole.admin]}
+                        </SelectItem>
+                        <SelectItem value={SystemRole.sale_staff}>
+                          {RoleMap[SystemRole.sale_staff]}
+                        </SelectItem>
+                        <SelectItem value={SystemRole.warehouse_staff}>
+                          {RoleMap[SystemRole.warehouse_staff]}
+                        </SelectItem>
+                        <SelectItem value={SystemRole.technical_staff}>
+                          {RoleMap[SystemRole.technical_staff]}
+                        </SelectItem>
+                        <SelectItem value={SystemRole.finance_staff}>
+                          {RoleMap[SystemRole.finance_staff]}
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>{" "}
+                    {errors.systemRole && (
+                      <p className="text-red-500 mt-1">
+                        {errors.systemRole.message}
                       </p>
                     )}
                   </div>

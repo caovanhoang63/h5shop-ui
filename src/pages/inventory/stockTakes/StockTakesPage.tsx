@@ -20,11 +20,13 @@ import { toast } from "react-toastify";
 import _ from "lodash";
 import { searchSku } from "@/pages/inventory/stockIn/api/stockInApi.ts";
 import { formatCurrency } from "@/utils/convert.ts";
+import { useUserStore } from "@/stores/userStore.ts";
 
 export default function InventoryCheckPage() {
   const rawData: InventoryItemStockTake[] = [];
   const [note, setNote] = useState("");
   const navigate = useNavigate();
+  const userProfile = useUserStore((store) => store.user);
   const [items, setItems] = React.useState<InventoryItemStockTake[]>(
     rawData.map((item) => ({
       ...item,
@@ -36,14 +38,12 @@ export default function InventoryCheckPage() {
 
   const [searchSkuQuery, setSearchSkuQuery] = useState("");
   const [filteredProviders, setFilteredProviders] = useState<
-    [
-      {
-        id: number;
-        stock: number;
-        name: string;
-        image: string;
-      },
-    ]
+    {
+      id: number;
+      stock: number;
+      name: string;
+      price: number;
+    }[]
   >();
   const handleSearchSkuChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const query = e.target.value;
@@ -59,12 +59,10 @@ export default function InventoryCheckPage() {
         } else {
           try {
             const response = await searchSku(query);
-            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-            // @ts-expect-error
+
             const searchResponse = response.data.map((item) => ({
               id: item.id,
               name: item.name,
-              code: item.code,
               price: item.price,
               stock: item.stock,
             }));
@@ -112,25 +110,20 @@ export default function InventoryCheckPage() {
     );
   };
   const calculateTotalActualQuantity = () => {
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-expect-error
-    return items.reduce((total, item) => total + item.actualQuantity, 0);
+    return items.reduce((total, item) => total + (item.actualQuantity || 0), 0);
   };
-
+  const calculateTotalPrice = () => {
+    return items.reduce((total, item) => total + (item.varianceValue || 0), 0);
+  };
   const handleComplete = async () => {
     if (items.length === 0) {
       toast.warning("Không có sản phẩm!", {
-        position: "top-right",
-        autoClose: 3000,
-        hideProgressBar: false,
         closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
       });
       return;
     }
     const report: InventoryReportCreate = {
-      warehouseMan1: 2,
+      warehouseMan1: userProfile?.id || 1,
       note: note,
       items: items.map((item) => ({
         skuId: item.id,
@@ -255,7 +248,9 @@ export default function InventoryCheckPage() {
         <Card className="w-[300px]">
           <CardContent className="p-4 space-y-4">
             <div className="flex items-center justify-between text-sm">
-              <span>Nguyễn Huỳnh Duy Hiếu</span>
+              <span>
+                {userProfile?.firstName + " " + userProfile?.lastName}
+              </span>
               <Pencil className="h-4 w-4 text-gray-500" />
             </div>
 
@@ -264,16 +259,16 @@ export default function InventoryCheckPage() {
                 <span className="text-gray-500">Mã kiểm kho</span>
                 <span>Mã phiếu tự động</span>
               </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-gray-500">Trạng thái</span>
-                <span>Phiếu tạm</span>
-              </div>
+
               <div className="flex justify-between text-sm">
                 <span className="text-gray-500">Tổng SL thực tế</span>
                 <span>{calculateTotalActualQuantity()}</span>
               </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-gray-500">Tổng Giá trị lệch</span>
+                <span>{formatCurrency(calculateTotalPrice())}</span>
+              </div>
             </div>
-
             <div className="pt-4">
               <Input
                 placeholder="Ghi chú"

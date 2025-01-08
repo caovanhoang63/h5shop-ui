@@ -1,5 +1,5 @@
 import * as React from "react";
-import { ArrowLeft, Trash2, PlusCircle } from "lucide-react";
+import { ArrowLeft, Trash2 } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -13,7 +13,6 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Link, useNavigate } from "react-router-dom";
 import { useEffect, useMemo, useState } from "react";
-import { StockInItemAdd, StockInItemSearch } from "@/types/stockIn/stockIn.ts";
 import {
   listReason,
   searchSku,
@@ -24,6 +23,7 @@ import { toast } from "react-toastify";
 import {
   StockOutCreate,
   StockOutItemAdd,
+  StockOutItemSearch,
   StockOutReason,
 } from "@/types/stockOut/stockOut.ts";
 import {
@@ -34,22 +34,22 @@ import {
   SelectValue,
 } from "@/components/ui/select.tsx";
 import { createStockOutReport } from "@/pages/inventory/stockOut/api/stockOutApi.ts";
+import { useUserStore } from "@/stores/userStore.ts";
 
 export default function StockOutAddPage() {
   const rawData: StockOutItemAdd[] = [];
   const [note, setNote] = useState("");
   const navigate = useNavigate();
-  const searchData = [
-    {
-      id: 0,
-      code: "",
-      name: "",
-      amount: 0,
-      price: 0,
-      url: "",
-    },
-  ];
-  const [items, setItems] = React.useState<StockInItemAdd[]>(
+  const userProfile = useUserStore((store) => store.user);
+  interface IConvert {
+    [key: string]: string;
+  }
+  const typeStockOut: IConvert = {
+    "Returns to Supplier": "Trả hàng nhà cung cấp",
+    Disposal: "Xuất hủy",
+    Renew: "Đổi mới",
+  };
+  const [items, setItems] = React.useState<StockOutItemAdd[]>(
     rawData.map((item) => ({
       ...item,
       price: 0,
@@ -57,22 +57,26 @@ export default function StockOutAddPage() {
     })),
   );
   const [searchQuery, setSearchQuery] = useState("");
-  const [filteredProducts, setFilteredProducts] = useState(searchData);
+  const [filteredProducts, setFilteredProducts] = useState<
+    {
+      id: number;
+      name: string;
+      stock: number;
+      price: number;
+    }[]
+  >();
   const debouncedSearch = useMemo(
     () =>
       _.debounce(async (query: string) => {
         if (query.trim() === "") {
-          setFilteredProducts(searchData);
+          setFilteredProducts(undefined);
         } else {
           try {
             const response = await searchSku(query);
-            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-            // @ts-expect-error
             const searchResponse = response.data.map((item) => ({
               id: item.id,
               name: item.name,
-              code: item.code,
-              amount: item.amount,
+              stock: item.stock,
               price: item.price,
             }));
             setFilteredProducts(searchResponse);
@@ -80,7 +84,7 @@ export default function StockOutAddPage() {
             console.error(error);
           }
         }
-      }, 700),
+      }, 300),
     [],
   );
 
@@ -90,7 +94,7 @@ export default function StockOutAddPage() {
     debouncedSearch(query);
   };
 
-  const handleAddItem = (product: StockInItemSearch) => {
+  const handleAddItem = (product: StockOutItemSearch) => {
     setItems((prevItems) => {
       setSearchQuery("");
       const exists = prevItems.some((item) => item.id === product.id);
@@ -104,6 +108,7 @@ export default function StockOutAddPage() {
           amount: 0,
           costPrice: product.price || 0,
           totalPrice: 0,
+          stock: product.stock || 0,
         },
       ];
     });
@@ -122,10 +127,11 @@ export default function StockOutAddPage() {
     );
   };
   const handleAmountChange = (id: number, amount: number) => {
-    if (amount <= 0) amount = 0;
+    if (amount > 99999) amount = 99999;
+    if (amount <= 0) amount = 1;
     setItems((prevItems) =>
       prevItems.map((item) =>
-        item.id === id
+        item.id === id && amount > 0 && amount <= 99999
           ? {
               ...item,
               amount: amount,
@@ -145,7 +151,7 @@ export default function StockOutAddPage() {
       return;
     }
     const report: StockOutCreate = {
-      warehouseMen: 1,
+      warehouseMen: userProfile?.id || 1,
       stockOutReasonId: Number(selectedReason),
       items: items.map((item) => ({
         skuId: item.id,
@@ -157,11 +163,11 @@ export default function StockOutAddPage() {
     try {
       const response = await createStockOutReport(report);
       toast.success("Nhập hàng thành công!");
-      console.log("Báo cáo nhập kho đã được tạo:", response);
-      navigate("/stock-in");
+      console.log("Báo cáo xuất kho đã được tạo:", response);
+      navigate("/stock-out");
     } catch (error) {
-      toast.error("Nhập hàng thất bại!");
-      console.error("Lỗi khi tạo báo cáo kiểm kho:", error);
+      toast.error("Xuất hàng thất bại!");
+      console.error("Lỗi khi tạo báo cáo xuất hàng:", error);
     }
   };
   const [stockOutReason, setStockOutReason] = useState<StockOutReason[]>([]);
@@ -169,8 +175,6 @@ export default function StockOutAddPage() {
   const getListReason = async () => {
     try {
       const response = await listReason();
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-expect-error
       setStockOutReason(response.data);
     } catch (error) {
       toast.error("Lỗi hệ thống!");
@@ -197,28 +201,26 @@ export default function StockOutAddPage() {
               value={searchQuery}
               onChange={handleSearchChange}
             />
-            <Button variant={"ghost"}>
-              <PlusCircle className="h-6 w-6" />
-            </Button>
-
             {/*
             <Plus className="h-5 w-5 text-gray-500" />
 */}
-            {filteredProducts.length > 0 && searchQuery.trim() !== "" && (
-              <div className="absolute top-full mt-2 left-0 w-full bg-white border rounded-lg shadow-md z-50 max-h-60 overflow-y-auto">
-                {filteredProducts.map((product) => (
-                  <div
-                    key={product.id}
-                    className="p-2 hover:bg-gray-100 cursor-pointer"
-                    onClick={() => handleAddItem(product)}
-                  >
-                    <span className="text-gray-500">{product.id}</span>
-                    {" - "}
-                    <span className="font-medium">{product.name}</span>
-                  </div>
-                ))}
-              </div>
-            )}
+            {filteredProducts &&
+              filteredProducts.length > 0 &&
+              searchQuery.trim() !== "" && (
+                <div className="absolute top-full mt-2 left-0 w-full bg-white border rounded-lg shadow-md z-50 max-h-60 overflow-y-auto">
+                  {filteredProducts.map((product) => (
+                    <div
+                      key={product.id}
+                      className="p-2 hover:bg-gray-100 cursor-pointer"
+                      onClick={() => handleAddItem(product)}
+                    >
+                      <span className="text-gray-500">{product.id}</span>
+                      {" - "}
+                      <span className="font-medium">{product.name}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
           </div>
         </div>
       </div>
@@ -233,13 +235,14 @@ export default function StockOutAddPage() {
                 <TableHead className="w-[50px]">STT</TableHead>
                 <TableHead>Mã hàng</TableHead>
                 <TableHead>Tên hàng</TableHead>
+                <TableHead className="text-center">Tồn kho</TableHead>
                 <TableHead className="text-center">Số lượng</TableHead>
                 <TableHead className="text-center">Đơn giá</TableHead>
                 <TableHead className="text-center">Tổng giá trị</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {items.map((item) => (
+              {items.map((item, index) => (
                 <TableRow key={item.id}>
                   <TableCell>
                     <Trash2
@@ -247,9 +250,10 @@ export default function StockOutAddPage() {
                       onClick={() => handleRemoveItem(item.id)}
                     />
                   </TableCell>
-                  <TableCell>{item.id}</TableCell>
-                  <TableCell className="text-blue-600">{item.code}</TableCell>
+                  <TableCell>{index + 1}</TableCell>
+                  <TableCell className="text-blue-600">{item.id}</TableCell>
                   <TableCell>{item.name}</TableCell>
+                  <TableCell className="text-center">{item.stock}</TableCell>
 
                   <TableCell className="text-center items-center flex justify-center">
                     <Input
@@ -281,7 +285,9 @@ export default function StockOutAddPage() {
         <Card className="w-[300px]">
           <CardContent className="p-4 space-y-4">
             <div className="flex items-center justify-between text-sm">
-              <span>Nguyễn Huỳnh Duy Hiếu</span>
+              <span>
+                {userProfile?.firstName + " " + userProfile?.lastName}
+              </span>
             </div>
             <div className="flex items-center justify-between text-sm relative">
               <Select onValueChange={(value) => setSelectedReason(value)}>
@@ -291,7 +297,7 @@ export default function StockOutAddPage() {
                 <SelectContent>
                   {stockOutReason.map((option) => (
                     <SelectItem key={option.id} value={option.id.toString()}>
-                      {option.name}
+                      {typeStockOut[option.name]}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -302,10 +308,7 @@ export default function StockOutAddPage() {
                 <span className="text-gray-500">Mã kiểm kho</span>
                 <span>Mã phiếu tự động</span>
               </div>
-              {/*<div className="flex justify-between text-sm">
-                <span className="text-gray-500">Trạng thái</span>
-                <span>Phiếu tạm</span>
-              </div>*/}
+
               <div className="flex justify-between text-sm">
                 <span className="text-gray-500">Tổng SL thực tế</span>
                 <span>{calculateTotalActualQuantity()}</span>

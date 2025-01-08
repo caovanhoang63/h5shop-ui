@@ -9,6 +9,8 @@ import {
   VisibilityState,
   SortingState,
   ColumnFiltersState,
+  CellContext,
+  ColumnDef,
 } from "@tanstack/react-table";
 import {
   Table,
@@ -32,6 +34,18 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import EmployeeEditModal from "@/pages/employee/component/EmployeeEditModal.tsx";
+import { GenderMap, RoleMap } from "@/utils/constants.ts";
+import { format } from "date-fns";
+import { toast } from "react-toastify";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog.tsx";
+import { Input } from "@/components/ui/input.tsx";
+import { changePassword } from "./api/employeeApi";
 
 interface EmployeeTableProps {
   dataEmployee: Employee[];
@@ -55,124 +69,68 @@ export function EmployeeTable({
   const [selectedEmployee, setSelectedEmployee] = useState<
     Employee | undefined
   >(undefined);
-
-  const columnsEmployee = [
+  const columnsEmployee: ColumnDef<Employee>[] = [
     {
       accessorKey: "id",
       header: "Mã nhân viên",
 
-      cell: ({ row }: { row: unknown }) => (
-        <div>
-          {
-            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-            // @ts-expect-error
-            row.getValue("id")
-          }
-        </div>
-      ),
+      cell: ({ row }) => <div>{row.getValue("id")}</div>,
     },
     {
       accessorKey: "firstName",
       header: "Tên",
-      cell: ({ row }: { row: unknown }) => (
-
-        <div>
-          {
-            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-            // @ts-expect-error
-            row.getValue("firstName")
-          }
-        </div>
-      ),
+      cell: ({ row }) => <div>{row.getValue("firstName")}</div>,
     },
     {
       accessorKey: "lastName",
       header: "Họ",
-      cell: ({ row }: { row: unknown }) => (
-
-        <div>
-          {
-            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-            // @ts-expect-error
-            row.getValue("lastName")
-          }
-        </div>
-      ),
+      cell: ({ row }) => <div>{row.getValue("lastName")}</div>,
     },
     {
       accessorKey: "email",
       header: "Email",
 
-      cell: ({ row }: { row: unknown }) => (
-        <div>
-          {
-            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-            // @ts-expect-error
-            row.getValue("email")
-          }
-        </div>
-      ),
+      cell: ({ row }) => <div>{row.getValue("email")}</div>,
     },
     {
       accessorKey: "phoneNumber",
       header: "Số điện thoại",
-      cell: ({ row }: { row: unknown }) => (
-
-        <div>
-          {
-            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-            // @ts-expect-error
-            row.getValue("phoneNumber")
-          }
-        </div>
-      ),
+      cell: ({ row }) => <div>{row.getValue("phoneNumber")}</div>,
     },
     {
       accessorKey: "address",
       header: "Địa chỉ",
 
-      cell: ({ row }: { row: unknown }) => (
-        <div>
-          {
-            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-            // @ts-expect-error
-            row.getValue("address")
-          }
-        </div>
-      ),
+      cell: ({ row }) => <div>{row.getValue("address")}</div>,
     },
     {
       accessorKey: "gender",
       header: "Giới tính",
 
-      cell: ({ row }: { row: unknown }) => (
-        <div>
-          {
-            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-            // @ts-expect-error
-            row.getValue("gender")
-          }
-        </div>
+      cell: ({ row }) => (
+        <div>{GenderMap[row.getValue("gender") as string]}</div>
       ),
     },
     {
       accessorKey: "dateOfBirth",
       header: "Ngày sinh",
-      cell: ({ row }: { row: unknown }) => (
-
-        <div>
-          {
-            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-            // @ts-expect-error
-            row.getValue("dateOfBirth")
-          }
-        </div>
-      ),
+      cell: ({ row }: CellContext<any, any>) => {
+        const date = row.original.dateOfBirth;
+        return <div>{date ? format(date, "dd-MM-yyyy") : ""}</div>;
+      },
+    },
+    {
+      accessorKey: "systemRole",
+      header: "Quyền",
+      cell: ({ row }) => {
+        const role = row.original.systemRole;
+        return <div>{RoleMap[role]}</div>;
+      },
     },
     {
       accessorKey: "status",
       header: "Trạng thái",
-      cell: ({ row }: { row: unknown }) => {
+      cell: ({ row }) => {
         const status = row.getValue("status");
         return (
           <div className={status === 1 ? "text-green-500" : "text-red-500"}>
@@ -185,11 +143,7 @@ export function EmployeeTable({
       id: "actions",
       enableHiding: false,
 
-      cell: ({
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-expect-error
-        row,
-      }) => {
+      cell: ({ row }) => {
         const employee = row.original;
         return (
           <DropdownMenu>
@@ -202,14 +156,31 @@ export function EmployeeTable({
             <DropdownMenuContent align="end">
               <DropdownMenuLabel>Actions</DropdownMenuLabel>
               <DropdownMenuItem
-                onClick={() =>
-                  navigator.clipboard.writeText(employee.id.toString())
-                }
+                onClick={(e) => {
+                  e.stopPropagation();
+                  e.preventDefault();
+                  navigator.clipboard
+                    .writeText(employee.id.toString())
+                    .then(() => {
+                      toast.success("Sao chép thành công");
+                    });
+                }}
               >
-                Copy employee ID
+                Sao chép mã nhân viên
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem>View employee details</DropdownMenuItem>
+              <DropdownMenuItem>Chi tiết</DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={(e) => {
+                  e.stopPropagation();
+                  e.preventDefault();
+                  setIsOpenChangePasswordModal(true);
+                  setSelectedEmployee(employee);
+                  setNewPassword("");
+                }}
+              >
+                Thay đổi mật khẩu
+              </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         );
@@ -240,7 +211,9 @@ export function EmployeeTable({
       rowSelection,
     },
   });
-
+  const [newPassword, setNewPassword] = useState<string>("");
+  const [isOpenChangePasswordModal, setIsOpenChangePasswordModal] =
+    useState<boolean>(false);
   useEffect(() => {
     setColumnVisibility(
       columnVisible.reduce((acc, col) => {
@@ -262,6 +235,43 @@ export function EmployeeTable({
         isOpen={isOpenEmployeeModal}
         onOpenChange={setIsOpenEmployeeModal}
       ></EmployeeEditModal>
+      <Dialog
+        open={isOpenChangePasswordModal}
+        onOpenChange={() => setIsOpenChangePasswordModal(false)}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Mật khẩu mới</DialogTitle>
+          </DialogHeader>
+          <Input
+            onChange={(v) => setNewPassword(v.target.value)}
+            id={"password"}
+            type={"password"}
+          ></Input>
+          <DialogFooter>
+            <Button
+              onClick={() => {
+                console.log(selectedEmployee);
+                if (!selectedEmployee || !selectedEmployee.id) {
+                  setIsOpenChangePasswordModal(false);
+                  toast.error("Lỗi");
+                  return;
+                }
+                changePassword(selectedEmployee.id, newPassword)
+                  .then(() => {
+                    toast.success("Thay đổi thành công");
+                    setIsOpenChangePasswordModal(false);
+                  })
+                  .catch(() => {
+                    toast.error("Thay đổi thất bại");
+                  });
+              }}
+            >
+              Thay đổi
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
       <div className="rounded-md border">
         <Table>
           <TableHeader>

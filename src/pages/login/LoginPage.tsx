@@ -5,9 +5,10 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Authenticate } from "@/types/authenticate.ts";
-import { login } from "@/pages/login/api.ts";
+import { getProfile, login } from "@/pages/login/api.ts";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
+import { useUserStore } from "@/stores/userStore.ts";
 
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
@@ -16,12 +17,16 @@ export default function LoginPage() {
     userName: "",
     password: "",
   });
+  const loginStore = useUserStore((state) => state.login);
   async function handleManageButtonClick(navigateDestination: string) {
     try {
       const response = await login(authenticateRequest);
       if (response) {
         localStorage.setItem("token", response.data.accessToken.token);
         localStorage.setItem("refreshToken", response.data.refreshToken.token);
+        await getProfile().then((r) => {
+          loginStore(r.data.data);
+        });
 
         toast.success("Đăng nhập thành công!", {
           position: "top-right",

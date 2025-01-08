@@ -8,7 +8,6 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion.tsx";
-import { CheckBoxWithText } from "@/components/CheckBoxWithText.tsx";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group.tsx";
 import { Label } from "@/components/ui/label.tsx";
 import Container from "@/layouts/components/Container.tsx";
@@ -32,6 +31,7 @@ import { toast } from "react-toastify";
 import { listStockOutApi } from "@/pages/inventory/stockOut/api/stockOutApi.ts";
 import { StockOutItemTable } from "@/types/stockOut/stockOut.ts";
 import { StockOutTable } from "@/pages/inventory/stockOut/StockOutTable.tsx";
+import { Paging } from "@/types/paging.ts";
 
 export const StockOutPage = () => {
   const [stockOutReport, setStockOutReport] = useState<StockOutItemTable[]>([]);
@@ -51,7 +51,7 @@ export const StockOutPage = () => {
     to: undefined,
   });
   const [search, setSearch] = useState<string>();
-  const handleStatusChange = (value: string, checked: boolean) => {
+  /*const handleStatusChange = (value: string, checked: boolean) => {
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-expect-error
     setFilters((prevFilters) => {
@@ -64,7 +64,7 @@ export const StockOutPage = () => {
         status: updatedStatus,
       };
     });
-  };
+  };*/
   const handleSearchChange = (value: string) => {
     setFilters((prevFilters) => ({
       ...prevFilters,
@@ -117,6 +117,7 @@ export const StockOutPage = () => {
       const response = await listStockOutApi(filters);
       console.log("api", response.data);
       setStockOutReport(response.data);
+      setPaging({ ...paging, total: response.paging?.total });
     } catch (error) {
       toast.error("Lỗi hệ thống!", {
         position: "top-right",
@@ -137,6 +138,8 @@ export const StockOutPage = () => {
     { label: "Thời gian", key: "updatedAt", visible: true },
     { label: "Tổng số lượng", key: "totalAmount", visible: true },
     { label: "Trạng thái", key: "status", visible: true },
+    { label: "Mô tả", key: "stockOutReasonDescription", visible: true },
+    { label: "Loại xuất hàng", key: "stockOutReasonName", visible: true },
     /*{ label: "Action", key: "actions", visible: true },*/
   ]);
   const handleCheckField = (key: string, visible: boolean) => {
@@ -146,8 +149,14 @@ export const StockOutPage = () => {
       ),
     );
   };
-  console.log("fillet", filters);
-
+  const [paging, setPaging] = useState<Paging>({
+    limit: 10,
+    page: 1,
+  });
+  const handleSetPaging = (page: number) => {
+    setPaging({ ...paging, page });
+    setFilters({ ...filters, page });
+  };
   return (
     <Container className={"grid grid-cols-5 gap-4 grid-flow-row"}>
       <div className={"text-2xl col-span-1 font-bold"}>
@@ -258,7 +267,7 @@ export const StockOutPage = () => {
             </Accordion>
           </CardContent>
         </Card>
-        <Card>
+        {/*<Card>
           <CardContent>
             <Accordion type="single" collapsible>
               <AccordionItem value="item-1">
@@ -282,8 +291,8 @@ export const StockOutPage = () => {
               </AccordionItem>
             </Accordion>
           </CardContent>
-        </Card>
-        <Card>
+        </Card>*/}
+        {/*<Card>
           <CardContent>
             <Accordion type="single" collapsible>
               <AccordionItem value="item-1">
@@ -299,12 +308,14 @@ export const StockOutPage = () => {
               </AccordionItem>
             </Accordion>
           </CardContent>
-        </Card>
+        </Card>*/}
       </div>
       <div className={"col-span-4"}>
         <StockOutTable
           columnVisible={fields}
           dataStockOut={stockOutReport}
+          setPaging={handleSetPaging}
+          paging={paging}
         ></StockOutTable>
       </div>
     </Container>
