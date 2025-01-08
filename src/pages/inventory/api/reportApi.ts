@@ -4,11 +4,12 @@ import {
   InventoryReportCreate,
 } from "@/types/inventory/inventoryReport.ts";
 import axiosInstance from "@/axiosSetup.ts";
+import { Paging } from "@/types/paging.ts";
 
 interface ResponseInventoryReport {
   data: InventoryReport[];
   extra?: never;
-  paging?: never;
+  paging?: Paging;
 }
 interface ResponseInventoryReportDetail {
   data: InventoryReportDetails;

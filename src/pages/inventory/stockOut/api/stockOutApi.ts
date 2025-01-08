@@ -6,11 +6,12 @@ import {
   StockOutReason,
 } from "@/types/stockOut/stockOut.ts";
 import { SkuGetDetail } from "@/types/sku/skuGetDetail.ts";
+import { Paging } from "@/types/paging.ts";
 
 interface ResponseStockOutTable {
   data: StockOutItemTable[];
   extra?: never;
-  paging?: never;
+  paging?: Paging;
 }
 interface ResponseStockOutDetail {
   data: StockOutDetail;

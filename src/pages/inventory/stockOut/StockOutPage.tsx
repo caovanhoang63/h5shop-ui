@@ -117,6 +117,7 @@ export const StockOutPage = () => {
       const response = await listStockOutApi(filters);
       console.log("api", response.data);
       setStockOutReport(response.data);
+      setPaging({ ...paging, total: response.paging?.total });
     } catch (error) {
       toast.error("Lỗi hệ thống!", {
         position: "top-right",

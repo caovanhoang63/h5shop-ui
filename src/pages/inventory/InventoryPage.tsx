@@ -109,6 +109,7 @@ export const InventoryPage = () => {
       const response = await getInventoryReports(filters);
       console.log("api", response.data);
       setInventoryReports(response.data);
+      setPaging({ ...paging, total: response.paging?.total });
     } catch (error) {
       console.log(error);
     }
