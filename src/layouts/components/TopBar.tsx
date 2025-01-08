@@ -62,15 +62,22 @@ export const TopBar = () => {
   const canViewReport = ["admin", "owner", "finance_staff"].includes(
     userProfile?.systemRole || "",
   );
+  const canViewWarranty = ["admin", "owner", "technical_staff"].includes(
+    userProfile?.systemRole || "",
+  );
   const canViewStock = [
     "admin",
     "owner",
     "warehouse_staff",
     "sale_staff",
+    "finance_staff",
   ].includes(userProfile?.systemRole || "");
-  const canViewStockInOut = ["admin", "owner", "warehouse_staff"].includes(
-    userProfile?.systemRole || "",
-  );
+  const canViewStockInOut = [
+    "admin",
+    "owner",
+    "warehouse_staff",
+    "finance_staff",
+  ].includes(userProfile?.systemRole || "");
   const canViewPartner = [
     "admin",
     "owner",
@@ -177,13 +184,16 @@ export const TopBar = () => {
                     <List size={20} />
                     Danh mục
                   </DropdownMenuItem>
-                  <DropdownMenuItem
-                    className="hover:bg-blue-700 cursor-pointer"
-                    onClick={() => navigate("/warranty")}
-                  >
-                    <FileText size={20} />
-                    Phiếu bảo hành
-                  </DropdownMenuItem>
+                  {canViewWarranty && (
+                    <DropdownMenuItem
+                      className="hover:bg-blue-700 cursor-pointer"
+                      onClick={() => navigate("/warranty")}
+                    >
+                      <FileText size={20} />
+                      Phiếu bảo hành
+                    </DropdownMenuItem>
+                  )}
+
                   {canViewStock && (
                     <DropdownMenuItem
                       className="hover:bg-blue-700 cursor-pointer"

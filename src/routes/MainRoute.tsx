@@ -65,7 +65,7 @@ export const MainRoute = () => {
         <Route
           path={"inventory"}
           element={CheckRole(
-            ["admin", "owner", "warehouse_staff"],
+            ["admin", "owner", "warehouse_staff", "finance_staff"],
             InventoryPage,
           )}
         />
@@ -94,7 +94,7 @@ export const MainRoute = () => {
         <Route
           path={"stock-in"}
           element={CheckRole(
-            ["admin", "warehouse_staff", "owner"],
+            ["admin", "warehouse_staff", "owner", "finance_staff"],
             StockInPage,
           )}
         />
@@ -108,7 +108,13 @@ export const MainRoute = () => {
         <Route
           path={"stock-out"}
           element={CheckRole(
-            ["admin", "warehouse_staff", "technical_staff", "owner"],
+            [
+              "admin",
+              "warehouse_staff",
+              "technical_staff",
+              "owner",
+              "finance_staff",
+            ],
             StockOutPage,
           )}
         />
