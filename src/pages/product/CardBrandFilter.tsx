@@ -7,35 +7,43 @@ import {
 } from "@/components/ui/accordion.tsx";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group.tsx";
 import { Label } from "@/components/ui/label.tsx";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { CirclePlus } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area.tsx";
-import BrandModal from "@/pages/product/BrandModal.tsx";
-import { BrandDTO } from "@/types/brand/BrandDTO.ts";
-
-const brands: BrandDTO[] = [
-  { id: 0, name: "Tất cả" },
-  { id: 1, name: "NVIDIA" },
-  { id: 2, name: "Lenovo" },
-  { id: 3, name: "SamSung" },
-  { id: 4, name: "Huawei" },
-  { id: 5, name: "Apple" },
-  { id: 6, name: "Xiaomi" },
-  { id: 7, name: "Oppo" },
-  { id: 8, name: "Vivo" },
-  { id: 9, name: "Realme" },
-  { id: 10, name: "Asus" },
-];
+import { Brand } from "@/types/brand/brand.ts";
 
 interface ICatalogProductProps {
   onChange: (value: string) => void;
+  listBrands: Brand[];
+  onClickEdit?: (item: Brand) => void;
+  onClickAdd?: () => void;
 }
 
-export const CardBrandFilter = ({ onChange }: ICatalogProductProps) => {
+export const CardBrandFilter = ({
+  onChange,
+  listBrands,
+  onClickEdit,
+  onClickAdd,
+}: ICatalogProductProps) => {
   const [brandSelected, setBrandSelected] = useState<string>("0");
-  const [isOpenModalAdd, setIsOpenModalAdd] = useState<boolean>(false);
-  const [isOpenModalUpdate, setIsOpenModalUpdate] = useState<boolean>(false);
-  const [brandEdit, setBrandEdit] = useState<BrandDTO>(new BrandDTO(0, ""));
+  const [listBrandCpn, setListBrandCpn] = useState<Brand[]>([
+    {
+      id: 0,
+      name: "Tất cả",
+    },
+  ]);
+
+  useEffect(() => {
+    setListBrandCpn([
+      {
+        id: 0,
+        name: "Tất cả",
+      },
+      ...listBrands,
+    ]);
+  }, [listBrands]);
+
+  // fetch brand from API
 
   const handleSelectedBrand = (brandId: string) => {
     console.log(brandId);
@@ -43,32 +51,8 @@ export const CardBrandFilter = ({ onChange }: ICatalogProductProps) => {
     onChange(brandId);
   };
 
-  const handleOpenModalAdd = () => {
-    setIsOpenModalAdd(true);
-  };
-
-  const handleOpenModalUpdate = () => {
-    setIsOpenModalUpdate(true);
-  };
-
-  const handleCloseModal = () => {
-    setIsOpenModalAdd(false);
-    setIsOpenModalUpdate(false);
-  };
-
   return (
     <Card>
-      <BrandModal
-        isOpen={isOpenModalAdd}
-        onOpenChange={handleCloseModal}
-        isAdd={true}
-      />
-      <BrandModal
-        isOpen={isOpenModalUpdate}
-        onOpenChange={handleCloseModal}
-        isAdd={false}
-        brandUpdate={brandEdit}
-      />
       <CardContent>
         <Accordion type="single" collapsible>
           <AccordionItem value="item-1">
@@ -88,7 +72,9 @@ export const CardBrandFilter = ({ onChange }: ICatalogProductProps) => {
                   }}
                   onClick={(e) => {
                     e.stopPropagation();
-                    handleOpenModalAdd();
+                    if (onClickAdd) {
+                      onClickAdd();
+                    }
                   }}
                 >
                   <CirclePlus className="w-5 h-5" />
@@ -98,7 +84,7 @@ export const CardBrandFilter = ({ onChange }: ICatalogProductProps) => {
             <AccordionContent className={"space-y-2"}>
               <ScrollArea style={{ height: "200px" }}>
                 <RadioGroup defaultValue="0">
-                  {brands.map((brand, index) => (
+                  {listBrandCpn.map((brand, index) => (
                     <div
                       key={index}
                       className="group flex items-center space-x-2"
@@ -126,8 +112,7 @@ export const CardBrandFilter = ({ onChange }: ICatalogProductProps) => {
                         }}
                         onClick={(e) => {
                           e.stopPropagation();
-                          handleOpenModalUpdate();
-                          setBrandEdit(brand);
+                          if (onClickEdit) onClickEdit(brand);
                         }}
                       >
                         ✎

@@ -1,5 +1,3 @@
-import { Partner } from "@/types/partner.ts";
-import { faker } from "@faker-js/faker/locale/en";
 import * as React from "react";
 import {
   ColumnDef,
@@ -30,24 +28,13 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu.tsx";
-
-function generatePartnerMockData(count: number = 10): Partner[] {
-  return Array.from({ length: count }, (_, index) => ({
-    id: index + 1,
-    name: faker.company.name(),
-    address: faker.address.streetAddress(),
-    email: faker.internet.email(),
-    phoneNumber: faker.phone.number(),
-    status: faker.helpers.arrayElement([0, 1, 2]),
-    createdAt: faker.date.past(),
-    updatedAt: faker.date.recent(),
-  }));
-}
-const data = generatePartnerMockData(25);
-export const columns: ColumnDef<Partner>[] = [
+import PartnerModal from "@/pages/partner/components/PartnerModal.tsx";
+import { useEffect, useState } from "react";
+import { MenuVisibilityColumnTable } from "@/components/ButtonVisibilityColumnTable.tsx";
+import { Provider } from "@/types/provider.ts";
+export const providerColumns: ColumnDef<Provider>[] = [
   {
     id: "select",
     header: ({ table }) => (
@@ -62,6 +49,7 @@ export const columns: ColumnDef<Partner>[] = [
     ),
     cell: ({ row }) => (
       <Checkbox
+        onClick={(event) => event.stopPropagation()}
         checked={row.getIsSelected()}
         onCheckedChange={(value) => row.toggleSelected(!!value)}
         aria-label="Select row"
@@ -101,7 +89,25 @@ export const columns: ColumnDef<Partner>[] = [
         </Button>
       );
     },
-    cell: ({ row }) => <div className="lowercase">{row.getValue("name")}</div>,
+    cell: ({ row }) => <div>{row.getValue("name")}</div>,
+  },
+  {
+    accessorKey: "address",
+    header: ({ column }) => {
+      return (
+        <Button
+          className="p-0"
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Địa chỉ
+          <ArrowUpDown />
+        </Button>
+      );
+    },
+    cell: ({ row }) => (
+      <div className="lowercase">{row.getValue("address")}</div>
+    ),
   },
   {
     accessorKey: "phoneNumber",
@@ -138,6 +144,22 @@ export const columns: ColumnDef<Partner>[] = [
     cell: ({ row }) => <div className="lowercase">{row.getValue("email")}</div>,
   },
   {
+    accessorKey: "debt",
+    header: ({ column }) => {
+      return (
+        <Button
+          className="p-0"
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Nợ
+          <ArrowUpDown />
+        </Button>
+      );
+    },
+    cell: ({ row }) => <div className="lowercase">{row.getValue("debt")}</div>,
+  },
+  {
     accessorKey: "status",
     header: "Trạng thái",
     cell: ({ row }) => <StatusRow status={row.getValue("status")} />,
@@ -163,25 +185,50 @@ export const columns: ColumnDef<Partner>[] = [
                 navigator.clipboard.writeText(payment.id.toString())
               }
             >
-              Copy payment ID
+              Sao chép Mã nhà cung cấp
             </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem>View customer</DropdownMenuItem>
-            <DropdownMenuItem>View payment details</DropdownMenuItem>
+            <DropdownMenuItem>Xem nhà cung cấp</DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       );
     },
   },
 ];
-export default function PartnerDataTable() {
+
+interface PartnerDataTableProps {
+  columnVisible: MenuVisibilityColumnTable[];
+  providerTableData: Provider[];
+  refreshData: () => void; // Thêm prop refreshData
+}
+
+export default function PartnerDataTable({
+  columnVisible,
+  providerTableData,
+  refreshData,
+}: PartnerDataTableProps) {
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     [],
   );
-  // console.log(data?.[0].images?.[0].url);
+  const [isOpenPartnerModal, setIsOpenPartnerModal] = useState(false);
   const [columnVisibility, setColumnVisibility] =
-    React.useState<VisibilityState>({});
+    React.useState<VisibilityState>(
+      columnVisible.reduce((acc, col) => {
+        acc[col.key] = col.visible;
+        return acc;
+      }, {} as VisibilityState),
+    );
+  const [selectedPartner, setSelectedPartner] = useState<Provider | undefined>(
+    undefined,
+  );
+  useEffect(() => {
+    setColumnVisibility(
+      columnVisible.reduce((acc, col) => {
+        acc[col.key] = col.visible;
+        return acc;
+      }, {} as VisibilityState),
+    );
+  }, [columnVisible]);
   const [rowSelection, setRowSelection] = React.useState({});
   const table = useReactTable({
     initialState: {
@@ -189,8 +236,8 @@ export default function PartnerDataTable() {
         pageSize: 10,
       },
     },
-    data,
-    columns,
+    data: providerTableData,
+    columns: providerColumns,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
     getCoreRowModel: getCoreRowModel(),
@@ -208,11 +255,12 @@ export default function PartnerDataTable() {
   });
   return (
     <div className="w-full">
-      {/*<SpuModal
-        isOpen={isOpenSpuModal}
-        onOpenChange={setIsOpenSpuModal}
-        spu={selectedSpu}
-      ></SpuModal>*/}
+      <PartnerModal
+        refreshData={refreshData}
+        isOpen={isOpenPartnerModal}
+        onOpenChange={setIsOpenPartnerModal}
+        partner={selectedPartner}
+      ></PartnerModal>
       <div className="rounded-md border">
         <Table>
           <TableHeader>
@@ -238,13 +286,12 @@ export default function PartnerDataTable() {
               table.getRowModel().rows.map((row) => (
                 <TableRow
                   className="cursor-pointer"
-                  /*onClick={(event) => {
+                  onClick={(event) => {
                     event.preventDefault();
                     event.stopPropagation();
-                    setIsOpenSpuModal(true);
-                    setSelectedSpu(row.original);
-                    console.log("Open");
-                  }}*/
+                    setIsOpenPartnerModal(true);
+                    setSelectedPartner(row.original);
+                  }}
                   key={row.id}
                   data-state={row.getIsSelected() && "selected"}
                 >
@@ -261,7 +308,7 @@ export default function PartnerDataTable() {
             ) : (
               <TableRow>
                 <TableCell
-                  colSpan={columns.length}
+                  colSpan={providerColumns.length}
                   className="h-24 text-center"
                 >
                   No results.

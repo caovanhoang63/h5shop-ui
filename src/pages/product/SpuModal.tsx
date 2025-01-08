@@ -8,7 +8,6 @@ import {
 import { Button } from "@/components/ui/button.tsx";
 import { Label } from "@/components/ui/label.tsx";
 import { Input } from "@/components/ui/input.tsx";
-import { Spu } from "@/types/spu.ts";
 import {
   Tabs,
   TabsContent,
@@ -22,287 +21,662 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card.tsx";
-import { useState } from "react";
+import { Fragment, useEffect, useState } from "react";
 import { ScrollArea } from "@/components/ui/scroll-area.tsx";
-import InputWithBotBorder from "@/components/InputWithBotBorder.tsx";
 import { BanIcon, FileInput, Plus, Trash2Icon } from "lucide-react";
 import { ItemAttrSku } from "@/pages/product/ItemAttrSku.tsx";
 import { ItemSku } from "@/pages/product/ItemSku.tsx";
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
+  SelectLabel,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select.tsx";
 import { CardCategorySelect } from "@/pages/product/CategorySelect.tsx";
 import { InputUploadImage } from "@/components/InputUploadImage.tsx";
+import { Category } from "@/types/category/category.ts";
+import { Brand } from "@/types/brand/brand.ts";
+import {
+  MetadataSpu,
+  SkuAttrCreate,
+  SkuCreate,
+  SpuUpsert,
+} from "@/types/spu/spuUpsert.ts";
+import {
+  deleteSpu,
+  getSpuDetail,
+  upsertSpuDetail,
+} from "@/pages/product/api/spuApi.ts";
+import { Image } from "@/types/image.ts";
+import { SkuProvider, SpuDetail } from "@/types/spu/spuGetDetail.ts";
+import { deleteSkuAttr } from "@/pages/product/api/skuAttrApi.ts";
+import { deleteSku } from "@/pages/product/api/skuApi.ts";
+import { LoadingAnimation } from "@/components/ui/LoadingAnimation.tsx";
+import { EnumTime } from "@/types/enumTime.ts";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table.tsx";
+import { toast } from "react-toastify";
 
 interface ISpuModalProps {
   isOpen: boolean;
+  isAdd: boolean;
   onOpenChange: (isOpen: boolean) => void;
-  spu?: Spu;
+  listCategories: Category[];
+  listBrands: Brand[];
+  spuIdSelected?: number;
+  actionSuccess?: () => void;
 }
 
 export default function SpuModal({
   isOpen,
-  spu,
+  isAdd,
   onOpenChange,
+  listCategories,
+  listBrands,
+  spuIdSelected,
+  actionSuccess,
 }: ISpuModalProps) {
-  const off: boolean = false;
-  const [imgIndex, setImgIndex] = useState<number>(0);
-  const [attrs, setAttrs] = useState<string[]>([]);
-  const [skus, setSkus] = useState<string[]>([""]);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [id, setId] = useState<number>();
+  const [name, setName] = useState<string>("");
+  const [brandId, setBrandId] = useState<number>();
+  const [categoryId, setCategoryId] = useState<number>();
+  const [description, setDescription] = useState<string>("");
+  const [metadata, setMetadata] = useState<MetadataSpu>({ position: "" });
+  const [skus, setSkus] = useState<SkuCreate[]>([]);
+  const [attrs, setAttrs] = useState<SkuAttrCreate[]>([]);
+  const [image, setImage] = useState<Image>();
+  const [listProviders, setListProviders] = useState<SkuProvider[]>([]);
+  const [typeTimeWarranty, setTypeTimeWarranty] = useState<EnumTime>(
+    EnumTime.DAY,
+  );
+  const [typeTimeReturn, setTypeTimeReturn] = useState<EnumTime>(EnumTime.DAY);
+  const [timeWarranty, setTimeWarranty] = useState<number>(0);
+  const [timeReturn, setTimeReturn] = useState<number>(0);
+
+  const [spuDetail, setSpuDetail] = useState<SpuDetail>();
+
+  useEffect(() => {
+    // clear data when open modal
+    if (isOpen && isAdd) {
+      setId(undefined);
+      setName("");
+      setBrandId(undefined);
+      setCategoryId(undefined);
+      setDescription("");
+      setMetadata({ position: "" });
+      setSkus([]);
+      setAttrs([]);
+      setImage(undefined);
+      setSpuDetail(undefined);
+      setDefaultWarrantyReturn();
+      setListProviders([]);
+    } else {
+      if (isOpen && spuIdSelected && spuIdSelected > 0) {
+        fetchSpuDetail(spuIdSelected);
+      }
+    }
+  }, [isOpen]);
+
+  useEffect(() => {
+    setId(spuDetail?.id);
+    setName(spuDetail?.name || "");
+    setBrandId(spuDetail?.brandId || 0);
+    setCategoryId(spuDetail?.categoryId || 0);
+    setDescription(spuDetail?.description || "");
+    setMetadata((spuDetail?.metadata as MetadataSpu) || { position: "" });
+    setImage(spuDetail?.images?.[0]);
+    setSkus((spuDetail?.skus as SkuCreate[]) || []);
+    setAttrs((spuDetail?.attrs as SkuAttrCreate[]) || []);
+    setListProviders(spuDetail?.providers || []);
+    setTimeWarranty(spuDetail?.timeWarranty || 0);
+    setTimeReturn(spuDetail?.timeReturn || 0);
+    setTypeTimeWarranty(
+      (spuDetail?.typeTimeWarranty as EnumTime.DAY) || EnumTime.DAY,
+    );
+    setTypeTimeReturn(
+      (spuDetail?.typeTimeReturn as EnumTime.DAY) || EnumTime.DAY,
+    );
+  }, [spuDetail]);
+
+  const CallApiUpsertSpuDetail = async (spu: SpuUpsert) => {
+    try {
+      setIsLoading(true);
+      await upsertSpuDetail(spu);
+    } catch (error) {
+      console.error("Error: ", error);
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const CallApiDeleteSkuAttr = async (id: number, index: number) => {
+    try {
+      await deleteSkuAttr(id, index);
+    } catch (error) {
+      console.error("Error: ", error);
+      throw error;
+    }
+  };
+
+  const CallApiDeleteSku = async (id: number) => {
+    try {
+      await deleteSku(id);
+    } catch (error) {
+      console.error("Error: ", error);
+    }
+  };
+
+  const fetchSpuDetail = async (id: number) => {
+    try {
+      setIsLoading(true);
+      const response = await getSpuDetail(id);
+      console.log(response.data);
+      setSpuDetail(response.data.spuDetail);
+    } catch (error) {
+      console.error("Error: ", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const CallApiDeleteSpu = async (id: number) => {
+    try {
+      setIsLoading(true);
+      await deleteSpu(id);
+    } catch (error) {
+      console.error("Error: ", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleDeleteSpu = () => {
+    if (spuIdSelected) {
+      CallApiDeleteSpu(spuIdSelected)
+        .then(() => {
+          toast.success("Xóa thành công");
+          if (actionSuccess) {
+            actionSuccess();
+          }
+        })
+        .catch((error) => {
+          toast.error(error.response.data.message);
+        })
+        .finally(() => setIsLoading(false));
+    }
+  };
 
   const handleAddAttr = () => {
-    setAttrs((prev) => [...prev, ""]);
+    setAttrs((prev) => [
+      ...prev,
+      {
+        spuId: 0,
+        dataType: "text",
+        value: [""],
+      } as SkuAttrCreate,
+    ]);
+  };
+
+  const setDefaultWarrantyReturn = () => {
+    setTimeWarranty(0);
+    setTimeReturn(0);
+    setTypeTimeReturn(EnumTime.DAY);
+    setTypeTimeWarranty(EnumTime.DAY);
   };
 
   const handleDeleteAttr = (index: number) => {
-    setAttrs((prev) => prev.filter((_, i) => i !== index));
+    // neu co id thi goi api xoa
+    if (attrs[index].id) {
+      CallApiDeleteSkuAttr(attrs[index].id, index).then(() => {
+        setAttrs((prev) => prev.filter((_, i) => i !== index));
+        // Xoa skuTierIdx trong skus tuong ung
+        setSkus((prev) =>
+          prev.map((item) => {
+            return {
+              ...item,
+              skuTierIdx: item.skuTierIdx?.filter((_, i) => i !== index),
+            };
+          }),
+        );
+      });
+    } else {
+      setAttrs((prev) => prev.filter((_, i) => i !== index));
+      // Xoa skuTierIdx trong skus tuong ung
+      setSkus((prev) =>
+        prev.map((item) => {
+          return {
+            ...item,
+            skuTierIdx: item.skuTierIdx?.filter((_, i) => i !== index),
+          };
+        }),
+      );
+    }
+  };
+
+  const handleDeleteSku = (index: number) => {
+    if (skus[index].id) {
+      CallApiDeleteSku(skus[index].id).then(() => {
+        setSkus((prev) => prev.filter((_, i) => i !== index));
+      });
+    } else {
+      setSkus((prev) => prev.filter((_, i) => i !== index));
+    }
+  };
+
+  const handleSetTypeTimeWarranty = (value: string) => {
+    setTypeTimeWarranty(value as EnumTime);
+  };
+
+  const handleSetTypeTimeReturn = (value: string) => {
+    setTypeTimeReturn(value as EnumTime);
   };
 
   const handleAddSku = () => {
-    setSkus((prev) => [...prev, ""]);
+    setSkus((prev) => [
+      ...prev,
+      {
+        spuId: 0,
+        costPrice: 0,
+        price: 0,
+        stock: 0,
+      } as SkuCreate,
+    ]);
+  };
+
+  const handleSetCategory = (id: number | null) => {
+    if (id) {
+      setCategoryId(id);
+    }
+  };
+
+  const handleUpsertSpu = () => {
+    const spuTest = {
+      id: id,
+      name: name,
+      description: description,
+      categoryId: categoryId,
+      brandId: brandId,
+      images: image ? [image] : [],
+      metadata: metadata,
+      skus: skus,
+      attrs: attrs,
+      timeWarranty: timeWarranty,
+      timeReturn: timeReturn,
+      typeTimeWarranty: typeTimeWarranty.toString(),
+      typeTimeReturn: typeTimeReturn.toString(),
+    };
+    console.log(spuTest);
+    CallApiUpsertSpuDetail(spuTest as SpuUpsert)
+      .then(() => {
+        toast.success("Thành công");
+        if (actionSuccess) {
+          actionSuccess();
+        }
+      })
+      .catch((error) => {
+        console.error("Error: ", error);
+        toast.error(error.response.data.message);
+      });
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-screen-xl min-h-[calc(100vh-30%)] flex flex-col">
-        <DialogHeader>
-          <DialogTitle>Chi tiết sản phẩm</DialogTitle>
-        </DialogHeader>
-        <Tabs defaultValue="spu" className="grow">
-          <TabsList className="grid w-full grid-cols-3">
-            {off && <TabsTrigger value="info">Thông tin</TabsTrigger>}
-            <TabsTrigger value="spu">Thông tin chung</TabsTrigger>
-            <TabsTrigger value="attr">Thuộc tính</TabsTrigger>
-            <TabsTrigger value="sku">Sản phẩm</TabsTrigger>
-          </TabsList>
-          {off && (
-            <TabsContent value="info" className="space-y-2">
-              <div>
-                <h2 className={"text-xl text-primary"}>{spu?.name}</h2>
-              </div>
-              <div className={"flex space-x-5"}>
-                <div className={"flex space-x-2"}>
-                  <img
-                    className={"size-80 border-gray-400 border-2"}
-                    src={spu?.images?.[imgIndex].url || "image-placeholder.png"}
-                    alt={"Hình sản phẩm "}
-                  />
-                  <ScrollArea className="max-h-80 pr-4">
-                    <ul className={"space-y-1 "}>
-                      {spu?.images?.map((image, index) => {
-                        return (
-                          <li
-                            className={`hover:opacity-50 border-gray-400 border-2 cursor-pointer ${index == imgIndex ? "opacity-50" : ""} `}
-                            onClick={() => setImgIndex(index)}
+    <Fragment>
+      {isLoading && <LoadingAnimation />}
+      <Dialog open={isOpen} onOpenChange={onOpenChange}>
+        <DialogContent className="max-w-screen-xl min-h-[calc(100vh-30%)] flex flex-col">
+          <DialogHeader>
+            <DialogTitle>Chi tiết sản phẩm</DialogTitle>
+          </DialogHeader>
+          <Tabs defaultValue="spu" className="grow">
+            <TabsList className="grid w-full grid-cols-3">
+              <TabsTrigger value="spu">Thông tin chung</TabsTrigger>
+              <TabsTrigger value="attr">Thuộc tính</TabsTrigger>
+              <TabsTrigger value="sku">Sản phẩm</TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="spu">
+              <Card>
+                <CardContent className="space-y-2 space-x-12 flex flex-row mt-6">
+                  <div>
+                    <InputUploadImage
+                      height={"320px"}
+                      width={"320px"}
+                      image={image}
+                      setImage={setImage}
+                    />
+                  </div>
+                  <div className={"flex flex-col flex-1"}>
+                    <div className={"flex flex-row space-x-14"}>
+                      <div className={"flex flex-col flex-1 space-y-5"}>
+                        <div className={"flex flex-row items-center"}>
+                          <Label className={"w-5/12"} htmlFor="name">
+                            Tên sản phẩm
+                          </Label>
+                          <Input
+                            id="name"
+                            value={name}
+                            onChange={(e) => setName(e.target.value)}
+                          />
+                        </div>
+                        <div className={"flex flex-row items-center"}>
+                          <Label className={"w-5/12"} htmlFor="name">
+                            Thương hiệu
+                          </Label>
+                          <Select
+                            onValueChange={(value) => {
+                              console.log(value);
+                              setBrandId(parseInt(value));
+                            }}
+                            value={brandId?.toString()}
                           >
-                            <img className={"size-20"} src={image.url} alt="" />
-                          </li>
-                        );
-                      })}
-                    </ul>
-                  </ScrollArea>
-                </div>
-                <div className={"space-y-4"}>
-                  <form>
-                    <div>
-                      <InputWithBotBorder
-                        readonly={true}
-                        className={"font-bold"}
-                        label={"Mã:"}
-                        value={spu?.id.toString() || ""}
-                      />
-                      <InputWithBotBorder
-                        label={"Mã vạch:"}
-                        value={"21232124"}
-                      />
-                      <InputWithBotBorder
-                        label={"Loại hàng:"}
-                        value={"Máy ảnh"}
-                      />
-                      <InputWithBotBorder
-                        label={"Thương hiệu:"}
-                        value={"Canon"}
-                      />
-                      <InputWithBotBorder
-                        label={"Nhà cung cấp:"}
-                        value={"Cty TNHH Một Mình Tao "}
-                      />
-                      <InputWithBotBorder
-                        label={"Trọng lượng:"}
-                        value={"1.5kg"}
-                      />
+                            <SelectTrigger>
+                              <SelectValue placeholder={"Chọn thương hiệu"}>
+                                {listBrands.find(
+                                  (brand) => brand.id === brandId,
+                                )?.name || "Chọn thương hiệu"}
+                              </SelectValue>
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectGroup>
+                                <SelectLabel>Thương hiệu</SelectLabel>
+                                {listBrands.map((brand) => (
+                                  <SelectItem
+                                    value={brand.id.toString()}
+                                    key={brand.id}
+                                  >
+                                    {brand.name}
+                                  </SelectItem>
+                                ))}
+                              </SelectGroup>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div className={"flex flex-row items-center"}>
+                          <Label className={"w-5/12"} htmlFor="name">
+                            Nhóm hàng
+                          </Label>
+                          <CardCategorySelect
+                            listCategories={listCategories}
+                            isAdd={true}
+                            setParentId={handleSetCategory}
+                            parentIdSelected={categoryId}
+                          />
+                        </div>
+                      </div>
+                      <div className={"flex flex-col space-y-5"}>
+                        <div className={"flex flex-row items-center"}>
+                          <Label className={"w-5/12"}>Vị trí</Label>
+                          <Input
+                            value={metadata.position}
+                            onChange={(e) => {
+                              setMetadata({
+                                ...metadata,
+                                position: e.target.value,
+                              });
+                            }}
+                          />
+                        </div>
+
+                        <div className={"flex flex-row items-center"}>
+                          <Label className={"w-5/12"}>Mô tả</Label>
+                          <Input
+                            value={description}
+                            onChange={(e) => setDescription(e.target.value)}
+                          />
+                        </div>
+                      </div>
                     </div>
-                    <div>
-                      <InputWithBotBorder
-                        label={"Trọng lượng:"}
-                        value={"1.5kg"}
-                      />
-                    </div>
-                  </form>
-                </div>
-              </div>
-            </TabsContent>
-          )}
-          <TabsContent value="spu">
-            <Card>
-              <CardContent className="space-y-2 space-x-12 flex flex-row mt-6">
-                <div>
-                  <InputUploadImage height={"320px"} width={"320px"} />
-                </div>
-                <div className={"flex flex-row flex-1 space-x-12"}>
-                  <div className={"flex flex-col flex-1 space-y-5"}>
-                    <div className={"flex flex-row items-center"}>
-                      <Label className={"w-5/12"} htmlFor="name">
-                        Mã vạch
-                      </Label>
-                      <Input id="name" />
-                    </div>
-                    <div className={"flex flex-row items-center"}>
-                      <Label className={"w-5/12"} htmlFor="name">
-                        Tên sản phẩm
-                      </Label>
-                      <Input id="name" />
-                    </div>
-                    <div className={"flex flex-row items-center"}>
-                      <Label className={"w-5/12"} htmlFor="name">
-                        Thương hiệu
-                      </Label>
-                      <Select
-                        onValueChange={(value) => {
-                          console.log(value);
-                        }}
+                    <div className={"flex flex-col mt-4 space-y-3"}>
+                      <div
+                        className={
+                          "flex h-8 w-full items-center bg-gray-200 rounded"
+                        }
                       >
-                        <SelectTrigger>
-                          <SelectValue placeholder={"Chọn thương hiệu"} />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value={"1"}>Apple</SelectItem>
-                          <SelectItem value={"2"}>Samsung</SelectItem>
-                          <SelectItem value={"3"}>Xiaomi</SelectItem>
-                        </SelectContent>
-                      </Select>
+                        <Label className={"ml-4"} style={{ fontSize: "16px" }}>
+                          Bảo hành
+                        </Label>
+                      </div>
+
+                      <div className={"flex flex-row flex-1 space-x-16"}>
+                        <div
+                          className={
+                            "flex flex-row flex-1 items-center space-x-2"
+                          }
+                        >
+                          <Label className={"w-10/12"}>
+                            Thời gian bảo hành
+                          </Label>
+                          <Input
+                            type={"number"}
+                            style={{ width: "100px" }}
+                            value={timeWarranty}
+                            onChange={(e) =>
+                              setTimeWarranty(parseInt(e.target.value))
+                            }
+                          />
+                          <Select
+                            defaultValue={EnumTime.DAY}
+                            value={typeTimeWarranty.toString()}
+                            onValueChange={(value) =>
+                              handleSetTypeTimeWarranty(value)
+                            }
+                          >
+                            <SelectTrigger style={{ width: "150px" }}>
+                              <SelectValue></SelectValue>
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value={EnumTime.DAY}>Ngày</SelectItem>
+                              <SelectItem value={EnumTime.MONTH}>
+                                Tháng
+                              </SelectItem>
+                              <SelectItem value={EnumTime.YEAR}>Năm</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div
+                          className={
+                            "flex flex-row flex-1 items-center space-x-2"
+                          }
+                        >
+                          <Label className={"w-10/12"}>Thời gian đổi trả</Label>
+                          <Input
+                            id="name"
+                            type={"number"}
+                            style={{ width: "100px" }}
+                            value={timeReturn}
+                            onChange={(e) =>
+                              setTimeReturn(parseInt(e.target.value))
+                            }
+                          />
+                          <Select
+                            defaultValue={EnumTime.DAY}
+                            value={typeTimeReturn.toString()}
+                            onValueChange={(value) =>
+                              handleSetTypeTimeReturn(value)
+                            }
+                          >
+                            <SelectTrigger style={{ width: "150px" }}>
+                              <SelectValue></SelectValue>
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value={EnumTime.DAY}>Ngày</SelectItem>
+                              <SelectItem value={EnumTime.MONTH}>
+                                Tháng
+                              </SelectItem>
+                              <SelectItem value={EnumTime.YEAR}>Năm</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
                     </div>
-                    <div className={"flex flex-row items-center"}>
-                      <Label className={"w-5/12"} htmlFor="name">
-                        Nhóm hàng
-                      </Label>
-                      <CardCategorySelect />
-                    </div>
-                    <div className={"flex flex-row items-center"}>
-                      <Label className={"w-5/12"} htmlFor="name">
-                        Vị trí
-                      </Label>
-                      <Input id="name" />
-                    </div>
+                    {listProviders.length > 0 && (
+                      <div className={"flex flex-col mt-4"}>
+                        <div
+                          className={
+                            "flex h-8 w-full items-center bg-gray-200 rounded"
+                          }
+                        >
+                          <Label
+                            className={"ml-4"}
+                            style={{ fontSize: "16px" }}
+                          >
+                            Nhà cung cấp
+                          </Label>
+                        </div>
+
+                        <Table className={"h-full"}>
+                          <TableHeader>
+                            <TableRow className={"gap-3"}>
+                              <TableHead className="w-[50px]">STT</TableHead>
+                              <TableHead>Tên nhà cung cấp</TableHead>
+                              <TableHead>Email</TableHead>
+                              <TableHead>Số điện thoại</TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            {listProviders.map((item, index) => (
+                              <TableRow key={item.id}>
+                                <TableCell>{index}</TableCell>
+                                <TableCell>{item.name}</TableCell>
+                                <TableCell>{item.email}</TableCell>
+                                <TableCell>{item.phone}</TableCell>
+                              </TableRow>
+                            ))}
+                          </TableBody>
+                        </Table>
+                      </div>
+                    )}
                   </div>
-                  <div className={"flex flex-col flex-1 space-y-5"}>
-                    <div className={"flex flex-row items-center"}>
-                      <Label className={"w-6/12"} htmlFor="name">
-                        Giá vốn (VND)
-                      </Label>
-                      <Input id="name" />
+                </CardContent>
+              </Card>
+            </TabsContent>
+            <TabsContent value="attr">
+              <Card>
+                <CardHeader>
+                  <Label style={{ fontSize: "16px" }}>
+                    Danh sách thuộc tính
+                  </Label>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {attrs.map((_, index) => (
+                    <ItemAttrSku
+                      key={index}
+                      onDeleted={() => handleDeleteAttr(index)}
+                      attribute={attrs[index]}
+                      indexAttr={index}
+                      setAttribute={(index, attribute) => {
+                        setAttrs((prev) =>
+                          prev.map((item, i) =>
+                            i === index ? attribute : item,
+                          ),
+                        );
+                      }}
+                    />
+                  ))}
+                </CardContent>
+                <CardFooter>
+                  <Button
+                    className={"bg-green-500 hover:bg-green-600"}
+                    onClick={() => handleAddAttr()}
+                  >
+                    <Plus />
+                    Thêm thuộc tính
+                  </Button>
+                </CardFooter>
+              </Card>
+            </TabsContent>
+            <TabsContent value="sku">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Danh sách sản phẩm</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-20">
+                  <ScrollArea style={{ height: "360px" }}>
+                    <div className={"flex flex-col p-4 space-y-20"}>
+                      {skus.map((item, index) => (
+                        <ItemSku
+                          key={index}
+                          onDeleted={() => handleDeleteSku(index)}
+                          attribute={attrs}
+                          indexSku={index}
+                          sku={item}
+                          setSku={(index, sku) => {
+                            setSkus((prev) =>
+                              prev.map((item, i) => (i === index ? sku : item)),
+                            );
+                          }}
+                        />
+                      ))}
                     </div>
-                    <div className={"flex flex-row items-center"}>
-                      <Label className={"w-6/12"} htmlFor="name">
-                        Giá bán (VND)
-                      </Label>
-                      <Input id="name" />
-                    </div>
-                    <div className={"flex flex-row items-center"}>
-                      <Label className={"w-6/12"} htmlFor="name">
-                        Tổng mức tồn kho
-                      </Label>
-                      <Input id="name" />
-                    </div>
-                    <div className={"flex flex-row items-center"}>
-                      <Label className={"w-6/12"} htmlFor="name">
-                        Mô tả
-                      </Label>
-                      <Input id="name" />
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-          <TabsContent value="attr">
-            <Card>
-              <CardHeader>
-                <Label style={{ fontSize: "16px" }}>Danh sách thuộc tính</Label>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {attrs.map((_, index) => (
-                  <ItemAttrSku
-                    key={index}
-                    onDeleted={() => handleDeleteAttr(index)}
-                  />
-                ))}
-              </CardContent>
-              <CardFooter>
+                  </ScrollArea>
+                </CardContent>
+                <CardFooter>
+                  <Button
+                    className={"bg-green-500 hover:bg-green-600"}
+                    onClick={() => handleAddSku()}
+                  >
+                    <Plus />
+                    Thêm sản phẩm
+                  </Button>
+                </CardFooter>
+              </Card>
+            </TabsContent>
+          </Tabs>
+          <DialogFooter className="">
+            <div className={"flex flex-row space-x-2 justify-end"}>
+              {isAdd && (
                 <Button
                   className={"bg-green-500 hover:bg-green-600"}
-                  onClick={() => handleAddAttr()}
+                  onClick={() => handleUpsertSpu()}
                 >
                   <Plus />
-                  Thêm thuộc tính
+                  Thêm mới
                 </Button>
-              </CardFooter>
-            </Card>
-          </TabsContent>
-          <TabsContent value="sku">
-            <Card>
-              <CardHeader>
-                <CardTitle>Danh sách sản phẩm</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-20">
-                <ScrollArea style={{ height: "360px" }}>
-                  <div className={"flex flex-col p-4 space-y-20"}>
-                    {skus.map((_, index) => (
-                      <ItemSku key={index} />
-                    ))}
-                  </div>
-                </ScrollArea>
-              </CardContent>
-              <CardFooter>
+              )}
+              {!isAdd && (
                 <Button
                   className={"bg-green-500 hover:bg-green-600"}
-                  onClick={() => handleAddSku()}
+                  onClick={() => handleUpsertSpu()}
                 >
-                  <Plus />
-                  Thêm sản phẩm
+                  <FileInput />
+                  Lưu
                 </Button>
-              </CardFooter>
-            </Card>
-          </TabsContent>
-        </Tabs>
-        <DialogFooter className="">
-          <div className={"flex flex-row space-x-2 justify-end"}>
-            <Button className={"bg-green-500 hover:bg-green-600"}>
-              <Plus />
-              Thêm mới
-            </Button>
-            <Button className={"bg-green-500 hover:bg-green-600"}>
-              <FileInput />
-              Lưu
-            </Button>
-            <Button className={"bg-red-500 hover:bg-red-600"}>
-              <Trash2Icon />
-              Xóa
-            </Button>
-            <Button
-              className={"bg-gray-500 hover:bg-gray-600"}
-              onClick={() => onOpenChange(false)}
-            >
-              <BanIcon />
-              Bỏ qua
-            </Button>
-          </div>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+              )}
+              {!isAdd && (
+                <Button
+                  className={"bg-red-500 hover:bg-red-600"}
+                  onClick={() => {
+                    if (spuIdSelected) {
+                      handleDeleteSpu();
+                    }
+                  }}
+                >
+                  <Trash2Icon />
+                  Xóa
+                </Button>
+              )}
+              <Button
+                className={"bg-gray-500 hover:bg-gray-600"}
+                onClick={() => onOpenChange(false)}
+              >
+                <BanIcon />
+                Bỏ qua
+              </Button>
+            </div>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </Fragment>
   );
 }

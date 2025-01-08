@@ -1,18 +1,57 @@
 import { Input } from "@/components/ui/input.tsx";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { CircleX } from "lucide-react";
+import { Image } from "@/types/image.ts";
+import { uploadImage } from "@/pages/product/api/uploadApi.ts";
 
 export function InputUploadImage({
   width = "192px",
   height = "192px",
+  image,
+  setImage,
 }: {
   width?: string;
   height?: string;
+  image?: Image;
+  setImage?: (image: Image) => void;
 }) {
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [image, setImage] = useState<string | ArrayBuffer | null>();
+  const [imageState, setImageState] = useState<string | null>();
+
+  useEffect(() => {
+    if (image) {
+      setImageState(image.url);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (image) {
+      setImageState(image.url);
+    } else {
+      setImageState(null);
+    }
+  }, [image]);
+
+  const CallApiUpLoadImage = async (file: File) => {
+    try {
+      const res = await uploadImage(file);
+      console.log(res.data);
+
+      if (setImage) {
+        setImage(res.data);
+      }
+    } catch (error) {
+      console.error("Fetch error:", error);
+      throw error;
+    }
+  };
 
   const handleClickUploadImage = () => {
+    // Check if exists image
+    if (imageState) {
+      return;
+    }
+
     fileInputRef.current?.click();
   };
 
@@ -21,14 +60,16 @@ export function InputUploadImage({
     if (file) {
       const reader = new FileReader();
       reader.onload = (e) => {
-        setImage(e.target?.result);
+        setImageState(e.target?.result as string);
       };
       reader.readAsDataURL(file);
+
+      CallApiUpLoadImage(file);
     }
   };
 
   const handleDeleteImage = () => {
-    setImage(null);
+    setImageState(null);
   };
   return (
     <div className={"flex flex-col items-center"}>
@@ -41,8 +82,8 @@ export function InputUploadImage({
       >
         <img
           src={
-            image
-              ? image.toString()
+            imageState
+              ? imageState.toString()
               : "https://media.istockphoto.com/id/1222357475/vector/image-preview-icon-picture-placeholder-for-website-or-ui-ux-design-vector-illustration.jpg?s=612x612&w=0&k=20&c=KuCo-dRBYV7nz2gbk4J9w1WtTAgpTdznHu55W9FjimE="
           }
           alt={"preview"}
@@ -54,7 +95,7 @@ export function InputUploadImage({
           type={"file"}
           onChange={handleUploadImage}
           className={"hidden"}
-          accept={"image/*"}
+          accept={".jpg,.png,.webp"}
         />
         <div
           className="text-gray-500 absolute top-0 right-0 opacity-0 group-hover:opacity-100 cursor-pointer"

@@ -1,5 +1,5 @@
 import * as React from "react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import {
   ColumnDef,
@@ -13,18 +13,11 @@ import {
   useReactTable,
   VisibilityState,
 } from "@tanstack/react-table";
-import { ArrowUpDown, MoreHorizontal } from "lucide-react";
+import { ArrowUpDown } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+
 import {
   Table,
   TableBody,
@@ -36,25 +29,11 @@ import {
 import {
   InventoryReport,
   InventoryReportDetails,
-} from "@/types/inventoryReport.ts";
+} from "@/types/inventory/inventoryReport.ts";
 import InventoryReportDetailModal from "@/pages/inventory/InventoryReportDetailModal.tsx";
 import { getInventoryReportDetailById } from "@/pages/inventory/api/reportApi.ts";
-
-/*function generateMockSpus(count: number = 10): InventoryReport[] {
-  return Array.from({ length: count }, (_, index) => ({
-    id: index + 1,
-    amount: faker.number.int({ min: 0, max: 100 }),
-    warehouseMan: faker.number.int({ min: 0, max: 100 }),
-    inventoryDif: faker.number.int({ min: 0, max: 100 }),
-    status: faker.helpers.arrayElement([0, 1, 2]),
-    note: faker.lorem.sentence(),
-    createdAt: faker.date.past(),
-    updatedAt: faker.date.recent(),
-  }));
-}*/
-
-// Example usage
-//const data = generateMockSpus(25);
+import { MenuVisibilityColumnTable } from "@/components/ButtonVisibilityColumnTable.tsx";
+import { Paging } from "@/types/paging.ts";
 
 interface IColorMap {
   [key: number]: string;
@@ -80,7 +59,7 @@ function StatusInventoryRow({ status }: { status: number }) {
   return <div className={` ${colorMap[status]}`}>{statusMap[status]}</div>;
 }
 
-const columns: ColumnDef<InventoryReport>[] = [
+const columnsInventory: ColumnDef<InventoryReport>[] = [
   {
     id: "select",
     header: ({ table }) => (
@@ -98,6 +77,7 @@ const columns: ColumnDef<InventoryReport>[] = [
         checked={row.getIsSelected()}
         onCheckedChange={(value) => row.toggleSelected(!!value)}
         aria-label="Select row"
+        onClick={(event) => event.stopPropagation()}
       />
     ),
     enableSorting: false,
@@ -125,7 +105,9 @@ const columns: ColumnDef<InventoryReport>[] = [
       );
     },
     cell: ({ row }) => (
-      <div>{new Date(row.getValue("updateAt")).toLocaleDateString()}</div>
+      <div className="ml-4">
+        {new Date(row.getValue("updatedAt")).toLocaleDateString()}
+      </div>
     ),
   },
   {
@@ -183,7 +165,7 @@ const columns: ColumnDef<InventoryReport>[] = [
     cell: ({ row }) => <StatusInventoryRow status={row.getValue("status")} />,
   },
 
-  {
+  /*{
     id: "actions",
     enableHiding: false,
     cell: ({ row }) => {
@@ -212,19 +194,31 @@ const columns: ColumnDef<InventoryReport>[] = [
         </DropdownMenu>
       );
     },
-  },
+  },*/
 ];
 interface InventoryTableProps {
   dataInventory: InventoryReport[];
+  columnVisible: MenuVisibilityColumnTable[];
+  setPaging: (page: number) => void;
+  paging: Paging;
 }
-export function InventoryTable({ dataInventory }: InventoryTableProps) {
+export function InventoryTable({
+  dataInventory,
+  columnVisible,
+  setPaging,
+  paging,
+}: InventoryTableProps) {
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     [],
   );
-  console.log("hrhr", dataInventory);
   const [columnVisibility, setColumnVisibility] =
-    React.useState<VisibilityState>({});
+    React.useState<VisibilityState>(
+      columnVisible.reduce((acc, col) => {
+        acc[col.key] = col.visible;
+        return acc;
+      }, {} as VisibilityState),
+    );
   const [rowSelection, setRowSelection] = React.useState({});
   const [isOpenStockTakesModal, setIsOpenStockTakesModal] = useState(false);
 
@@ -243,6 +237,20 @@ export function InventoryTable({ dataInventory }: InventoryTableProps) {
       console.error("Error fetching inventory report details:", error);
     }
   };
+  const handleClickPrevious = () => {
+    if (paging.page === 1) return;
+    setPaging(paging.page ? paging.page - 1 : 1);
+  };
+
+  const handleClickNext = () => {
+    if (
+      paging.total &&
+      paging.limit &&
+      paging.page === Math.ceil(paging.total / paging.limit)
+    )
+      return;
+    setPaging(paging.page ? paging.page + 1 : 1);
+  };
   const table = useReactTable<InventoryReport>({
     initialState: {
       pagination: {
@@ -250,7 +258,7 @@ export function InventoryTable({ dataInventory }: InventoryTableProps) {
       },
     },
     data: dataInventory,
-    columns,
+    columns: columnsInventory,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
     getCoreRowModel: getCoreRowModel(),
@@ -266,6 +274,14 @@ export function InventoryTable({ dataInventory }: InventoryTableProps) {
       rowSelection,
     },
   });
+  useEffect(() => {
+    setColumnVisibility(
+      columnVisible.reduce((acc, col) => {
+        acc[col.key] = col.visible;
+        return acc;
+      }, {} as VisibilityState),
+    );
+  }, [columnVisible]);
 
   return (
     <div className="w-full">
@@ -303,11 +319,10 @@ export function InventoryTable({ dataInventory }: InventoryTableProps) {
                     event.preventDefault();
                     event.stopPropagation();
                     const selectedReport = row.original;
-                    setIsOpenStockTakesModal(true);
                     setSelectedInventoryReport(selectedReport);
                     console.log(selectedInventoryReport);
                     await getInventoryReportDetails(selectedReport.id);
-                    console.log("Open");
+                    setIsOpenStockTakesModal(true);
                   }}
                   key={row.id}
                   data-state={row.getIsSelected() && "selected"}
@@ -325,7 +340,7 @@ export function InventoryTable({ dataInventory }: InventoryTableProps) {
             ) : (
               <TableRow>
                 <TableCell
-                  colSpan={columns.length}
+                  colSpan={columnsInventory.length}
                   className="h-24 text-center"
                 >
                   No results.
@@ -337,25 +352,29 @@ export function InventoryTable({ dataInventory }: InventoryTableProps) {
       </div>
       <div className="flex items-center justify-end space-x-2 py-4">
         <div className="flex-1 text-sm text-muted-foreground">
-          {table.getFilteredSelectedRowModel().rows.length} of{" "}
-          {table.getFilteredRowModel().rows.length} row(s) selected.
+          {table.getFilteredSelectedRowModel().rows.length} trong{" "}
+          {table.getFilteredRowModel().rows.length} hàng được chọn.
         </div>
         <div className="space-x-2">
           <Button
             variant="outline"
             size="sm"
-            onClick={() => table.previousPage()}
-            disabled={!table.getCanPreviousPage()}
+            onClick={handleClickPrevious}
+            disabled={paging.page === 1}
           >
-            Previous
+            Trước
           </Button>
           <Button
             variant="outline"
             size="sm"
-            onClick={() => table.nextPage()}
-            disabled={!table.getCanNextPage()}
+            onClick={handleClickNext}
+            disabled={
+              paging.page ===
+                Math.ceil((paging.total || 0) / (paging.limit || 20)) ||
+              Math.ceil((paging.total || 0) / (paging.limit || 20)) === 0
+            }
           >
-            Next
+            Sau
           </Button>
         </div>
       </div>

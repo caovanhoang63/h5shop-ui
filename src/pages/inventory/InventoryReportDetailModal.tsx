@@ -1,4 +1,3 @@
-import * as React from "react";
 import {
   Table,
   TableBody,
@@ -8,8 +7,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Save, FileDown, XCircle } from "lucide-react";
+import { XCircle } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -17,17 +15,10 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog.tsx";
-import { InventoryReportDetails } from "@/types/inventoryReport.ts";
+import { InventoryReportDetails } from "@/types/inventory/inventoryReport.ts";
 import { ScrollArea } from "@/components/ui/scroll-area.tsx";
+import { formatCurrency } from "@/utils/convert.ts";
 
-interface InventoryItem {
-  id: string;
-  name: string;
-  stockQuantity: number;
-  actualQuantity: number;
-  variance: number;
-  varianceValue: number;
-}
 interface IInventoryReportDetailModalProps {
   isOpen: boolean;
   onOpenChange: (isOpen: boolean) => void;
@@ -38,91 +29,35 @@ export default function InventoryReportDetailModal({
   onOpenChange,
   inventoryItem,
 }: IInventoryReportDetailModalProps) {
-  const [items] = React.useState<InventoryItem[]>([
-    {
-      id: "PK000014",
-      name: "Chuột không dây Logitech M331",
-      stockQuantity: 92,
-      actualQuantity: 90,
-      variance: -2,
-      varianceValue: 0,
-    },
-    {
-      id: "PK000015",
-      name: "Chuột không dây Logitech M331",
-      stockQuantity: 92,
-      actualQuantity: 90,
-      variance: -2,
-      varianceValue: 0,
-    },
-    {
-      id: "PK000017",
-      name: "Chuột không dây Logitech M331",
-      stockQuantity: 92,
-      actualQuantity: 90,
-      variance: -2,
-      varianceValue: 0,
-    },
-    {
-      id: "PK0000156",
-      name: "Chuột không dây Logitech M331",
-      stockQuantity: 92,
-      actualQuantity: 90,
-      variance: -2,
-      varianceValue: 0,
-    },
-    {
-      id: "PK0000164",
-      name: "Chuột không dây Logitech M331",
-      stockQuantity: 92,
-      actualQuantity: 90,
-      variance: -2,
-      varianceValue: 0,
-    },
-    {
-      id: "PK0000144",
-      name: "Chuột không dây Logitech M331",
-      stockQuantity: 92,
-      actualQuantity: 90,
-      variance: -2,
-      varianceValue: 0,
-    },
-    {
-      id: "PK00001344",
-      name: "Chuột không dây Logitech M331",
-      stockQuantity: 92,
-      actualQuantity: 90,
-      variance: -2,
-      varianceValue: 0,
-    },
-    {
-      id: "PK0000134",
-      name: "Chuột không dây Logitech M331",
-      stockQuantity: 92,
-      actualQuantity: 90,
-      variance: -2,
-      varianceValue: 0,
-    },
-    {
-      id: "PK00001434",
-      name: "Chuột không dây Logitech M331",
-      stockQuantity: 92,
-      actualQuantity: 90,
-      variance: -2,
-      varianceValue: 0,
-    },
-    {
-      id: "PK000013464",
-      name: "Chuột không dây Logitech M331",
-      stockQuantity: 92,
-      actualQuantity: 90,
-      variance: -2,
-      varianceValue: 0,
-    },
-  ]);
+  interface IStatusMap {
+    [key: number]: string;
+  }
+
+  const statusMap: IStatusMap = {
+    1: "Đã cân bằng kho",
+    0: "Đã hủy",
+    2: "Chưa cân băng kho",
+  };
+  const totalStock = () => {
+    if (inventoryItem)
+      return inventoryItem.items.reduce(
+        (total, item) => total + item.amount,
+        0,
+      );
+    return 0;
+  };
+
+  const totalPrice = () => {
+    if (inventoryItem)
+      return inventoryItem.items.reduce(
+        (total, item) => total + (item.price || 0) * item.inventoryDif,
+        0,
+      );
+    return 0;
+  };
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-screen-xl min-h-[calc(100vh-10%)] flex flex-col">
+      <DialogContent className="max-w-screen-xl max-h-screen flex flex-col">
         <DialogHeader>
           <DialogTitle>Chi tiết phiếu kiểm kho</DialogTitle>
         </DialogHeader>
@@ -136,17 +71,23 @@ export default function InventoryReportDetailModal({
                 </div>
                 <div className="flex justify-between">
                   <span className="font-medium">Thời gian:</span>
-                  <span>{inventoryItem.createdAt?.toString()}</span>
+                  <span>
+                    {inventoryItem.createdAt &&
+                      new Date(inventoryItem.createdAt).toLocaleString()}
+                  </span>
                 </div>
                 <div className="flex justify-between">
                   <span className="font-medium">Ngày cân bằng:</span>
-                  <span>{inventoryItem.updatedAt?.toString()}</span>
+                  <span>
+                    {inventoryItem.updatedAt &&
+                      new Date(inventoryItem.updatedAt).toLocaleString()}
+                  </span>
                 </div>
               </div>
               <div className="space-y-4">
                 <div className="flex justify-between">
                   <span className="font-medium">Trạng thái:</span>
-                  <span>{inventoryItem.status}</span>
+                  <span>{statusMap[inventoryItem.status]}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="font-medium">Người tạo:</span>
@@ -160,10 +101,6 @@ export default function InventoryReportDetailModal({
             </div>
           )}
           <div className="space-y-4">
-            <div className="flex gap-4 mb-4">
-              <Input placeholder="Tìm mã hàng" className="max-w-[200px]" />
-              <Input placeholder="Tìm tên hàng" className="max-w-[200px]" />
-            </div>
             <ScrollArea className={"h-[300px] px-2"}>
               <Table>
                 <TableHeader className="bg-blue-50">
@@ -177,21 +114,24 @@ export default function InventoryReportDetailModal({
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {items.map((item) => (
-                    <TableRow key={item.id}>
-                      <TableCell className="text-blue-600">{item.id}</TableCell>
+                  {inventoryItem?.items.map((item) => (
+                    <TableRow key={item.skuId}>
+                      <TableCell className="text-blue-600">
+                        {item.skuId}
+                      </TableCell>
                       <TableCell>{item.name}</TableCell>
                       <TableCell className="text-right">
-                        {item.stockQuantity}
+                        {item.oldStock}
                       </TableCell>
                       <TableCell className="text-right">
-                        {item.actualQuantity}
+                        {item.amount}
                       </TableCell>
                       <TableCell className="text-right">
-                        {item.variance}
+                        {item.inventoryDif}
                       </TableCell>
                       <TableCell className="text-right">
-                        {item.varianceValue}
+                        {item.price &&
+                          formatCurrency(item.inventoryDif * item.price)}
                       </TableCell>
                     </TableRow>
                   ))}
@@ -199,23 +139,21 @@ export default function InventoryReportDetailModal({
               </Table>
             </ScrollArea>
             <div className="space-y-2 text-right">
-              <div>Tổng thực tế (90): 0</div>
-              <div>Tổng lệch tăng (0): 0</div>
-              <div>Tổng lệch giảm (-2): 0</div>
-              <div>Tổng chênh lệch (-2): 0</div>
+              <div>Tổng thực tế: {totalStock()}</div>
+              <div>Tổng chênh lệch: {formatCurrency(totalPrice())}</div>
             </div>
           </div>
         </div>
         <DialogFooter className="">
-          <Button className="bg-green-500 hover:bg-green-600">
+          {/*<Button className="bg-green-500 hover:bg-green-600">
             <Save className="w-4 h-4 mr-2" />
             Lưu
-          </Button>
-          <Button variant="secondary">
+          </Button>*/}
+          {/*<Button variant="secondary">
             <FileDown className="w-4 h-4 mr-2" />
             Xuất file
-          </Button>
-          <Button variant="destructive">
+          </Button>*/}
+          <Button variant="destructive" onClick={() => onOpenChange(false)}>
             <XCircle className="w-4 h-4 mr-2" />
             Hủy bỏ
           </Button>

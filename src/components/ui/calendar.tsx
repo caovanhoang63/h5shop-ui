@@ -13,6 +13,8 @@ function Calendar({
   showOutsideDays = true,
   ...props
 }: CalendarProps) {
+  // @ts-ignore
+  // @ts-ignore
   return (
     <DayPicker
       showOutsideDays={showOutsideDays}
