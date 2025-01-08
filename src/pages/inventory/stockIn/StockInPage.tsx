@@ -1,4 +1,4 @@
-import { CalendarIcon, FileOutputIcon, Plus, Search } from "lucide-react";
+import { CalendarIcon, Plus, Search } from "lucide-react";
 import { Input } from "@/components/ui/input.tsx";
 import { Button } from "@/components/ui/button.tsx";
 import { Card, CardContent } from "@/components/ui/card.tsx";
@@ -34,6 +34,7 @@ import {
 import { StockInItemTable } from "@/types/stockIn/stockIn.ts";
 import { toast } from "react-toastify";
 import { Paging } from "@/types/paging.ts";
+import { ExportButton } from "@/components/ExportButton.tsx";
 
 export const StockInPage = () => {
   const [stockInReport, setStockInReport] = useState<StockInItemTable[]>([]);
@@ -184,10 +185,8 @@ export const StockInPage = () => {
               Nhập hàng
             </Button>
           </Link>
-          <Button className={"bg-green-500"}>
-            <FileOutputIcon />
-            Xuất file
-          </Button>
+          <ExportButton data={stockInReport || []} fileName={`stockIn`} />
+
           <ButtonVisibilityColumnTable
             menus={fields}
             onCheckChange={handleCheckField}

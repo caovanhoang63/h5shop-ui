@@ -1,4 +1,4 @@
-import { CalendarIcon, FileOutputIcon, Plus, Search } from "lucide-react";
+import { CalendarIcon, Plus, Search } from "lucide-react";
 import { Input } from "@/components/ui/input.tsx";
 import { Button } from "@/components/ui/button.tsx";
 import { Card, CardContent } from "@/components/ui/card.tsx";
@@ -32,6 +32,7 @@ import { listStockOutApi } from "@/pages/inventory/stockOut/api/stockOutApi.ts";
 import { StockOutItemTable } from "@/types/stockOut/stockOut.ts";
 import { StockOutTable } from "@/pages/inventory/stockOut/StockOutTable.tsx";
 import { Paging } from "@/types/paging.ts";
+import { ExportButton } from "@/components/ExportButton.tsx";
 
 export const StockOutPage = () => {
   const [stockOutReport, setStockOutReport] = useState<StockOutItemTable[]>([]);
@@ -182,10 +183,8 @@ export const StockOutPage = () => {
               Xuất hàng
             </Button>
           </Link>
-          <Button className={"bg-green-500"}>
-            <FileOutputIcon />
-            Xuất file
-          </Button>
+          <ExportButton data={stockOutReport || []} fileName={`stockOut`} />
+
           <ButtonVisibilityColumnTable
             menus={fields}
             onCheckChange={handleCheckField}
