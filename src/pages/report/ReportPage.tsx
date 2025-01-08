@@ -63,7 +63,7 @@ export const ReportPage = () => {
                 <td>${d.id}</td>
                 <td>${format(d.createdAt, "HH:mm:ss")}</td>
                 <td>${d.sellerName}</td>
-                <td>${d.saleType == "retail" ? "bán lẻ" : "bán sỉ"}</td>
+                <td>${d.orderType == "retail" ? "bán lẻ" : "bán sỉ"}</td>
                 <td>${d.customerPhoneNumber ? d.customerPhoneNumber : "-"}</td>
                 <td>${formatMoney(d.totalAmount)}</td>
                 <td>${formatMoney(d.discountAmount)}</td>
