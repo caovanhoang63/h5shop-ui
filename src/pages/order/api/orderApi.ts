@@ -43,3 +43,13 @@ export async function getOrderTableApi(
     throw error;
   }
 }
+
+export async function deleteOrderApi(id: number) {
+  try {
+    const response = await axiosInstance.delete(`/v1/order/${id}`);
+    return response.data;
+  } catch (error) {
+    console.error("Fetch error:", error);
+    throw error;
+  }
+}

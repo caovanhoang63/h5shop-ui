@@ -18,15 +18,37 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area.tsx";
 import { OrderGetDetail } from "@/types/order/orderGetDetail.ts";
 import { Link } from "react-router-dom";
+import ConfirmDeleteDialog from "@/components/ConfirmDeleteDialog.tsx";
+import { deleteOrderApi } from "@/pages/order/api/orderApi.ts";
+import { toast } from "react-toastify";
+import { useState } from "react";
 interface IOrderDetailModalProps {
   isOpen: boolean;
   onOpenChange: (isOpen: boolean) => void;
   order?: OrderGetDetail;
+  onOrderDelete: () => void;
 }
+
+const formatWarrantyType = (typeTimeWarranty: string) => {
+  switch (typeTimeWarranty.toLowerCase()) {
+    case "day":
+      return "ngày";
+    case "month":
+      return "tháng";
+    case "year":
+      return "năm";
+    case "week":
+      return "tuần";
+    default:
+      return typeTimeWarranty; // Optional: Handle unexpected values
+  }
+};
+
 export default function OrderDetailModal({
   isOpen,
   onOpenChange,
   order,
+  onOrderDelete,
 }: IOrderDetailModalProps) {
   interface IStatusMap {
     [key: number | string]: string;
@@ -40,6 +62,7 @@ export default function OrderDetailModal({
     retail: "Bán lẻ",
     wholesale: "Bán sỉ",
   };
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const formatCurrency = (amount: number) => {
     const numberPrice = Number(amount);
     return numberPrice.toLocaleString("en-US");
@@ -110,7 +133,7 @@ export default function OrderDetailModal({
             </div>
           )}
           <div className="space-y-4">
-            <ScrollArea className={"h-[300px] px-2"}>
+            <ScrollArea className={"max-h-[200px] px-2"}>
               <Table>
                 <TableHeader className="bg-blue-50">
                   <TableRow>
@@ -146,6 +169,46 @@ export default function OrderDetailModal({
                 </TableBody>
               </Table>
             </ScrollArea>
+            <h3 className="mt-4 text-lg font-medium">
+              Thông tin Bảo hành & Đổi trả
+            </h3>
+            <ScrollArea className={"max-h-[150px] px-2"}>
+              <Table>
+                <TableHeader className="bg-green-50">
+                  <TableRow>
+                    <TableHead>Mã hàng</TableHead>
+                    <TableHead>Tên hàng</TableHead>
+                    <TableHead className="text-right">Bảo hành</TableHead>
+                    <TableHead className="text-right">Đổi trả</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {order?.items.map((item) => (
+                    <TableRow key={item.skuId}>
+                      <TableCell className="text-blue-600">
+                        {item.skuId}
+                      </TableCell>
+                      <TableCell>{item.skuDetail?.name}</TableCell>
+                      <TableCell className="text-right">
+                        {item.skuDetail?.timeWarranty
+                          ? `${item.skuDetail.timeWarranty} ${formatWarrantyType(
+                              item.skuDetail.typeTimeWarranty,
+                            )}`
+                          : "Không bảo hành"}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        {item.skuDetail?.timeReturn
+                          ? `${item.skuDetail.timeReturn} ${formatWarrantyType(
+                              item.skuDetail.typeTimeReturn,
+                            )}`
+                          : "Không đổi trả"}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </ScrollArea>
+
             <div className="flex flex-row">
               <div className="space-y-2 text-left">
                 <div>Tổng số lượng: {formatCurrency(totalAmount())}</div>
@@ -174,10 +237,39 @@ export default function OrderDetailModal({
               </Button>
             </Link>
           )}
-          <Button variant="destructive" onClick={() => onOpenChange(false)}>
-            <XCircle className="w-4 h-4 mr-2" />
+          {order && order.status !== 0 && (
+            <Button
+              variant="destructive"
+              onClick={() => {
+                setIsDeleteDialogOpen(true);
+              }}
+            >
+              <XCircle className="w-4 h-4 mr-2" />
+              Xoá
+            </Button>
+          )}
+          <Button variant="outline" onClick={() => onOpenChange(false)}>
             Hủy bỏ
           </Button>
+          <ConfirmDeleteDialog
+            isOpen={isDeleteDialogOpen}
+            onClose={() => setIsDeleteDialogOpen(false)}
+            onConfirm={() => {
+              if (!order) return;
+              deleteOrderApi(order.id)
+                .then(() => {
+                  toast.success("Xoá hoá đơn thành công");
+                  onOrderDelete();
+                })
+                .catch(() => {
+                  toast.error("Xoá hoá đơn thất bại");
+                })
+                .finally(() => {
+                  setIsDeleteDialogOpen(false);
+                  onOpenChange(false);
+                });
+            }}
+          />
         </DialogFooter>
       </DialogContent>
     </Dialog>

@@ -315,6 +315,16 @@ export function OrderTable({
     setPaging({ limit: 10, page: paging.page ? paging.page + 1 : 1 });
   };
 
+  const handleOrderDelete = (orderId: number) => {
+    setOrderReportDetails(undefined); // Reset modal state
+    setIsOpenOrderModal(false); // Close modal
+    // Filter out orders with status = 1 or the deleted order
+    const updatedData = dataOrder.filter(
+      (order) => order.id !== orderId && order.status !== 1,
+    );
+    setPaging((prev) => ({ ...prev, total: updatedData.length }));
+  };
+
   const table = useReactTable<OrderItemTable>({
     initialState: {
       pagination: {
@@ -352,6 +362,7 @@ export function OrderTable({
         isOpen={isOpenOrderModal}
         onOpenChange={setIsOpenOrderModal}
         order={orderReportDetails}
+        onOrderDelete={() => handleOrderDelete(orderReportDetails?.id || 0)}
       ></OrderDetailModal>
       <div className="rounded-md border">
         <Table>
