@@ -3,7 +3,9 @@ import {
   StockOutCreate,
   StockOutDetail,
   StockOutItemTable,
+  StockOutReason,
 } from "@/types/stockOut/stockOut.ts";
+import { SkuGetDetail } from "@/types/sku/skuGetDetail.ts";
 
 interface ResponseStockOutTable {
   data: StockOutItemTable[];
@@ -33,6 +35,16 @@ interface Response {
   data?: never;
   extra?: never;
   paging?: never;
+}
+
+interface SearchDetailResponse {
+  data: SkuGetDetail[];
+  extra: object;
+  paging: {
+    total: number;
+    page: number;
+    limit: number;
+  };
 }
 const token = localStorage.getItem("token");
 
@@ -96,16 +108,19 @@ export async function createStockOutReport(
   }
 }
 
-export async function searchSku(query: string): Promise<Response> {
+export async function searchSku(query: string): Promise<SearchDetailResponse> {
   try {
-    const response = await axiosInstance.get<Response>("v1/sku/search-detail", {
-      params: {
-        lkName: query,
+    const response = await axiosInstance.get<SearchDetailResponse>(
+      "v1/sku/search-detail",
+      {
+        params: {
+          lkName: query,
+        },
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
       },
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
+    );
     return response.data;
   } catch (error) {
     console.error("Fetch error:", error);
@@ -131,13 +146,21 @@ export async function searchProvider(query: string): Promise<Response> {
     throw error;
   }
 }
-export async function listReason(): Promise<Response> {
+
+interface responseListReason {
+  data: StockOutReason[];
+}
+
+export async function listReason(): Promise<responseListReason> {
   try {
-    const response = await axiosInstance.get<Response>("v1/stock-out/reasons", {
-      headers: {
-        Authorization: `Bearer ${token}`,
+    const response = await axiosInstance.get<responseListReason>(
+      "v1/stock-out/reasons",
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
       },
-    });
+    );
     return response.data;
   } catch (error) {
     console.error("Fetch error:", error);

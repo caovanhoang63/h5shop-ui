@@ -8,7 +8,6 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion.tsx";
-import { CheckBoxWithText } from "@/components/CheckBoxWithText.tsx";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group.tsx";
 import { Label } from "@/components/ui/label.tsx";
 import Container from "@/layouts/components/Container.tsx";
@@ -34,6 +33,7 @@ import { endOfMonth, format, startOfMonth } from "date-fns";
 import { Calendar } from "@/components/ui/calendar";
 import { SelectRangeEventHandler } from "react-day-picker";
 import { ExportButton } from "@/components/ExportButton.tsx";
+import { Paging } from "@/types/paging.ts";
 
 export const InventoryPage = () => {
   const [inventoryReports, setInventoryReports] = useState<InventoryReport[]>(
@@ -45,6 +45,7 @@ export const InventoryPage = () => {
     ltUpdatedAt: null,
     status: [],
     lk_Id: null,
+    page: null,
   });
   const [selectedTimeOption, setSelectedTimeOption] = useState("all");
   const [dateRange, setDateRange] = useState<{
@@ -55,20 +56,7 @@ export const InventoryPage = () => {
     to: undefined,
   });
   const [search, setSearch] = useState<string>();
-  const handleStatusChange = (value: string, checked: boolean) => {
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-expect-error
-    setFilters((prevFilters) => {
-      const updatedStatus = checked
-        ? [...prevFilters.status!, value]
-        : prevFilters.status!.filter((item) => item !== value);
 
-      return {
-        ...prevFilters,
-        status: updatedStatus,
-      };
-    });
-  };
   const handleSearchChange = (value: string) => {
     setFilters((prevFilters) => ({
       ...prevFilters,
@@ -135,7 +123,6 @@ export const InventoryPage = () => {
     { label: "Tổng chênh lệch", key: "inventoryDif", visible: true },
     { label: "Ghi chú", key: "note", visible: true },
     { label: "Trạng thái", key: "status", visible: true },
-    /*{ label: "Action", key: "actions", visible: true },*/
   ]);
   const handleCheckField = (key: string, visible: boolean) => {
     setFields((prevFields) =>
@@ -144,8 +131,14 @@ export const InventoryPage = () => {
       ),
     );
   };
-  console.log("fillet", filters);
-
+  const [paging, setPaging] = useState<Paging>({
+    limit: 10,
+    page: 1,
+  });
+  const handleSetPaging = (page: number) => {
+    setPaging({ ...paging, page });
+    setFilters({ ...filters, page });
+  };
   return (
     <Container className={"grid grid-cols-5 gap-4 grid-flow-row"}>
       <div className={"text-2xl col-span-1 font-bold"}>
@@ -254,53 +247,13 @@ export const InventoryPage = () => {
             </Accordion>
           </CardContent>
         </Card>
-        <Card>
-          <CardContent>
-            <Accordion type="single" collapsible>
-              <AccordionItem value="item-1">
-                <AccordionTrigger className={"hover:no-underline"}>
-                  Trạng thái
-                </AccordionTrigger>
-                <AccordionContent className={"pb-2 space-y-2"}>
-                  <CheckBoxWithText
-                    id={"serial"}
-                    onCheckChange={(value) => handleStatusChange("1", !!value)}
-                  >
-                    Đã cân bằng kho
-                  </CheckBoxWithText>
-                  <CheckBoxWithText
-                    id={"service"}
-                    onCheckChange={(value) => handleStatusChange("0", !!value)}
-                  >
-                    Đã hủy
-                  </CheckBoxWithText>
-                </AccordionContent>
-              </AccordionItem>
-            </Accordion>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent>
-            <Accordion type="single" collapsible>
-              <AccordionItem value="item-1">
-                <AccordionTrigger className={"hover:no-underline"}>
-                  Người tạo
-                </AccordionTrigger>
-                <AccordionContent className={"pb-0"}>
-                  <Input
-                    className={"focus-visible:ring-0 border-0 shadow-none"}
-                    placeholder={"Chọn người tạo "}
-                  />
-                </AccordionContent>
-              </AccordionItem>
-            </Accordion>
-          </CardContent>
-        </Card>
       </div>
       <div className={"col-span-4"}>
         <InventoryTable
           columnVisible={fields}
           dataInventory={inventoryReports}
+          setPaging={handleSetPaging}
+          paging={paging}
         ></InventoryTable>
       </div>
     </Container>

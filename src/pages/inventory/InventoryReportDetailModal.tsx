@@ -7,8 +7,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Save, XCircle } from "lucide-react";
+import { XCircle } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -30,6 +29,32 @@ export default function InventoryReportDetailModal({
   onOpenChange,
   inventoryItem,
 }: IInventoryReportDetailModalProps) {
+  interface IStatusMap {
+    [key: number]: string;
+  }
+
+  const statusMap: IStatusMap = {
+    1: "Đã cân bằng kho",
+    0: "Đã hủy",
+    2: "Chưa cân băng kho",
+  };
+  const totalStock = () => {
+    if (inventoryItem)
+      return inventoryItem.items.reduce(
+        (total, item) => total + item.amount,
+        0,
+      );
+    return 0;
+  };
+
+  const totalPrice = () => {
+    if (inventoryItem)
+      return inventoryItem.items.reduce(
+        (total, item) => total + (item.price || 0) * item.inventoryDif,
+        0,
+      );
+    return 0;
+  };
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-screen-xl max-h-screen flex flex-col">
@@ -62,7 +87,7 @@ export default function InventoryReportDetailModal({
               <div className="space-y-4">
                 <div className="flex justify-between">
                   <span className="font-medium">Trạng thái:</span>
-                  <span>{inventoryItem.status}</span>
+                  <span>{statusMap[inventoryItem.status]}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="font-medium">Người tạo:</span>
@@ -76,9 +101,6 @@ export default function InventoryReportDetailModal({
             </div>
           )}
           <div className="space-y-4">
-            <div className="flex gap-4 mb-4">
-              <Input placeholder="Tìm tên hàng" className="max-w-[200px]" />
-            </div>
             <ScrollArea className={"h-[300px] px-2"}>
               <Table>
                 <TableHeader className="bg-blue-50">
@@ -117,16 +139,16 @@ export default function InventoryReportDetailModal({
               </Table>
             </ScrollArea>
             <div className="space-y-2 text-right">
-              <div>Tổng thực tế: 0</div>
-              <div>Tổng chênh lệch: 0</div>
+              <div>Tổng thực tế: {totalStock()}</div>
+              <div>Tổng chênh lệch: {formatCurrency(totalPrice())}</div>
             </div>
           </div>
         </div>
         <DialogFooter className="">
-          <Button className="bg-green-500 hover:bg-green-600">
+          {/*<Button className="bg-green-500 hover:bg-green-600">
             <Save className="w-4 h-4 mr-2" />
             Lưu
-          </Button>
+          </Button>*/}
           {/*<Button variant="secondary">
             <FileDown className="w-4 h-4 mr-2" />
             Xuất file

@@ -12,7 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Link, useNavigate } from "react-router-dom";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   StockInCreate,
   StockInItemAdd,
@@ -26,21 +26,19 @@ import {
 import { formatCurrency } from "@/utils/convert.ts";
 import _ from "lodash";
 import { toast } from "react-toastify";
+import { useUserStore } from "@/stores/userStore.ts";
+import NewPartnerModalStockIn from "@/pages/inventory/stockIn/NewPartnerModalStockIn.tsx";
+import SpuModal from "@/pages/product/SpuModal.tsx";
+import { Category } from "@/types/category/category.ts";
+import { Brand } from "@/types/brand/brand.ts";
+import { getBrands } from "@/pages/product/api/brandApi.ts";
+import { getCategories } from "@/pages/product/api/categoryApi.ts";
 
 export default function StockInAddPage() {
   const rawData: StockInItemAdd[] = [];
   const [note, setNote] = useState("");
   const navigate = useNavigate();
-  const searchData = [
-    {
-      id: 0,
-      code: "",
-      name: "",
-      amount: 0,
-      price: 0,
-      url: "",
-    },
-  ];
+  const userProfile = useUserStore((store) => store.user);
   const [items, setItems] = React.useState<StockInItemAdd[]>(
     rawData.map((item) => ({
       ...item,
@@ -59,23 +57,27 @@ export default function StockInAddPage() {
       },
     ]
   >();
-  const [filteredProducts, setFilteredProducts] = useState(searchData);
-  const [selectedProvider, setSelectedProvider] = useState<number>();
+  const [filteredProducts, setFilteredProducts] = useState<
+    {
+      id: number;
+      name: string;
+      amount: number;
+      price: number;
+    }[]
+  >();
+  const [selectedProvider, setSelectedProvider] = useState<number>(-1);
   const debouncedSearch = useMemo(
     () =>
       _.debounce(async (query: string) => {
         if (query.trim() === "") {
-          setFilteredProducts(searchData);
+          setFilteredProducts(undefined);
         } else {
           try {
             const response = await searchSku(query);
-            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-            // @ts-expect-error
             const searchResponse = response.data.map((item) => ({
               id: item.id,
               name: item.name,
-              code: item.code,
-              amount: item.amount,
+              amount: item.stock,
               price: item.price,
             }));
             setFilteredProducts(searchResponse);
@@ -83,7 +85,7 @@ export default function StockInAddPage() {
             console.error(error);
           }
         }
-      }, 700),
+      }, 300),
     [],
   );
 
@@ -105,7 +107,7 @@ export default function StockInAddPage() {
         {
           ...product,
           amount: 0,
-          costPrice: product.price || 0,
+          costPrice: 0,
           totalPrice: 0,
         },
       ];
@@ -116,6 +118,7 @@ export default function StockInAddPage() {
     e: React.ChangeEvent<HTMLInputElement>,
   ) => {
     const query = e.target.value;
+    if (query.trim() === "") setSelectedProvider(-1);
     setSearchProviderQuery(query);
     debouncedSearchProvider(query);
   };
@@ -157,10 +160,10 @@ export default function StockInAddPage() {
     );
   };
   const handleAmountChange = (id: number, amount: number) => {
-    if (amount <= 0) amount = 0;
+    if (amount > 99999) amount = 99999;
     setItems((prevItems) =>
       prevItems.map((item) =>
-        item.id === id
+        item.id === id && amount >= 0 && amount <= 99999
           ? {
               ...item,
               amount: amount,
@@ -170,13 +173,16 @@ export default function StockInAddPage() {
     );
   };
 
-  const handlePriceChange = (id: number, price: number) => {
+  const handlePriceChange = (id: number, price: string) => {
+    let priceValue = Number(price);
+    if (priceValue > 999999999) priceValue = 999999999;
+
     setItems((prevItems) =>
       prevItems.map((item) =>
-        item.id === id && price >= 0 && price <= 999999999
+        item.id === id && priceValue >= 0 && priceValue <= 999999999
           ? {
               ...item,
-              costPrice: price,
+              costPrice: priceValue,
             }
           : item,
       ),
@@ -186,41 +192,26 @@ export default function StockInAddPage() {
   const handleComplete = async () => {
     if (items.length === 0) {
       toast.warning("Không có sản phẩm nào  !", {
-        position: "top-right",
-        autoClose: 3000,
-        hideProgressBar: false,
         closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
       });
       return;
     }
 
     if (items.some((item) => item.amount === 0)) {
       toast.warning("Vui lòng nhập số lượng  !", {
-        position: "top-right",
-        autoClose: 3000,
-        hideProgressBar: false,
         closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
       });
       return;
     }
-
-    /*if (selectedProvider) {
+    console.log("nha cung cap", selectedProvider);
+    if (selectedProvider === -1) {
       toast.warning("Vui lòng chọn nhà cung cấp  !", {
-        position: "top-right",
-        autoClose: 3000,
-        hideProgressBar: false,
         closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
       });
       return;
-    }*/
+    }
     const report: StockInCreate = {
-      warehouseMen: 8,
+      warehouseMen: userProfile?.id || 1,
       providerId: selectedProvider || 1,
       totalPrice: calculateTotalPrice() || 0,
       items: items.map((item) => ({
@@ -232,7 +223,9 @@ export default function StockInAddPage() {
     };
     try {
       const response = await createStockInReport(report);
-      toast.success("Nhập hàng thành công!");
+      toast.success("Nhập hàng thành công!", {
+        closeOnClick: true,
+      });
       console.log("Báo cáo nhập kho đã được tạo:", response);
       navigate("/stock-in");
     } catch (error) {
@@ -240,9 +233,52 @@ export default function StockInAddPage() {
       console.error("Lỗi khi tạo báo cáo kiểm kho:", error);
     }
   };
+  const [isOpenNewPartnerModal, setIsOpenNewPartnerModal] = useState(false);
+  const [isAdd, setIsAdd] = useState<boolean>(true);
+  const [isOpenModalSpu, setIsOpenModalSpu] = useState<boolean>(false);
+  const handleCloseModalSpu = () => {
+    setIsOpenModalSpu(false);
+  };
+  const [listCategories, setListCategories] = useState<Category[]>([]);
+  const [listBrands, setListBrands] = useState<Brand[]>([]);
+  const handleActionSuccessSpuModal = () => {
+    setIsOpenModalSpu(false);
+  };
+  const fetchBrands = async () => {
+    try {
+      const response = await getBrands();
+      setListBrands(response.data);
+    } catch (error) {
+      console.error("Fetch error:", error);
+    }
+  };
+  const fetchCategories = async () => {
+    try {
+      const response = await getCategories();
+      console.log(response);
+      setListCategories(response.data);
+    } catch (error) {
+      console.error("Fetch error:", error);
+    }
+  };
+  useEffect(() => {
+    fetchBrands();
+    fetchCategories();
+  }, []);
   return (
     <div className=" mx-auto p-4">
-      {/* Header */}
+      <NewPartnerModalStockIn
+        isOpen={isOpenNewPartnerModal}
+        onOpenChange={setIsOpenNewPartnerModal}
+      />
+      <SpuModal
+        isAdd={isAdd}
+        isOpen={isOpenModalSpu}
+        onOpenChange={handleCloseModalSpu}
+        listCategories={listCategories}
+        listBrands={listBrands}
+        actionSuccess={handleActionSuccessSpuModal}
+      />
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-4 ">
           <Link to="/stock-in" className="hover:opacity-80">
@@ -257,28 +293,36 @@ export default function StockInAddPage() {
               value={searchQuery}
               onChange={handleSearchChange}
             />
-            <Button variant={"ghost"}>
+            <Button
+              variant={"ghost"}
+              onClick={() => {
+                setIsOpenModalSpu(true);
+                setIsAdd(true);
+              }}
+            >
               <PlusCircle className="h-6 w-6" />
             </Button>
 
             {/*
             <Plus className="h-5 w-5 text-gray-500" />
 */}
-            {filteredProducts.length > 0 && searchQuery.trim() !== "" && (
-              <div className="absolute top-full mt-2 left-0 w-full bg-white border rounded-lg shadow-md z-50 max-h-60 overflow-y-auto">
-                {filteredProducts.map((product) => (
-                  <div
-                    key={product.id}
-                    className="p-2 hover:bg-gray-100 cursor-pointer"
-                    onClick={() => handleAddItem(product)}
-                  >
-                    <span className="text-gray-500">{product.id}</span>
-                    {" - "}
-                    <span className="font-medium">{product.name}</span>
-                  </div>
-                ))}
-              </div>
-            )}
+            {filteredProducts &&
+              filteredProducts.length > 0 &&
+              searchQuery.trim() !== "" && (
+                <div className="absolute top-full mt-2 left-0 w-full bg-white border rounded-lg shadow-md z-50 max-h-60 overflow-y-auto">
+                  {filteredProducts.map((product) => (
+                    <div
+                      key={product.id}
+                      className="p-2 hover:bg-gray-100 cursor-pointer"
+                      onClick={() => handleAddItem(product)}
+                    >
+                      <span className="text-gray-500">{product.id}</span>
+                      {" - "}
+                      <span className="font-medium">{product.name}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
           </div>
         </div>
       </div>
@@ -299,7 +343,7 @@ export default function StockInAddPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {items.map((item) => (
+              {items.map((item, index) => (
                 <TableRow key={item.id}>
                   <TableCell>
                     <Trash2
@@ -307,8 +351,8 @@ export default function StockInAddPage() {
                       onClick={() => handleRemoveItem(item.id)}
                     />
                   </TableCell>
-                  <TableCell>{item.id}</TableCell>
-                  <TableCell className="text-blue-600">{item.code}</TableCell>
+                  <TableCell>{index + 1}</TableCell>
+                  <TableCell className="text-blue-600">{item.id}</TableCell>
                   <TableCell>{item.name}</TableCell>
 
                   <TableCell className="text-center items-center flex justify-center">
@@ -325,12 +369,15 @@ export default function StockInAddPage() {
 
                   <TableCell className="">
                     <Input
-                      type="number"
+                      type="text"
                       placeholder="Đơn giá"
                       className="shadow-none w-fit text-center"
-                      value={item.costPrice}
+                      value={Intl.NumberFormat("en-US").format(item.costPrice)}
                       onChange={(e) =>
-                        handlePriceChange(item.id, Number(e.target.value))
+                        handlePriceChange(
+                          item.id,
+                          e.target.value.replace(/,/g, ""),
+                        )
                       }
                     />
                   </TableCell>
@@ -349,7 +396,9 @@ export default function StockInAddPage() {
         <Card className="w-[300px]">
           <CardContent className="p-4 space-y-4">
             <div className="flex items-center justify-between text-sm">
-              <span>Nguyễn Huỳnh Duy Hiếu</span>
+              <span>
+                {userProfile?.firstName + " " + userProfile?.lastName}
+              </span>
               <Pencil className="h-4 w-4 text-gray-500" />
             </div>
             <div className="flex items-center justify-between text-sm relative">
@@ -358,7 +407,13 @@ export default function StockInAddPage() {
                 value={searchProviderQuery}
                 onChange={handleSearchProviderChange}
               />
-              <Button variant={"ghost"} className={"rounded-full "}>
+              <Button
+                variant={"ghost"}
+                onClick={() => {
+                  setIsOpenNewPartnerModal(true);
+                }}
+                className={"rounded-full "}
+              >
                 <PlusCircle
                   className={
                     "h-4 w-4 text-gray-500 cursor-pointer hover:text-red-500"

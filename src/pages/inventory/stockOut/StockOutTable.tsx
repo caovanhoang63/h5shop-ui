@@ -13,18 +13,11 @@ import {
   useReactTable,
   VisibilityState,
 } from "@tanstack/react-table";
-import { ArrowUpDown, MoreHorizontal } from "lucide-react";
+import { ArrowUpDown } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+
 import {
   Table,
   TableBody,
@@ -40,6 +33,7 @@ import {
 } from "@/types/stockOut/stockOut.ts";
 import { getStockOutDetailById } from "@/pages/inventory/stockOut/api/stockOutApi.ts";
 import StockOutDetailModal from "@/pages/inventory/stockOut/StockOutDetailModal.tsx";
+import { Paging } from "@/types/paging.ts";
 
 interface IColorMap {
   [key: number]: string;
@@ -185,7 +179,7 @@ const columnsStockOut: ColumnDef<StockOutItemTable>[] = [
     cell: ({ row }) => <StatusStockInRow status={row.getValue("status")} />,
   },
 
-  {
+  /* {
     id: "actions",
     enableHiding: false,
     cell: ({ row }) => {
@@ -214,15 +208,19 @@ const columnsStockOut: ColumnDef<StockOutItemTable>[] = [
         </DropdownMenu>
       );
     },
-  },
+  },*/
 ];
 interface StockOutTableProps {
   dataStockOut: StockOutItemTable[];
   columnVisible: MenuVisibilityColumnTable[];
+  setPaging: (page: number) => void;
+  paging: Paging;
 }
 export function StockOutTable({
   dataStockOut,
   columnVisible,
+  setPaging,
+  paging,
 }: StockOutTableProps) {
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
@@ -253,6 +251,20 @@ export function StockOutTable({
     } catch (error) {
       console.error("Error fetching stock in report details:", error);
     }
+  };
+  const handleClickPrevious = () => {
+    if (paging.page === 1) return;
+    setPaging(paging.page ? paging.page - 1 : 1);
+  };
+
+  const handleClickNext = () => {
+    if (
+      paging.total &&
+      paging.limit &&
+      paging.page === Math.ceil(paging.total / paging.limit)
+    )
+      return;
+    setPaging(paging.page ? paging.page + 1 : 1);
   };
   const table = useReactTable<StockOutItemTable>({
     initialState: {
@@ -345,7 +357,7 @@ export function StockOutTable({
                   colSpan={columnsStockOut.length}
                   className="h-24 text-center"
                 >
-                  No results.
+                  Không có dữ liệu
                 </TableCell>
               </TableRow>
             )}
@@ -354,25 +366,29 @@ export function StockOutTable({
       </div>
       <div className="flex items-center justify-end space-x-2 py-4">
         <div className="flex-1 text-sm text-muted-foreground">
-          {table.getFilteredSelectedRowModel().rows.length} of{" "}
-          {table.getFilteredRowModel().rows.length} row(s) selected.
+          {table.getFilteredSelectedRowModel().rows.length} trong{" "}
+          {table.getFilteredRowModel().rows.length} hàng được chọn
         </div>
         <div className="space-x-2">
           <Button
             variant="outline"
             size="sm"
-            onClick={() => table.previousPage()}
-            disabled={!table.getCanPreviousPage()}
+            onClick={handleClickPrevious}
+            disabled={paging.page === 1}
           >
-            Previous
+            Trước
           </Button>
           <Button
             variant="outline"
             size="sm"
-            onClick={() => table.nextPage()}
-            disabled={!table.getCanNextPage()}
+            onClick={handleClickNext}
+            disabled={
+              paging.page ===
+                Math.ceil((paging.total || 0) / (paging.limit || 20)) ||
+              Math.ceil((paging.total || 0) / (paging.limit || 20)) === 0
+            }
           >
-            Next
+            Sau
           </Button>
         </div>
       </div>
