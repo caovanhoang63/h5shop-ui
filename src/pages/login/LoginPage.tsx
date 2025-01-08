@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { Eye, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
@@ -11,7 +10,7 @@ import { toast } from "react-toastify";
 import { useUserStore } from "@/stores/userStore.ts";
 
 export default function LoginPage() {
-  const [showPassword, setShowPassword] = useState(false);
+  const [showPassword] = useState(false);
   const navigate = useNavigate();
   const [authenticateRequest, setAuthenticateRequest] = useState<Authenticate>({
     userName: "",
@@ -87,13 +86,13 @@ export default function LoginPage() {
                   });
                 }}
               />
-              <button
+              {/*<button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
                 className="absolute right-0 top-3  text-gray-500"
               >
                 {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-              </button>
+              </button>*/}
             </div>
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-2">
