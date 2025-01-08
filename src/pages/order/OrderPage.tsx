@@ -149,7 +149,10 @@ export const OrderPage = () => {
       ),
     );
   };
-
+  const handleSetPaging = (page: number) => {
+    setPaging({ ...paging, page });
+    setFilters({ ...filters, page });
+  };
   return (
     <Fragment>
       {isLoading && <LoadingAnimation />}
@@ -295,7 +298,7 @@ export const OrderPage = () => {
           <OrderTable
             columnVisible={fields}
             dataOrder={orderReport}
-            setPaging={setPaging}
+            setPaging={handleSetPaging}
             paging={paging}
           ></OrderTable>
         </div>

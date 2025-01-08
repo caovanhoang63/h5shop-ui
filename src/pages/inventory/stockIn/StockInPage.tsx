@@ -8,7 +8,6 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion.tsx";
-import { CheckBoxWithText } from "@/components/CheckBoxWithText.tsx";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group.tsx";
 import { Label } from "@/components/ui/label.tsx";
 import Container from "@/layouts/components/Container.tsx";
@@ -58,7 +57,7 @@ export const StockInPage = () => {
     from: undefined,
     to: undefined,
   });
-  const [search, setSearch] = useState<string>();
+  const [search, setSearch] = useState<string>(); /*
   const handleStatusChange = (value: string, checked: boolean) => {
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-expect-error
@@ -72,7 +71,7 @@ export const StockInPage = () => {
         status: updatedStatus,
       };
     });
-  };
+  };*/
   const handleSearchChange = (value: string) => {
     setFilters((prevFilters) => ({
       ...prevFilters,
@@ -270,7 +269,7 @@ export const StockInPage = () => {
             </Accordion>
           </CardContent>
         </Card>
-        <Card>
+        {/*<Card>
           <CardContent>
             <Accordion type="single" collapsible>
               <AccordionItem value="item-1">
@@ -294,7 +293,7 @@ export const StockInPage = () => {
               </AccordionItem>
             </Accordion>
           </CardContent>
-        </Card>
+        </Card>*/}
         {/*<Card>
           <CardContent>
             <Accordion type="single" collapsible>

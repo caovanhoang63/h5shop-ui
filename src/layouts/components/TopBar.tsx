@@ -1,9 +1,11 @@
 import { Button } from "@/components/ui/button.tsx";
 import {
-  ArrowDown,
   ArrowRightLeft,
+  ArrowUp,
   BarChart3,
+  Building,
   ChartColumn,
+  CircleUser,
   Download,
   EyeIcon,
   FileText,
@@ -60,7 +62,13 @@ export const TopBar = () => {
   const canViewReport = ["admin", "owner", "finance_staff"].includes(
     userProfile?.systemRole || "",
   );
-  const canViewStock = ["admin", "owner", "warehouse_staff"].includes(
+  const canViewStock = [
+    "admin",
+    "owner",
+    "warehouse_staff",
+    "sale_staff",
+  ].includes(userProfile?.systemRole || "");
+  const canViewStockInOut = ["admin", "owner", "warehouse_staff"].includes(
     userProfile?.systemRole || "",
   );
   const canViewPartner = [
@@ -69,6 +77,12 @@ export const TopBar = () => {
     "sale_staff",
     "warehouse_staff",
   ].includes(userProfile?.systemRole || "");
+  const canViewCustomer = ["admin", "sale_staff", "owner"].includes(
+    userProfile?.systemRole || "",
+  );
+  const canViewOrder = ["admin", "sale_staff", "owner"].includes(
+    userProfile?.systemRole || "",
+  );
   const canViewEmployee = ["admin", "owner"].includes(
     userProfile?.systemRole || "",
   );
@@ -194,32 +208,67 @@ export const TopBar = () => {
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent className="w-56 bg-blue-600 text-white border-blue-700 ml-24">
-                  <DropdownMenuItem
-                    className="hover:bg-blue-700 cursor-pointer"
-                    onClick={() => navigate("/stock-in")}
-                  >
-                    <Download size={20} />
-                    <p>Nhập hàng</p>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem
-                    className="hover:bg-blue-700 cursor-pointer"
-                    onClick={() => navigate("/stock-out")}
-                  >
-                    <ArrowDown size={20} />
-                    <p>Xuất hàng</p>
-                  </DropdownMenuItem>
+                  {canViewStockInOut && (
+                    <div>
+                      <DropdownMenuItem
+                        className="hover:bg-blue-700 cursor-pointer"
+                        onClick={() => navigate("/stock-in")}
+                      >
+                        <Download size={20} />
+                        <p>Nhập hàng</p>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        className="hover:bg-blue-700 cursor-pointer"
+                        onClick={() => navigate("/stock-out")}
+                      >
+                        <ArrowUp size={20} />
+                        <p>Xuất hàng</p>
+                      </DropdownMenuItem>
+                    </div>
+                  )}
+
+                  {canViewOrder && (
+                    <DropdownMenuItem
+                      className="hover:bg-blue-700 cursor-pointer"
+                      onClick={() => navigate("/order")}
+                    >
+                      <FileText size={20} />
+                      <p>Hóa đơn</p>
+                    </DropdownMenuItem>
+                  )}
                 </DropdownMenuContent>
               </DropdownMenu>
             )}
             {canViewPartner && (
-              <Button
-                variant="default"
-                className="bg-blue-600 hover:bg-blue-700 text-white text-lg"
-                onClick={() => navigate("/partner")}
-              >
-                <Handshake size={20} />
-                <p>Đối tác</p>
-              </Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="default"
+                    className="bg-blue-600 hover:bg-blue-700 text-white text-lg"
+                  >
+                    <Handshake size={20} />
+                    <p>Đối tác</p>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="w-56 bg-blue-600 text-white border-blue-700 ml-24">
+                  <DropdownMenuItem
+                    className="hover:bg-blue-700 cursor-pointer"
+                    onClick={() => navigate("/partner")}
+                  >
+                    <Building size={20} />
+                    <p>Nhà cung cấp</p>
+                  </DropdownMenuItem>
+                  {canViewCustomer && (
+                    <DropdownMenuItem
+                      className="hover:bg-blue-700 cursor-pointer"
+                      onClick={() => navigate("/customer")}
+                    >
+                      <CircleUser size={20} />
+                      <p>Khách hàng</p>
+                    </DropdownMenuItem>
+                  )}
+                </DropdownMenuContent>
+              </DropdownMenu>
             )}
             {canViewEmployee && (
               <Button
