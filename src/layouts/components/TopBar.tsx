@@ -15,7 +15,6 @@ import {
   Package,
   Settings,
   ShoppingBasket,
-  User,
   Users,
 } from "lucide-react";
 import {
@@ -134,10 +133,10 @@ export const TopBar = () => {
               </Avatar>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem>
+              {/*<DropdownMenuItem>
                 <User />
                 Tài khoản
-              </DropdownMenuItem>
+              </DropdownMenuItem>*/}
               <DropdownMenuItem
                 onClick={() => {
                   localStorage.removeItem("token");
