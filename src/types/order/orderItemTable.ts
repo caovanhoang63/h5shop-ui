@@ -1,6 +1,4 @@
-﻿import { OrderItem } from "@/types/orderItem/orderItem.ts";
-
-export interface OrderGetDetail {
+﻿export interface OrderItemTable {
   id: number;
   customerId?: number;
   customerName?: string;
@@ -9,12 +7,10 @@ export interface OrderGetDetail {
   sellerName?: string;
   status: number;
   orderType: string;
-  description?: string;
+  createdAt: Date | null;
+  updatedAt: Date | null;
   totalAmount: number;
   discountAmount: number;
   finalAmount: number;
   pointUsed: number;
-  createdAt: Date;
-  updatedAt: Date;
-  items: OrderItem[];
 }

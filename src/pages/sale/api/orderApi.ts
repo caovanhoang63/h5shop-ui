@@ -20,6 +20,8 @@ interface OrderItemResponse {
 
 interface OrderResponse {
   data: OrderGetDetail;
+  extra?: never;
+  paging?: never;
 }
 export async function getOrderById(id: number) {
   try {
@@ -43,6 +45,7 @@ export async function getListOrder(orderStatus: OrderStatus) {
     const response = await axiosInstance.get<OrderListResponse>(
       `/v1/order${query}`,
     );
+    console.log("get list response", response.data);
     return response.data;
   } catch (error) {
     console.error("Fetch error:", error);

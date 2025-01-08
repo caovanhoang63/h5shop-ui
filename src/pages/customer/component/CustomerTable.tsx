@@ -25,11 +25,11 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { MenuVisibilityColumnTable } from "@/components/ButtonVisibilityColumnTable.tsx";
-import { OrderItemTable } from "@/types/order/orderItemTable.ts";
 import { Paging } from "@/types/paging";
-import { OrderGetDetail } from "@/types/order/orderGetDetail.ts";
-import { getOrderById } from "@/pages/order/api/orderApi.ts";
-import OrderDetailModal from "@/pages/order/components/OrderDetailModal.tsx";
+import { CustomerItemTable } from "@/types/customer/customerItemTable.ts";
+import { getCustomerById } from "@/pages/customer/api/customerApi.ts";
+import { Customer } from "@/types/customer/customer";
+import { DetailCustomerModal } from "@/pages/customer/component/DetailCustomerModal.tsx";
 
 interface IColorMap {
   [key: number | string]: string;
@@ -40,26 +40,26 @@ interface IValueMap {
 }
 
 const colorMap: IColorMap = {
-  2: "text-success",
-  1: "text-warning",
+  1: "text-success",
   0: "text-error",
-  retail: "text-success",
-  wholesale: "text-warning",
 };
 
 const valueMap: IValueMap = {
-  0: "Đã hủy",
-  1: "Đang bán",
-  2: "Đã hoàn thành",
-  retail: "Bán lẻ",
-  wholesale: "Bán sỉ",
+  0: "Ngưng hoạt động",
+  1: "Hoạt động",
+};
+
+const genderMap: IValueMap = {
+  female: "Nữ",
+  male: "Nam",
+  other: "Khác",
 };
 
 function CollorOrderRow({ status }: { status: number }) {
   return <div className={` ${colorMap[status]}`}>{valueMap[status]}</div>;
 }
 
-const columnsOrder: ColumnDef<OrderItemTable>[] = [
+const columnsCustomer: ColumnDef<CustomerItemTable>[] = [
   {
     id: "select",
     header: ({ table }) => (
@@ -86,9 +86,169 @@ const columnsOrder: ColumnDef<OrderItemTable>[] = [
   {
     accessorKey: "id",
     header: () => {
-      return <div className={"font-bold"}>Mã hoá đơn</div>;
+      return <div className={"font-bold"}>Mã khách hàng</div>;
     },
     cell: ({ row }) => <div className="capitalize">{row.getValue("id")}</div>,
+  },
+  {
+    accessorKey: "phoneNumber",
+    header: ({ column }) => {
+      return (
+        <Button
+          className={"p-0 font-bold"}
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Số điện thoại
+          <ArrowUpDown />
+        </Button>
+      );
+    },
+    cell: ({ row }) => (
+      <div className="ml-4">
+        <div className="">{row.getValue("phoneNumber")}</div>
+      </div>
+    ),
+  },
+  {
+    accessorKey: "address",
+    header: ({ column }) => {
+      return (
+        <Button
+          className={"p-0 font-bold"}
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Địa chỉ
+          <ArrowUpDown />
+        </Button>
+      );
+    },
+    cell: ({ row }) => <div className="">{row.getValue("address")}</div>,
+  },
+  {
+    accessorKey: "lastName",
+    header: ({ column }) => {
+      return (
+        <Button
+          className={"p-0 font-bold"}
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Họ
+          <ArrowUpDown />
+        </Button>
+      );
+    },
+    cell: ({ row }) => <div className="">{row.getValue("lastName")}</div>,
+  },
+
+  {
+    accessorKey: "firstName",
+    header: ({ column }) => {
+      return (
+        <Button
+          className={"p-0 font-bold"}
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Tên
+          <ArrowUpDown />
+        </Button>
+      );
+    },
+    cell: ({ row }) => <div className="">{row.getValue("firstName")}</div>,
+  },
+
+  {
+    accessorKey: "dateOfBirth",
+    header: ({ column }) => {
+      return (
+        <Button
+          className={"p-0 font-bold"}
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Ngày sinh
+          <ArrowUpDown />
+        </Button>
+      );
+    },
+    cell: ({ row }) => {
+      const dateOfBirth = row.getValue("dateOfBirth") as string | number | null;
+      return (
+        <div className="ml-4">
+          {dateOfBirth ? new Date(dateOfBirth).toLocaleDateString() : ""}
+        </div>
+      );
+    },
+  },
+
+  {
+    accessorKey: "paymentAmount",
+    header: ({ column }) => {
+      return (
+        <Button
+          className={"p-0 font-bold"}
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Số lần thanh toán
+          <ArrowUpDown />
+        </Button>
+      );
+    },
+    cell: ({ row }) => (
+      <div className="ml-4">{row.getValue("paymentAmount")}</div>
+    ),
+  },
+
+  {
+    accessorKey: "discountPoint",
+    header: ({ column }) => {
+      return (
+        <Button
+          className={"p-0 font-bold"}
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Điểm giảm giá
+          <ArrowUpDown />
+        </Button>
+      );
+    },
+    cell: ({ row }) => (
+      <div className=" ml-4">{row.getValue("discountPoint")}</div>
+    ),
+  },
+
+  {
+    accessorKey: "gender",
+    header: ({ column }) => {
+      return (
+        <Button
+          className={"p-0 font-bold"}
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Giới tính
+          <ArrowUpDown />
+        </Button>
+      );
+    },
+    cell: ({ row }) => {
+      const gender = row.getValue("gender") as string;
+      return (
+        <div className="ml-4">{genderMap[gender] || "Không xác định"}</div>
+      );
+    },
+  },
+  {
+    accessorKey: "status",
+    header: () => {
+      return <div className={"font-bold"}>Trạng thái</div>;
+    },
+    cell: ({ row }) => <CollorOrderRow status={row.getValue("status")} />,
   },
   {
     accessorKey: "updatedAt",
@@ -110,166 +270,21 @@ const columnsOrder: ColumnDef<OrderItemTable>[] = [
       </div>
     ),
   },
-  {
-    accessorKey: "customerName",
-    header: ({ column }) => {
-      return (
-        <Button
-          className={"p-0 font-bold"}
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          Tên khách hàng
-          <ArrowUpDown />
-        </Button>
-      );
-    },
-    cell: ({ row }) => (
-      <div className="lowercase ml-4">{row.getValue("customerName")}</div>
-    ),
-  },
-  {
-    accessorKey: "customerPhone",
-    header: ({ column }) => {
-      return (
-        <Button
-          className={"p-0 font-bold"}
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          Số điên thoại khách hàng
-          <ArrowUpDown />
-        </Button>
-      );
-    },
-    cell: ({ row }) => (
-      <div className="lowercase ml-4">{row.getValue("customerPhone")}</div>
-    ),
-  },
-
-  {
-    accessorKey: "sellerName",
-    header: ({ column }) => {
-      return (
-        <Button
-          className={"p-0 font-bold"}
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          Tên người bán
-          <ArrowUpDown />
-        </Button>
-      );
-    },
-    cell: ({ row }) => (
-      <div className="lowercase ml-4">{row.getValue("sellerName")}</div>
-    ),
-  },
-
-  {
-    accessorKey: "orderType",
-    header: () => {
-      return <div className={"font-bold"}>Loại hoá đơn</div>;
-    },
-    cell: ({ row }) => <CollorOrderRow status={row.getValue("orderType")} />,
-  },
-
-  {
-    accessorKey: "totalAmount",
-    header: ({ column }) => {
-      return (
-        <Button
-          className={"p-0 font-bold"}
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          Tổng giá trị
-          <ArrowUpDown />
-        </Button>
-      );
-    },
-    cell: ({ row }) => (
-      <div className="lowercase ml-4">{row.getValue("totalAmount")}</div>
-    ),
-  },
-
-  {
-    accessorKey: "discountAmount",
-    header: ({ column }) => {
-      return (
-        <Button
-          className={"p-0 font-bold"}
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          Giảm giá
-          <ArrowUpDown />
-        </Button>
-      );
-    },
-    cell: ({ row }) => (
-      <div className="lowercase ml-4">{row.getValue("discountAmount")}</div>
-    ),
-  },
-
-  {
-    accessorKey: "finalAmount",
-    header: ({ column }) => {
-      return (
-        <Button
-          className={"p-0 font-bold"}
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          Giá cuối
-          <ArrowUpDown />
-        </Button>
-      );
-    },
-    cell: ({ row }) => (
-      <div className="lowercase ml-4">{row.getValue("finalAmount")}</div>
-    ),
-  },
-
-  {
-    accessorKey: "pointUsed",
-    header: ({ column }) => {
-      return (
-        <Button
-          className={"p-0 font-bold"}
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          Điểm sử dụng
-          <ArrowUpDown />
-        </Button>
-      );
-    },
-    cell: ({ row }) => (
-      <div className="lowercase ml-4">{row.getValue("pointUsed")}</div>
-    ),
-  },
-
-  {
-    accessorKey: "status",
-    header: () => {
-      return <div className={"font-bold"}>Trạng thái</div>;
-    },
-    cell: ({ row }) => <CollorOrderRow status={row.getValue("status")} />,
-  },
 ];
-interface OrderTableProps {
-  dataOrder: OrderItemTable[];
+interface CustomerTableProps {
+  dataCustomer: CustomerItemTable[];
   columnVisible: MenuVisibilityColumnTable[];
   setPaging: (page: number) => void;
   paging: Paging;
+  onRecordUpdated: () => void;
 }
-export function OrderTable({
-  dataOrder,
+export function CustomerTable({
+  dataCustomer,
   columnVisible,
   setPaging,
   paging,
-}: OrderTableProps) {
+  onRecordUpdated,
+}: CustomerTableProps) {
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     [],
@@ -282,19 +297,19 @@ export function OrderTable({
       }, {} as VisibilityState),
     );
   const [rowSelection, setRowSelection] = React.useState({});
-  const [isOpenOrderModal, setIsOpenOrderModal] = useState(false);
+  const [isOpenOrderModal, setIsOpenCustomerModal] = useState(false);
 
-  const [selectedOrderReport, setSelectedOrderReport] = useState<
-    OrderItemTable | undefined
+  const [selectedCustomerReport, setSelectedCustomerReport] = useState<
+    CustomerItemTable | undefined
   >(undefined);
-  const [orderReportDetails, setOrderReportDetails] = useState<
-    OrderGetDetail | undefined
+  const [customerReportDetails, setCustomerReportDetails] = useState<
+    Customer | undefined
   >(undefined);
 
-  const getOrderDetails = async (id: number) => {
+  const getCustomerDetails = async (id: number) => {
     try {
-      const response = await getOrderById(id);
-      setOrderReportDetails(response.data);
+      const response = await getCustomerById(id);
+      setCustomerReportDetails(response.data);
     } catch (error) {
       console.error("Error fetching order report details:", error);
     }
@@ -315,24 +330,14 @@ export function OrderTable({
     setPaging(paging.page ? paging.page + 1 : 1);
   };
 
-  const handleOrderDelete = () => {
-    setOrderReportDetails(undefined); // Reset modal state
-    setIsOpenOrderModal(false); // Close modal
-    // Filter out orders with status = 1 or the deleted order
-    // const updatedData = dataOrder.filter(
-    //   (order) => order.id !== orderId && order.status !== 1,
-    // );
-    setPaging(1);
-  };
-
-  const table = useReactTable<OrderItemTable>({
+  const table = useReactTable<CustomerItemTable>({
     initialState: {
       pagination: {
         pageSize: 10,
       },
     },
-    data: dataOrder,
-    columns: columnsOrder,
+    data: dataCustomer,
+    columns: columnsCustomer,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
     getCoreRowModel: getCoreRowModel(),
@@ -358,12 +363,12 @@ export function OrderTable({
   }, [columnVisible]);
   return (
     <div className="w-full">
-      <OrderDetailModal
+      <DetailCustomerModal
         isOpen={isOpenOrderModal}
-        onOpenChange={setIsOpenOrderModal}
-        order={orderReportDetails}
-        onOrderDelete={() => handleOrderDelete()}
-      ></OrderDetailModal>
+        onClose={() => setIsOpenCustomerModal(false)}
+        onSave={onRecordUpdated}
+        customer={customerReportDetails}
+      />
       <div className="rounded-md border">
         <Table>
           <TableHeader>
@@ -393,10 +398,10 @@ export function OrderTable({
                     event.preventDefault();
                     event.stopPropagation();
                     const selectedReport = row.original;
-                    setSelectedOrderReport(selectedReport);
-                    console.log(selectedOrderReport);
-                    await getOrderDetails(selectedReport.id);
-                    setIsOpenOrderModal(true);
+                    setSelectedCustomerReport(selectedReport);
+                    console.log(selectedCustomerReport);
+                    await getCustomerDetails(selectedReport.id);
+                    setIsOpenCustomerModal(true);
                   }}
                   key={row.id}
                   data-state={row.getIsSelected() && "selected"}
@@ -414,7 +419,7 @@ export function OrderTable({
             ) : (
               <TableRow>
                 <TableCell
-                  colSpan={columnsOrder.length}
+                  colSpan={columnsCustomer.length}
                   className="h-24 text-center"
                 >
                   No results.

@@ -3,6 +3,7 @@ import {
   ArrowDown,
   ArrowRightLeft,
   BarChart3,
+  BookUser,
   ChartColumn,
   Download,
   EyeIcon,
@@ -11,9 +12,11 @@ import {
   List,
   LogOut,
   Package,
+  ScrollText,
   Settings,
   ShoppingBasket,
   User,
+  UserRound,
   Users,
 } from "lucide-react";
 import {

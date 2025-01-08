@@ -22,6 +22,7 @@ import StockOutAddPage from "@/pages/inventory/stockOut/StockOutAddPage.tsx";
 
 import WarrantyPage from "@/pages/warranty/WarrantyPage.tsx";
 import { OrderPage } from "@/pages/order/OrderPage.tsx";
+import { CustomerPage } from "@/pages/customer/CustomerPage.tsx";
 import { CheckRole } from "@/routes/ProtectedRoute.tsx";
 
 export const MainRoute = () => {

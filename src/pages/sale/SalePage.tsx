@@ -236,7 +236,10 @@ export default function SalePage() {
           const updatedTabs = [...prevTabs, newTab];
           if (updatedTabs.length === 1) {
             setActiveTab(0);
-          } else setActiveTab(tabs.length);
+          } else {
+            setActiveTab(tabs.length);
+          }
+          setSelectedCustomer(undefined);
           return updatedTabs;
         });
 
@@ -269,12 +272,29 @@ export default function SalePage() {
         // Adjust the active tab if the current active tab is deleted
         if (index === activeTab) {
           // If the deleted tab was the active tab, set the active tab to the previous one (if it exists)
-          setActiveTab((prevActiveTab) =>
-            prevActiveTab > 0 ? prevActiveTab - 1 : 0,
-          );
+          setActiveTab((prevActiveTab) => {
+            if (prevActiveTab > 0) {
+              fetchCustomerOnTab(prevActiveTab - 1).catch((error) => {
+                console.error("Error fetching customer:", error);
+              });
+              return prevActiveTab - 1;
+            } else {
+              if (tabs.length > 1) {
+                fetchCustomerOnTab(1).catch((error) => {
+                  console.error("Error fetching customer:", error);
+                });
+              }
+              return 0;
+            }
+          });
         } else if (index < activeTab) {
           // If the deleted tab was before the active tab, the active tab index should shift down by 1
-          setActiveTab((prevActiveTab) => prevActiveTab - 1);
+          setActiveTab((prevActiveTab) => {
+            fetchCustomerOnTab(prevActiveTab - 1).catch((error) => {
+              console.error("Error fetching customer:", error);
+            });
+            return prevActiveTab - 1;
+          });
         }
 
         // If there are no tabs left, create a new tab
@@ -288,14 +308,7 @@ export default function SalePage() {
       })
       .catch((error) => {
         console.log("Error deleting order:", error);
-        toast.error("Xóa đơn hàng thất bại, thử lại", {
-          position: "top-right",
-          autoClose: 3000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-        });
+        toast.error("Xóa đơn hàng thất bại, thử lại");
       });
   };
 
@@ -622,7 +635,6 @@ export default function SalePage() {
   }, [totalPages, skuFilter]);
 
   useEffect(() => {
-    // fetchCustomerOnTab(activeTab);
     updateTotalPrice();
   }, [tabs, activeTab, updateTotalPrice]);
 
@@ -646,7 +658,7 @@ export default function SalePage() {
   }, []);
 
   const fetchCustomerOnTab = async (index: number) => {
-    // console.log("run")
+    console.log("run");
     // setIsLoadingCustomer(true);
     if (!tabs[index].order.customerId) {
       setSelectedCustomer(undefined);
@@ -786,7 +798,7 @@ export default function SalePage() {
             <div className="flex flex-col flex-grow p-2 space-y-2 overflow-y-auto h-[0px]">
               {tabs[activeTab]?.order.items.length === 0 && (
                 <div className="text-center text-gray-500">
-                  Chưa có sản phầm nào trong đơn hàng
+                  Chưa có sản phẩm nào trong đơn hàng
                 </div>
               )}
               {tabs[activeTab]?.order?.items.map((item, index) => (
