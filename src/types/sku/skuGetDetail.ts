@@ -9,6 +9,10 @@ export interface SkuGetDetail {
   stock: number;
   images?: Image[];
   spuName: string;
+  timeWarranty: number;
+  timeReturn: number;
+  typeTimeWarranty: string;
+  typeTimeReturn: string;
   categoryName: string;
   brandName: string;
   attributes?: SkuAttr[];

@@ -1,5 +1,12 @@
 ﻿import { Card } from "@/components/ui/card.tsx";
-import { Info, Minus, MoreVertical, Plus, Trash2 } from "lucide-react";
+import {
+  Info,
+  Minus,
+  MoreVertical,
+  Plus,
+  ShieldCheck,
+  Trash2,
+} from "lucide-react";
 import { Button } from "@/components/ui/button.tsx";
 import { Input } from "@/components/ui/input.tsx";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -26,6 +33,21 @@ interface OrderItemCardProps {
   onDescriptionBlur: (newDescription: string) => void;
 }
 
+const formatWarrantyType = (typeTimeWarranty: string) => {
+  switch (typeTimeWarranty.toLowerCase()) {
+    case "day":
+      return "ngày";
+    case "month":
+      return "tháng";
+    case "year":
+      return "năm";
+    case "week":
+      return "tuần";
+    default:
+      return typeTimeWarranty; // Optional: Handle unexpected values
+  }
+};
+
 export function OrderItemCard({
   index,
   item,
@@ -37,6 +59,7 @@ export function OrderItemCard({
   const [localQuantity, setLocalQuantity] = useState(item.amount);
   const safeOriginalPrice = Number(item.unitPrice) || 0;
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isWarrantyDialogOpen, setIsWarrantyDialogOpen] = useState(false);
   const quantityInputRef = useRef<HTMLInputElement>(null);
   const previousQuantityRef = useRef(item.amount);
   // Calculate the final price
@@ -98,6 +121,15 @@ export function OrderItemCard({
           >
             <Info />
           </Button>
+          {item.skuDetail &&
+            (item.skuDetail.timeWarranty || item.skuDetail.timeReturn) && (
+              <Button
+                onClick={() => setIsWarrantyDialogOpen(true)}
+                className="p-1 h-6 w-6 bg-background text-gray-600 hover:bg-gray-200 rounded-full shadow-none"
+              >
+                <ShieldCheck color="#1d33d7" />
+              </Button>
+            )}
         </div>
         <Button className="p-1 ml-auto h-7 w-7 bg-background text-gray-600 hover:bg-gray-200 rounded-full shadow-none">
           <MoreVertical />
@@ -191,6 +223,43 @@ export function OrderItemCard({
                 </li>
               ))}
             </ul>
+          </div>
+        </DialogContent>
+      </Dialog>
+      <Dialog
+        open={isWarrantyDialogOpen}
+        onOpenChange={setIsWarrantyDialogOpen}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Bảo hành</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            {item.skuDetail &&
+            item.skuDetail.timeWarranty &&
+            item.skuDetail.typeTimeWarranty ? (
+              <p>
+                Bảo hành:{" "}
+                {item.skuDetail.timeWarranty +
+                  " " +
+                  formatWarrantyType(item.skuDetail.typeTimeWarranty)}
+              </p>
+            ) : (
+              "Không bảo hành"
+            )}
+
+            {item.skuDetail &&
+            item.skuDetail.timeReturn &&
+            item.skuDetail.typeTimeReturn ? (
+              <p>
+                Đổi trả:{" "}
+                {item.skuDetail.timeReturn +
+                  " " +
+                  formatWarrantyType(item.skuDetail.typeTimeReturn)}
+              </p>
+            ) : (
+              "Không đổi trả"
+            )}
           </div>
         </DialogContent>
       </Dialog>

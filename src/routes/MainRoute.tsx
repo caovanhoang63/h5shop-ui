@@ -23,6 +23,7 @@ import StockOutAddPage from "@/pages/inventory/stockOut/StockOutAddPage.tsx";
 
 import WarrantyPage from "@/pages/warranty/WarrantyPage.tsx";
 import { OrderPage } from "@/pages/order/OrderPage.tsx";
+import { CustomerPage } from "@/pages/customer/CustomerPage.tsx";
 
 export const MainRoute = () => {
   const navigate = useNavigate();
@@ -51,6 +52,7 @@ export const MainRoute = () => {
         <Route path={"stock-out/new"} element={<StockOutAddPage />} />
         <Route path={"warranty"} element={<WarrantyPage />} />
         <Route path={"order"} element={<OrderPage />} />
+        <Route path={"customer"} element={<CustomerPage />} />
       </Route>
       <Route path="/sale" element={<SalePage />} />
       <Route path="/error" element={<ErrorPage />} />

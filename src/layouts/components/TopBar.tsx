@@ -3,6 +3,7 @@ import {
   ArrowDown,
   ArrowRightLeft,
   BarChart3,
+  BookUser,
   ChartColumn,
   Download,
   EyeIcon,
@@ -16,6 +17,7 @@ import {
   Settings,
   ShoppingBasket,
   User,
+  UserRound,
   Users,
 } from "lucide-react";
 import {
@@ -158,14 +160,33 @@ export const TopBar = () => {
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
-            <Button
-              variant="default"
-              className="bg-blue-600 hover:bg-blue-700 text-white text-lg"
-              onClick={() => navigate("/partner")}
-            >
-              <Handshake size={20} />
-              <p>Đối tác</p>
-            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="default"
+                  className="bg-blue-600 hover:bg-blue-700 text-white text-lg"
+                >
+                  <Handshake size={20} />
+                  <p>Đối tác</p>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-56 bg-blue-600 text-white border-blue-700 ml-24 ">
+                <DropdownMenuItem
+                  className="hover:bg-blue-700 focus:bg-blue-700 focus:text-white cursor-pointer"
+                  onClick={() => navigate("/partner")}
+                >
+                  <BookUser size={20} />
+                  <p>Nhà cung cấp</p>
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  className="hover:bg-blue-700 focus:bg-blue-700 focus:text-white cursor-pointer"
+                  onClick={() => navigate("/customer")}
+                >
+                  <UserRound size={20} />
+                  <p>Khách hàng</p>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
             <Button
               variant="default"
               className="bg-blue-600 hover:bg-blue-700 text-white text-lg"

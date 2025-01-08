@@ -1,5 +1,4 @@
-﻿import { CalendarIcon, Plus, Search } from "lucide-react";
-import { Input } from "@/components/ui/input.tsx";
+﻿import { CalendarIcon, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button.tsx";
 import { Card, CardContent } from "@/components/ui/card.tsx";
 import {
@@ -54,7 +53,7 @@ export const OrderPage = () => {
     from: undefined,
     to: undefined,
   });
-  const [search, setSearch] = useState<string>();
+  // const [search, setSearch] = useState<string>();
   const handleStatusChange = (value: number, checked: boolean) => {
     setFilters((prevFilters) => {
       const updatedStatus = checked
@@ -67,12 +66,12 @@ export const OrderPage = () => {
       };
     });
   };
-  const handleSearchChange = (value: string) => {
-    setFilters((prevFilters) => ({
-      ...prevFilters,
-      lk_Id: value.trim() === "" ? null : value,
-    }));
-  };
+  // const handleSearchChange = (value: string) => {
+  //   setFilters((prevFilters) => ({
+  //     ...prevFilters,
+  //     lk_Id: value.trim() === "" ? null : value,
+  //   }));
+  // };
   const handleTimeOptionChange = (value: string) => {
     setSelectedTimeOption(value);
     const newFilters = { ...filters };
@@ -155,16 +154,16 @@ export const OrderPage = () => {
       </div>
       <div className={"col-span-4 w-full flex justify-between"}>
         <div className="relative flex items-center max-w-80">
-          <Search className="absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 transform" />
-          <Input
-            value={search}
-            onChange={(e) => {
-              setSearch(e.target.value);
-              handleSearchChange(e.target.value);
-            }}
-            className={"pl-9"}
-            placeholder={"Theo mã"}
-          />
+          {/*<Search className="absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 transform" />*/}
+          {/*<Input*/}
+          {/*  value={search}*/}
+          {/*  onChange={(e) => {*/}
+          {/*    setSearch(e.target.value);*/}
+          {/*    handleSearchChange(e.target.value);*/}
+          {/*  }}*/}
+          {/*  className={"pl-9"}*/}
+          {/*  placeholder={"Theo mã"}*/}
+          {/*/>*/}
         </div>
         <div className={"flex space-x-2"}>
           <Link to={"/sale"}>
@@ -173,7 +172,7 @@ export const OrderPage = () => {
               Bán hàng
             </Button>
           </Link>
-          <ExportButton data={orderReport} fileName={"Provider"} />
+          <ExportButton data={orderReport} fileName={"Order"} />
           <ButtonVisibilityColumnTable
             menus={fields}
             onCheckChange={handleCheckField}

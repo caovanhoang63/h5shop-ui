@@ -1,4 +1,4 @@
-﻿import React, { useState } from "react";
+﻿import React, { useEffect, useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -24,6 +24,8 @@ import { format } from "date-fns";
 import html2canvas from "html2canvas-pro";
 import jsPDF from "jspdf";
 import { vi } from "date-fns/locale";
+import { Setting } from "@/types/setting/setting.ts";
+import { getSetting } from "@/pages/sale/api/settingApi.ts";
 
 interface PaymentDialogProps {
   isOpen: boolean;
@@ -34,6 +36,21 @@ interface PaymentDialogProps {
   onPaymentSuccess: () => void;
 }
 
+const formatWarrantyType = (typeTimeWarranty: string) => {
+  switch (typeTimeWarranty.toLowerCase()) {
+    case "day":
+      return "ngày";
+    case "month":
+      return "tháng";
+    case "year":
+      return "năm";
+    case "week":
+      return "tuần";
+    default:
+      return typeTimeWarranty; // Optional: Handle unexpected values
+  }
+};
+
 const PaymentDialog: React.FC<PaymentDialogProps> = ({
   isOpen,
   onClose,
@@ -43,6 +60,7 @@ const PaymentDialog: React.FC<PaymentDialogProps> = ({
 }) => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [usePoints, setUsePoints] = useState(false);
+  const [setting, setSetting] = useState<Setting | null>(null);
 
   const handleConfirmPayment = async () => {
     setIsProcessing(true);
@@ -213,7 +231,44 @@ const PaymentDialog: React.FC<PaymentDialogProps> = ({
             </tbody>
         </table>
         <br>
-
+        <h3>Bảo hành và Đổi trả</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>ID SKU</th>
+                    <th>Tên sản phẩm</th>
+                    <th>Bảo hành</th>
+                    <th>Đổi trả</th>
+                </tr>
+            </thead>
+            <tbody>
+              ${order.items
+                .map(
+                  (item) => `
+          <tr>
+            <td>${item.skuId}</td>
+            <td>${item.skuDetail?.name || ""}</td>
+            <td>${
+              item.skuDetail?.timeWarranty
+                ? `${item.skuDetail.timeWarranty} ${formatWarrantyType(
+                    item.skuDetail.typeTimeWarranty,
+                  )}`
+                : "Không bảo hành"
+            }</td>
+            <td>${
+              item.skuDetail?.timeReturn
+                ? `${item.skuDetail.timeReturn} ${formatWarrantyType(
+                    item.skuDetail.typeTimeReturn,
+                  )}`
+                : "Không đổi trả"
+            }</td>
+          </tr>
+        `,
+                )
+                .join("")}
+            </tbody>
+        </table>
+        <br>
         <div class="summary">
             <div><span><strong>Ghi chú:</strong></span><span>${order.description || ""}</span></div>
             <div><span><strong>Điểm đã sử dụng:</strong></span><span>${order.pointUsed}</span></div>
@@ -267,6 +322,20 @@ const PaymentDialog: React.FC<PaymentDialogProps> = ({
       toast.error("Không thể in");
     }
   };
+
+  useEffect(() => {
+    if (isOpen) {
+      // Fetch setting when the dialog opens
+      getSetting("POINT_TO_DISCOUNT")
+        .then((response) => {
+          setSetting(response.data); // Assume the API returns the setting object in `data`
+        })
+        .catch((error) => {
+          console.error("Failed to fetch setting:", error);
+          toast.error("Không thể tải thông tin cấu hình.");
+        });
+    }
+  }, [isOpen]);
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -336,7 +405,45 @@ const PaymentDialog: React.FC<PaymentDialogProps> = ({
                 Không có sản phẩm nào trong hoá đơn.
               </p>
             )}
-            <div className="flex items-center justify-between">
+            {/* Warranty Table */}
+            <h3 className="mt-4">Bảo hành và Đổi trả</h3>
+            {orderDetails && orderDetails.items.length > 0 ? (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>ID SKU</TableHead>
+                    <TableHead>Tên sản phẩm</TableHead>
+                    <TableHead>Bảo hành</TableHead>
+                    <TableHead>Đổi trả</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {orderDetails.items.map((item, index) => (
+                    <TableRow key={index}>
+                      <TableCell>{item.skuId}</TableCell>
+                      <TableCell>{item.skuDetail?.name}</TableCell>
+                      <TableCell>
+                        {item.skuDetail?.timeWarranty
+                          ? `${item.skuDetail.timeWarranty} ${formatWarrantyType(
+                              item.skuDetail.typeTimeWarranty,
+                            )}`
+                          : "Không bảo hành"}
+                      </TableCell>
+                      <TableCell>
+                        {item.skuDetail?.timeReturn
+                          ? `${item.skuDetail.timeReturn} ${formatWarrantyType(
+                              item.skuDetail.typeTimeReturn,
+                            )}`
+                          : "Không đổi trả"}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            ) : (
+              <p className="text-gray-500">Không có thông tin bảo hành.</p>
+            )}
+            <div className="flex items-center justify-between mt-4">
               <span className="text-sm font-medium">
                 Tổng số lượng sản phẩm:
               </span>
@@ -348,7 +455,7 @@ const PaymentDialog: React.FC<PaymentDialogProps> = ({
                     )
                   : 0}
               </span>
-              <span className="pl-24 pr-8 text-lg font-semibold">
+              <span className="pl-auto text-lg font-semibold">
                 {(orderDetails
                   ? orderDetails.items.reduce(
                       (sum, item) => sum + item.unitPrice * item.amount,
@@ -371,6 +478,100 @@ const PaymentDialog: React.FC<PaymentDialogProps> = ({
               <label htmlFor="usePoints" className="ml-2 text-sm">
                 Sử dụng điểm tích luỹ
               </label>
+              {/* Display Discount Amount */}
+              {setting && usePoints && customer ? (
+                <span className="ml-auto text-sm text-gray-500">
+                  Giảm giá: -{" "}
+                  {(
+                    parseFloat(setting.value) * customer.discountPoint
+                  ).toLocaleString("vi-VN", {
+                    style: "currency",
+                    currency: "VND",
+                  })}
+                </span>
+              ) : null}
+            </div>
+            {/* Calculate Discount and Remaining Points */}
+            <div className="mt-4">
+              {setting && usePoints && customer ? (
+                <>
+                  <div className="flex justify-between text-sm">
+                    <span>Điểm tích luỹ đã sử dụng:</span>
+                    <span className="text-gray-500">
+                      -{" "}
+                      {Math.min(
+                        customer.discountPoint,
+                        Math.ceil(
+                          orderDetails.items.reduce(
+                            (sum, item) => sum + item.unitPrice * item.amount,
+                            0,
+                          ) / parseFloat(setting.value),
+                        ),
+                      ).toLocaleString("vi-VN")}
+                    </span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span>Điểm tích luỹ còn lại:</span>
+                    <span className="text-gray-500">
+                      {(usePoints &&
+                        customer.discountPoint -
+                          Math.min(
+                            customer.discountPoint,
+                            Math.ceil(
+                              orderDetails.items.reduce(
+                                (sum, item) =>
+                                  sum + item.unitPrice * item.amount,
+                                0,
+                              ) / parseFloat(setting.value),
+                            ),
+                          )) > 0
+                        ? (
+                            customer.discountPoint -
+                            Math.ceil(
+                              Math.min(
+                                orderDetails.items.reduce(
+                                  (sum, item) =>
+                                    sum + item.unitPrice * item.amount,
+                                  0,
+                                ) / parseFloat(setting.value),
+                              ),
+                            )
+                          ).toLocaleString("vi-VN")
+                        : "0"}
+                    </span>
+                  </div>
+                </>
+              ) : null}
+            </div>
+
+            {/* Final Total After Discount */}
+            <div className="flex items-center justify-between mt-4 border-t pt-4">
+              <span className="text-lg font-medium">Thành tiền:</span>
+              <span className="text-lg font-bold text-blue-600">
+                {orderDetails
+                  ? Math.max(
+                      0,
+                      orderDetails.items.reduce(
+                        (sum, item) => sum + item.unitPrice * item.amount,
+                        0,
+                      ) -
+                        (setting && usePoints && customer
+                          ? Math.min(
+                              customer.discountPoint *
+                                parseFloat(setting.value),
+                              orderDetails.items.reduce(
+                                (sum, item) =>
+                                  sum + item.unitPrice * item.amount,
+                                0,
+                              ),
+                            )
+                          : 0),
+                    ).toLocaleString("vi-VN", {
+                      style: "currency",
+                      currency: "VND",
+                    })
+                  : 0}
+              </span>
             </div>
           </div>
         </div>

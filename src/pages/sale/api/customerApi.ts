@@ -18,9 +18,12 @@ export async function createCustomer(c: CustomerCreate) {
   }
 }
 
-export async function updateCustomer(c: CustomerUpdate) {
+export async function updateCustomer(id: number, c: CustomerUpdate) {
   try {
-    const res = await axiosInstance.patch<CustomerUpdate>("/v1/customer", c);
+    const res = await axiosInstance.patch<CustomerUpdate>(
+      `/v1/customer/:${id}`,
+      c,
+    );
     return res.data;
   } catch (e) {
     console.error("Update customer error:", e);
