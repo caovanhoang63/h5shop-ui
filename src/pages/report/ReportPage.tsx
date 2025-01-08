@@ -10,7 +10,7 @@ import Container from "@/layouts/components/Container.tsx";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@radix-ui/react-dropdown-menu";
 import jsPDF from "jspdf";
-import { addDays, format } from "date-fns";
+import { format } from "date-fns";
 import { vi } from "date-fns/locale";
 import {
   categoryReport,
@@ -38,9 +38,13 @@ import { revenueAndExpenditureReport } from "@/pages/report/revenueAndExpenditur
 import { ExportButton } from "@/components/ExportButton.tsx";
 
 export const ReportPage = () => {
+  const getFirstDayOfCurrentMonth = (): Date => {
+    const now = new Date();
+    return new Date(now.getFullYear(), now.getMonth(), 1);
+  };
   const [date, setDate] = React.useState<DateRange | undefined>({
-    from: new Date(),
-    to: addDays(new Date(), 30),
+    from: getFirstDayOfCurrentMonth(),
+    to: getFirstDayOfCurrentMonth(),
   });
   const [reportType, setReportType] = useState<
     "daily" | "sale" | "inventory" | "RnE"
