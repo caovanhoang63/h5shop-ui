@@ -23,7 +23,7 @@ export async function getOrderById(id: number) {
 interface OrderTableResponse {
   data: OrderItemTable[];
   extra?: never;
-  paging?: never;
+  paging: Paging;
 }
 
 export async function getOrderTableApi(

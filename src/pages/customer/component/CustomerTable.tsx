@@ -49,6 +49,12 @@ const valueMap: IValueMap = {
   1: "Hoạt động",
 };
 
+const genderMap: IValueMap = {
+  female: "Nữ",
+  male: "Nam",
+  other: "Khác",
+};
+
 function CollorOrderRow({ status }: { status: number }) {
   return <div className={` ${colorMap[status]}`}>{valueMap[status]}</div>;
 }
@@ -100,7 +106,7 @@ const columnsCustomer: ColumnDef<CustomerItemTable>[] = [
     },
     cell: ({ row }) => (
       <div className="ml-4">
-        <div className="lowercase">{row.getValue("phoneNumber")}</div>
+        <div className="">{row.getValue("phoneNumber")}</div>
       </div>
     ),
   },
@@ -118,9 +124,7 @@ const columnsCustomer: ColumnDef<CustomerItemTable>[] = [
         </Button>
       );
     },
-    cell: ({ row }) => (
-      <div className="lowercase">{row.getValue("address")}</div>
-    ),
+    cell: ({ row }) => <div className="">{row.getValue("address")}</div>,
   },
   {
     accessorKey: "lastName",
@@ -136,9 +140,7 @@ const columnsCustomer: ColumnDef<CustomerItemTable>[] = [
         </Button>
       );
     },
-    cell: ({ row }) => (
-      <div className="lowercase">{row.getValue("lastName")}</div>
-    ),
+    cell: ({ row }) => <div className="">{row.getValue("lastName")}</div>,
   },
 
   {
@@ -155,9 +157,7 @@ const columnsCustomer: ColumnDef<CustomerItemTable>[] = [
         </Button>
       );
     },
-    cell: ({ row }) => (
-      <div className="lowercase">{row.getValue("firstName")}</div>
-    ),
+    cell: ({ row }) => <div className="">{row.getValue("firstName")}</div>,
   },
 
   {
@@ -174,11 +174,14 @@ const columnsCustomer: ColumnDef<CustomerItemTable>[] = [
         </Button>
       );
     },
-    cell: ({ row }) => (
-      <div className="ml-4">
-        {new Date(row.getValue("dateOfBirth")).toLocaleDateString()}
-      </div>
-    ),
+    cell: ({ row }) => {
+      const dateOfBirth = row.getValue("dateOfBirth") as string | number | null;
+      return (
+        <div className="ml-4">
+          {dateOfBirth ? new Date(dateOfBirth).toLocaleDateString() : ""}
+        </div>
+      );
+    },
   },
 
   {
@@ -196,7 +199,7 @@ const columnsCustomer: ColumnDef<CustomerItemTable>[] = [
       );
     },
     cell: ({ row }) => (
-      <div className="lowercase ml-4">{row.getValue("paymentAmount")}</div>
+      <div className="ml-4">{row.getValue("paymentAmount")}</div>
     ),
   },
 
@@ -215,7 +218,7 @@ const columnsCustomer: ColumnDef<CustomerItemTable>[] = [
       );
     },
     cell: ({ row }) => (
-      <div className="lowercase ml-4">{row.getValue("discountPoint")}</div>
+      <div className=" ml-4">{row.getValue("discountPoint")}</div>
     ),
   },
 
@@ -233,9 +236,12 @@ const columnsCustomer: ColumnDef<CustomerItemTable>[] = [
         </Button>
       );
     },
-    cell: ({ row }) => (
-      <div className="lowercase ml-4">{row.getValue("gender")}</div>
-    ),
+    cell: ({ row }) => {
+      const gender = row.getValue("gender") as string;
+      return (
+        <div className="ml-4">{genderMap[gender] || "Không xác định"}</div>
+      );
+    },
   },
   {
     accessorKey: "status",
@@ -268,7 +274,7 @@ const columnsCustomer: ColumnDef<CustomerItemTable>[] = [
 interface CustomerTableProps {
   dataCustomer: CustomerItemTable[];
   columnVisible: MenuVisibilityColumnTable[];
-  setPaging: React.Dispatch<React.SetStateAction<Paging>>;
+  setPaging: (page: number) => void;
   paging: Paging;
   onRecordUpdated: () => void;
 }
@@ -311,7 +317,7 @@ export function CustomerTable({
 
   const handleClickPrevious = () => {
     if (paging.page === 1) return;
-    setPaging({ limit: 10, page: paging.page ? paging.page - 1 : 1 });
+    setPaging(paging.page ? paging.page - 1 : 1);
   };
 
   const handleClickNext = () => {
@@ -321,7 +327,7 @@ export function CustomerTable({
       paging.page === Math.ceil(paging.total / paging.limit)
     )
       return;
-    setPaging({ limit: 10, page: paging.page ? paging.page + 1 : 1 });
+    setPaging(paging.page ? paging.page + 1 : 1);
   };
 
   const table = useReactTable<CustomerItemTable>({
@@ -435,21 +441,19 @@ export function CustomerTable({
             onClick={handleClickPrevious}
             disabled={paging.page === 1}
           >
-            Previous
+            Trước
           </Button>
           <Button
             variant="outline"
             size="sm"
             onClick={handleClickNext}
-            //eslint-disable-next-line @typescript-eslint/ban-ts-comment
-            //@ts-expect-error
             disabled={
-              /*!table.getCanNextPage()*/ paging.total &&
-              paging.limit &&
-              paging.page === Math.ceil(paging.total / paging.limit)
+              paging.page ===
+                Math.ceil((paging.total || 0) / (paging.limit || 20)) ||
+              Math.ceil((paging.total || 0) / (paging.limit || 20)) === 0
             }
           >
-            Next
+            Sau
           </Button>
         </div>
       </div>

@@ -117,13 +117,14 @@ export const OrderPage = () => {
     getOrderTableApi(filters, paging)
       .then((response) => {
         setOrderReport(response.data);
+        setPaging({ ...paging, total: response.paging?.total });
         console.log(response);
       })
       .catch((error) => {
         toast.error("Lỗi hệ thống!");
         console.log(error);
       });
-  }, [filters, paging]);
+  }, [filters]);
   const [fields, setFields] = useState<MenuVisibilityColumnTable[]>([
     { label: "Mã hoá đơn", key: "id", visible: true },
     { label: "Cập nhập lần cuối", key: "updatedAt", visible: true },

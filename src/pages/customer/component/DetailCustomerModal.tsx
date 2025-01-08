@@ -26,10 +26,10 @@ import {
 import { format } from "date-fns";
 import { Customer, CustomerGender } from "@/types/customer/customer.ts";
 import { toast } from "react-toastify";
-import { updateCustomer } from "@/pages/sale/api/customerApi.ts";
 import { Save, XCircle } from "lucide-react";
 import { CustomerUpdate } from "@/types/customer/customerUpdate.ts";
 import { NoBorderInput } from "@/components/NoBorderInput.tsx";
+import { updateCustomer } from "@/pages/customer/api/customerApi.ts";
 
 interface DetailCustomerModalProps {
   customer?: Customer;
@@ -115,12 +115,15 @@ export const DetailCustomerModal: React.FC<DetailCustomerModalProps> = ({
   };
 
   useEffect(() => {
-    setFormData({
-      address: customer?.address || "",
-      firstName: customer?.firstName || "",
-      lastName: customer?.lastName || "",
-      dateOfBirth: customer?.dateOfBirth || undefined,
-    });
+    if (customer) {
+      setFormData({
+        address: customer.address || "",
+        firstName: customer.firstName || "",
+        lastName: customer.lastName || "",
+        dateOfBirth: customer.dateOfBirth || undefined,
+        gender: customer.gender || CustomerGender.Other,
+      });
+    }
   }, [customer]);
 
   return (

@@ -1,7 +1,6 @@
 import { Customer } from "@/types/customer/customer.ts";
 import axiosInstance from "@/axiosSetup.ts";
 import { CustomerCreate } from "@/types/customer/customerCreate.ts";
-import { CustomerUpdate } from "@/types/customer/customerUpdate.ts";
 import { CustomerListFilter } from "@/types/customer/customerListFilter.ts";
 import { formatISO } from "date-fns";
 
@@ -14,19 +13,6 @@ export async function createCustomer(c: CustomerCreate) {
     return res.data;
   } catch (e) {
     console.error("Create customer error:", e);
-    throw e;
-  }
-}
-
-export async function updateCustomer(id: number, c: CustomerUpdate) {
-  try {
-    const res = await axiosInstance.patch<CustomerUpdate>(
-      `/v1/customer/:${id}`,
-      c,
-    );
-    return res.data;
-  } catch (e) {
-    console.error("Update customer error:", e);
     throw e;
   }
 }

@@ -3,6 +3,7 @@ import axiosInstance from "@/axiosSetup.ts";
 import { CustomerItemTable } from "@/types/customer/customerItemTable.ts";
 import { CustomerListFilter } from "@/types/customer/customerListFilter.ts";
 import { Paging } from "@/types/paging";
+import { CustomerUpdate } from "@/types/customer/customerUpdate.ts";
 
 interface CustomerResponse {
   data: Customer;
@@ -22,10 +23,23 @@ export async function getCustomerById(id: number) {
   }
 }
 
+export async function updateCustomer(id: number, c: CustomerUpdate) {
+  try {
+    const res = await axiosInstance.patch<CustomerUpdate>(
+      `/v1/customer/${id}`,
+      c,
+    );
+    return res.data;
+  } catch (e) {
+    console.error("Update customer error:", e);
+    throw e;
+  }
+}
+
 interface CustomerTableResponse {
   data: CustomerItemTable[];
   extra?: never;
-  paging?: never;
+  paging?: Paging;
 }
 export async function getCustomerTableApi(
   filters: CustomerListFilter,

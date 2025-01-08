@@ -261,7 +261,7 @@ const columnsOrder: ColumnDef<OrderItemTable>[] = [
 interface OrderTableProps {
   dataOrder: OrderItemTable[];
   columnVisible: MenuVisibilityColumnTable[];
-  setPaging: React.Dispatch<React.SetStateAction<Paging>>;
+  setPaging: (page: number) => void;
   paging: Paging;
 }
 export function OrderTable({
@@ -302,7 +302,7 @@ export function OrderTable({
 
   const handleClickPrevious = () => {
     if (paging.page === 1) return;
-    setPaging({ limit: 10, page: paging.page ? paging.page - 1 : 1 });
+    setPaging(paging.page ? paging.page - 1 : 1);
   };
 
   const handleClickNext = () => {
@@ -312,17 +312,17 @@ export function OrderTable({
       paging.page === Math.ceil(paging.total / paging.limit)
     )
       return;
-    setPaging({ limit: 10, page: paging.page ? paging.page + 1 : 1 });
+    setPaging(paging.page ? paging.page + 1 : 1);
   };
 
-  const handleOrderDelete = (orderId: number) => {
+  const handleOrderDelete = () => {
     setOrderReportDetails(undefined); // Reset modal state
     setIsOpenOrderModal(false); // Close modal
     // Filter out orders with status = 1 or the deleted order
-    const updatedData = dataOrder.filter(
-      (order) => order.id !== orderId && order.status !== 1,
-    );
-    setPaging((prev) => ({ ...prev, total: updatedData.length }));
+    // const updatedData = dataOrder.filter(
+    //   (order) => order.id !== orderId && order.status !== 1,
+    // );
+    setPaging(1);
   };
 
   const table = useReactTable<OrderItemTable>({
@@ -362,7 +362,7 @@ export function OrderTable({
         isOpen={isOpenOrderModal}
         onOpenChange={setIsOpenOrderModal}
         order={orderReportDetails}
-        onOrderDelete={() => handleOrderDelete(orderReportDetails?.id || 0)}
+        onOrderDelete={() => handleOrderDelete()}
       ></OrderDetailModal>
       <div className="rounded-md border">
         <Table>
@@ -436,21 +436,19 @@ export function OrderTable({
             onClick={handleClickPrevious}
             disabled={paging.page === 1}
           >
-            Previous
+            Trước
           </Button>
           <Button
             variant="outline"
             size="sm"
             onClick={handleClickNext}
-            //eslint-disable-next-line @typescript-eslint/ban-ts-comment
-            //@ts-expect-error
             disabled={
-              /*!table.getCanNextPage()*/ paging.total &&
-              paging.limit &&
-              paging.page === Math.ceil(paging.total / paging.limit)
+              paging.page ===
+                Math.ceil((paging.total || 0) / (paging.limit || 20)) ||
+              Math.ceil((paging.total || 0) / (paging.limit || 20)) === 0
             }
           >
-            Next
+            Sau
           </Button>
         </div>
       </div>

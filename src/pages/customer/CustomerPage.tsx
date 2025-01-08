@@ -62,13 +62,14 @@ export const CustomerPage = () => {
     getCustomerTableApi(filters, paging)
       .then((response) => {
         setCustomerReport(response.data);
+        setPaging({ ...paging, total: response.paging?.total });
         console.log(response);
       })
       .catch((error) => {
         toast.error("Lỗi hệ thống!");
         console.log(error);
       });
-  }, [filters, paging]);
+  }, [filters]);
   const [fields, setFields] = useState<MenuVisibilityColumnTable[]>([
     { label: "Mã khách hàng", key: "id", visible: true },
     { label: "Số điện thoại", key: "phoneNumber", visible: true },
