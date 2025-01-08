@@ -130,6 +130,14 @@ export const MainRoute = () => {
           path={"order"}
           element={CheckRole(["admin", "sale_staff", "owner"], OrderPage)}
         />
+        <Route
+          path={"customer"}
+          element={CheckRole(["admin", "sale_staff", "owner"], CustomerPage)}
+        />
+        <Route
+          path={"order"}
+          element={CheckRole(["admin", "sale_staff", "owner"], OrderPage)}
+        />
       </Route>
       <Route
         path="/sale"
