@@ -1,6 +1,6 @@
 import Container from "@/layouts/components/Container.tsx";
 import { Input } from "@/components/ui/input.tsx";
-import { FileOutputIcon, Plus, Search } from "lucide-react";
+import { Plus, Search } from "lucide-react";
 import { Button } from "@/components/ui/button.tsx";
 import TriangleDown from "@/components/icons/TriangleDown.tsx";
 import { DataTableDemo } from "@/pages/product/DataTable.tsx";
@@ -23,6 +23,7 @@ import { LoadingAnimation } from "@/components/ui/LoadingAnimation.tsx";
 import CategoryModal from "@/pages/product/CategoryModal.tsx";
 import BrandModal from "@/pages/product/BrandModal.tsx";
 import { PagingSpu } from "@/types/spu/PagingSpu.ts";
+import { ExportButton } from "@/components/ExportButton.tsx";
 
 export default function ProductPage() {
   const [fields, setFields] = useState<MenuVisibilityColumnTable[]>([
@@ -213,10 +214,7 @@ export default function ProductPage() {
               Thêm mới
               <TriangleDown />
             </Button>
-            <Button className={"bg-green-500"}>
-              <FileOutputIcon />
-              Xuất file
-            </Button>
+            <ExportButton data={spuList} fileName={"SpuList"} />
             <ButtonVisibilityColumnTable
               menus={fields}
               onCheckChange={handleCheckField}

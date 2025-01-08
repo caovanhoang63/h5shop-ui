@@ -59,7 +59,7 @@ export default function WarrantyModal({
     amount: 0,
     returnDate: new Date(),
     note: "",
-    status: 0,
+    status: 1,
     createdAt: "",
     updatedAt: "",
   });
@@ -85,7 +85,7 @@ export default function WarrantyModal({
       amount: 0,
       returnDate: new Date(),
       note: "",
-      status: 0,
+      status: 1,
       createdAt: "",
       updatedAt: "",
     });
@@ -276,26 +276,28 @@ export default function WarrantyModal({
                   </PopoverContent>
                 </Popover>
               </div>
-              <div className={"flex flex-row space-x-4"}>
-                <label className={"w-6/12 font-semibold"}>Tình trạng</label>
-                <Select
-                  defaultValue={"0"}
-                  value={warranty.status.toString()}
-                  onValueChange={(value) =>
-                    setWarrantyByField("status", Number(value))
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue
-                      placeholder={"Chọn loại bảo hành"}
-                    ></SelectValue>
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value={"1"}>Đang bảo hành</SelectItem>
-                    <SelectItem value={"2"}>Đã xong</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+              {!isAdd && (
+                <div className={"flex flex-row space-x-4"}>
+                  <label className={"w-6/12 font-semibold"}>Tình trạng</label>
+                  <Select
+                    defaultValue={"0"}
+                    value={warranty.status.toString()}
+                    onValueChange={(value) =>
+                      setWarrantyByField("status", Number(value))
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue
+                        placeholder={"Chọn loại bảo hành"}
+                      ></SelectValue>
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value={"1"}>Đang bảo hành</SelectItem>
+                      <SelectItem value={"2"}>Đã xong</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
             </div>
           </div>
 

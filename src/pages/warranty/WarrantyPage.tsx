@@ -6,7 +6,7 @@ import {
 import { PagingSpu } from "@/types/spu/PagingSpu.ts";
 import { LoadingAnimation } from "@/components/ui/LoadingAnimation.tsx";
 import Container from "@/layouts/components/Container.tsx";
-import { CalendarIcon, FileOutputIcon, Plus, Search } from "lucide-react";
+import { CalendarIcon, Plus, Search } from "lucide-react";
 import { Input } from "@/components/ui/input.tsx";
 import { Button } from "@/components/ui/button.tsx";
 import TriangleDown from "@/components/icons/TriangleDown.tsx";
@@ -36,6 +36,7 @@ import { endOfMonth, format, startOfMonth } from "date-fns";
 import { Calendar } from "@/components/ui/calendar.tsx";
 import { SelectRangeEventHandler } from "react-day-picker";
 import { CheckBoxWithText } from "@/components/CheckBoxWithText.tsx";
+import { ExportButton } from "@/components/ExportButton.tsx";
 
 export default function WarrantyPage() {
   const [fields, setFields] = useState<MenuVisibilityColumnTable[]>([
@@ -253,10 +254,7 @@ export default function WarrantyPage() {
               Thêm mới
               <TriangleDown />
             </Button>
-            <Button className={"bg-green-500"}>
-              <FileOutputIcon />
-              Xuất file
-            </Button>
+            <ExportButton data={warrantyList} fileName={"Phiếu bảo hành"} />
             <ButtonVisibilityColumnTable
               menus={fields}
               onCheckChange={handleCheckField}

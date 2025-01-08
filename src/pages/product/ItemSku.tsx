@@ -49,7 +49,7 @@ export const ItemSku = ({
     SkuWholesalePriceCreate[]
   >([]);
   const [price, setPrice] = useState<number>(0);
-  const [stock, setStock] = useState<number>(0);
+  //const [stock, setStock] = useState<number>(0);
   const [skuTierIdx, setSkuTierIdx] = useState<number[]>([]);
   const [image, setImage] = useState<Image>();
 
@@ -77,7 +77,7 @@ export const ItemSku = ({
 
     // Price, Cost, Stock
     setPrice(sku.price);
-    setStock(sku.stock);
+    //setStock(sku.stock);
 
     // WholeSalePrice
     if (sku.wholesalePrices) {
@@ -156,14 +156,14 @@ export const ItemSku = ({
     setSku(indexSku, { ...sku, price: newValue });
   };
 
-  const handleSetStock = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newValue: number = Number(e.target.value);
-    if (isNaN(newValue)) {
-      return;
-    }
-    setStock(newValue);
-    setSku(indexSku, { ...sku, stock: newValue });
-  };
+  // const handleSetStock = (e: React.ChangeEvent<HTMLInputElement>) => {
+  //   const newValue: number = Number(e.target.value);
+  //   if (isNaN(newValue)) {
+  //     return;
+  //   }
+  //   setStock(newValue);
+  //   setSku(indexSku, { ...sku, stock: newValue });
+  // };
 
   const handleSetImage = (image: Image) => {
     setImage(image);
@@ -209,12 +209,7 @@ export const ItemSku = ({
                 value={attrSelected.filter((item) => item !== "").join(" - ")}
               />
             </div>
-            <div className={"flex flex-row items-center"}>
-              <Label className={"w-5/12"} htmlFor="name">
-                Vị trí
-              </Label>
-              <Input id="name" className={"h-8"} />
-            </div>
+
             <Card>
               <CardContent className={"pb-0"}>
                 <Accordion type="single" collapsible>
@@ -282,17 +277,7 @@ export const ItemSku = ({
                 onChange={(e) => handleSetPrice(e)}
               />
             </div>
-            <div className={"flex flex-row items-center"}>
-              <Label className={"w-5/12"} htmlFor="name">
-                Tồn kho
-              </Label>
-              <Input
-                id="name"
-                value={stock}
-                className={"h-8"}
-                onChange={(e) => handleSetStock(e)}
-              />
-            </div>
+
             <Card>
               <CardContent className={"pb-0"}>
                 <Accordion type="single" collapsible>
