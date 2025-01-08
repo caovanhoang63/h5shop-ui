@@ -91,7 +91,10 @@ export const CustomerPage = () => {
   };
   console.log("filter", filters);
   console.log("paging", paging);
-
+  const handleSetPaging = (page: number) => {
+    setPaging({ ...paging, page });
+    setFilters({ ...filters, page });
+  };
   return (
     <Container className={"grid grid-cols-5 gap-4 grid-flow-row"}>
       <div className={"text-2xl col-span-1 font-bold"}>
@@ -167,7 +170,7 @@ export const CustomerPage = () => {
                 console.log(error);
               });
           }}
-          setPaging={setPaging}
+          setPaging={handleSetPaging}
           paging={paging}
         ></CustomerTable>
       </div>
